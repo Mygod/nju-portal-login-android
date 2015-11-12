@@ -1,0 +1,4 @@
+.idea
+target
+*.aar
+proguard-sbt.txt
