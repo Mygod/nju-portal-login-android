@@ -28,5 +28,6 @@ localAars in Android += baseDirectory.value / "mygod-lib-android.aar"
 
 proguardOptions in Android ++= Seq("-keep class android.support.v7.preference.PreferenceScreen { <init>(...); }",
   "-keep class android.support.v7.preference.PreferenceCategory { <init>(...); }",
+  "-keep class android.support.v14.preference.SwitchPreference { <init>(...); }",
   "-keep class tk.mygod.preference.EditTextPreference { <init>(...); }",
   "-dontwarn com.thoughtworks.paranamer.**")
