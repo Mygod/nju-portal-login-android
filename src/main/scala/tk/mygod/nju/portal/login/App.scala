@@ -15,20 +15,16 @@ import scala.concurrent.Future
 object App {
   var instance: App = _
 
-  final val DEBUG = true
-  private final val TAG = "App"
-  final val prefName = "pref"
-  final val autoConnectEnabledKey = "autoConnect.enabled"
+  val DEBUG = true
+  private val TAG = "App"
+  val prefName = "pref"
+  val autoConnectEnabledKey = "autoConnect.enabled"
 
-  final val systemId = "NJUPortalLogin"
-  final val systemDir = "/system/priv-app/" + systemId
-  final val systemPath = systemDir + "/" + systemId + ".apk"
+  val http = "http"
 
-  final val http = "http"
-  final val portalDomain = "p.nju.edu.cn"
-  final val post = "POST"
-  final val replyCode = "reply_code"
-  final val replyMsg = "reply_msg"
+  val systemId = "NJUPortalLogin"
+  val systemDir = "/system/priv-app/" + systemId
+  val systemPath = systemDir + "/" + systemId + ".apk"
 
   lazy val isRoot = SU.available
 

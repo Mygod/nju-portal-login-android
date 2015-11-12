@@ -15,11 +15,19 @@
         <android.support.v7.preference.Preference android:key="autoConnect.useBindedConnections"
                                                   android:title="Use binded connections"/>
     </android.support.v7.preference.PreferenceCategory>
-    <android.support.v7.preference.PreferenceCategory android:title="Manual connect">
-        <android.support.v7.preference.Preference android:key="manualConnect.login"
-                                                  android:title="Login"/>
-        <android.support.v7.preference.Preference android:key="manualConnect.logout"
-                                                  android:title="Logout"/>
+    <android.support.v7.preference.PreferenceCategory android:title="Status">
+        <android.support.v7.preference.Preference android:key="status.login" android:title="Login"/>
+        <android.support.v7.preference.Preference android:key="status.logout" android:title="Logout"/>
+        <android.support.v7.preference.Preference android:key="status.username" android:title="Username"/>
+        <android.support.v7.preference.Preference android:key="status.fullname" android:title="Full name"/>
+        <android.support.v7.preference.Preference android:key="status.service_name" android:title="Service name"/>
+        <android.support.v7.preference.Preference android:key="status.area_name" android:title="Area name"/>
+        <android.support.v7.preference.Preference android:key="status.acctstarttime"
+                                                  android:title="Activity start time"/>
+        <android.support.v7.preference.Preference android:key="status.balance" android:title="Balance"/>
+        <android.support.v7.preference.Preference android:key="status.useripv4" android:title="IPv4 address"/>
+        <android.support.v7.preference.Preference android:key="status.useripv6" android:title="IPv6 address"/>
+        <android.support.v7.preference.Preference android:key="status.mac" android:title="MAC address"/>
     </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory android:title="Misc">
         <android.support.v7.preference.Preference android:key="misc.update"

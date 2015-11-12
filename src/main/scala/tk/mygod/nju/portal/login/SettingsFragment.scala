@@ -1,10 +1,25 @@
 package tk.mygod.nju.portal.login
 
+import java.net.InetAddress
+import java.text.{DateFormat, SimpleDateFormat, DecimalFormat}
+import java.util.Date
+
 import android.os.Bundle
 import android.support.v7.preference.Preference
-import tk.mygod.preference.{EditTextPreferenceDialogFragment, EditTextPreference, PreferenceFragmentPlus}
+import android.util.Log
+import org.json4s.JObject
+import tk.mygod.preference.{EditTextPreference, EditTextPreferenceDialogFragment, PreferenceFragmentPlus}
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
+object SettingsFragment {
+  private val TAG = "SettingsFragment"
+}
 
 final class SettingsFragment extends PreferenceFragmentPlus {
+  import SettingsFragment._
+
   private lazy val activity = getActivity.asInstanceOf[MainActivity]
 
   def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
@@ -40,18 +55,37 @@ final class SettingsFragment extends PreferenceFragmentPlus {
         case 3 => "Enabled."
       }))
 
-    findPreference("manualConnect.login").setOnPreferenceClickListener((preference: Preference) => {
-      PortalManager.login()
+    findPreference("status.login").setOnPreferenceClickListener((preference: Preference) => {
+      Future(PortalManager.login())
       true
     })
-    findPreference("manualConnect.logout").setOnPreferenceClickListener((preference: Preference) => {
-      PortalManager.logout
+    findPreference("status.logout").setOnPreferenceClickListener((preference: Preference) => {
+      Future(PortalManager.logout)
       true
     })
+    PortalManager.setUserInfoListener(userInfoUpdated)
   }
 
   override def onDisplayPreferenceDialog(preference: Preference) =
     if (preference.isInstanceOf[EditTextPreference])
       displayPreferenceDialog(new EditTextPreferenceDialogFragment(preference.getKey))
     else super.onDisplayPreferenceDialog(preference)
+
+  override def onDestroy {
+    PortalManager.setUserInfoListener(null)
+    super.onDestroy
+  }
+
+  def userInfoUpdated(info: JObject) = for ((key, value) <- info.values) {
+    val preference = findPreference("status." + key)
+    if (preference == null) Log.e(TAG, "Unknown key in user_info: " + key) else preference.setSummary(key match {
+      case "acctstarttime" => DateFormat.getDateTimeInstance.format(new Date(value.asInstanceOf[BigInt].toLong * 1000))
+      case "balance" => new DecimalFormat("0.00").format(value.asInstanceOf[BigInt].toInt / 100.0)
+      case "useripv4" =>
+        val bytes = value.asInstanceOf[BigInt].toInt
+        InetAddress.getByAddress(Array[Byte]((bytes >>> 24 & 0xFF).toByte, (bytes >>> 16 & 0xFF).toByte,
+          (bytes >>> 8 & 0xFF).toByte, (bytes & 0xFF).toByte)).getHostAddress
+      case _ => value.toString
+    })
+  }
 }

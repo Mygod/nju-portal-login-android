@@ -11,7 +11,7 @@ import android.widget.Toast
 import scala.collection.JavaConverters._
 
 object NetworkConditionsReceiver {
-  final val TAG = "NetworkConditionsReceiver"
+  val TAG = "NetworkConditionsReceiver"
 }
 
 final class NetworkConditionsReceiver extends BroadcastReceiver {

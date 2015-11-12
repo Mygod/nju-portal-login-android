@@ -12,10 +12,10 @@ import tk.mygod.app.ToolbarActivity
 import scala.collection.JavaConverters._
 
 object MainActivity {
-  final val TAG = "MainActivity"
+  val TAG = "MainActivity"
 
-  final val askedBindedConnection = "askedBindedConnection"
-  final val askedNetworkMonitor = "askedNetworkMonitor"
+  val askedBindedConnection = "askedBindedConnection"
+  val askedNetworkMonitor = "askedNetworkMonitor"
 }
 
 final class MainActivity extends ToolbarActivity {
@@ -41,8 +41,8 @@ final class MainActivity extends ToolbarActivity {
         .setTitle("Enable system NetworkMonitor?")
         .setMessage("System NetworkMonitor can be enabled to save battery via changing this app to a system privileged app. Do you want to do this now?")
         .setPositiveButton(android.R.string.yes, ((dialog: DialogInterface, which: Int) => su(
-          "mount -o rw,remount /system && mkdir " + App.systemDir + " && chmod 755 " + App.systemDir + " && mv " +
-          getApplicationInfo.sourceDir + ' ' + App.systemPath)): DialogInterface.OnClickListener)
+          "mount -o rw,remount /system && mkdir %1$s && chmod 755 %1$s && mv %2$s %3$s"
+            .format(App.systemDir, getApplicationInfo.sourceDir, App.systemPath))): DialogInterface.OnClickListener)
         .setNegativeButton(android.R.string.no, null).create.show
       App.instance.editor.putBoolean(askedNetworkMonitor, true).apply
       true
