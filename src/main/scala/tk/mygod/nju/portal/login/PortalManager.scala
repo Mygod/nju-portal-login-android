@@ -15,7 +15,6 @@ import tk.mygod.util.IOUtils
 //noinspection JavaAccessorMethodCalledAsEmptyParen
 object PortalManager {
   private final val TAG = "PortalManager"
-  private case class PortalResult(reply_code: Int, reply_msg: String)
   private implicit val formats = Serialization.formats(NoTypeHints)
 
   private def networkTransportType: Int = App.testingNetwork.getType match {
@@ -45,11 +44,12 @@ object PortalManager {
   }
 
   private def processResult(resultStr: String) = {
+    if (App.DEBUG) Log.d(TAG, resultStr)
     val json = parse(resultStr)
-    val result = json.extract[PortalResult]
-    // TODO: disable toast option
-    Toast.makeText(App.instance, "#%d: %s".format(result.reply_code, result.reply_msg), Toast.LENGTH_SHORT).show
-    result
+    val code = json \ App.replyCode extractOrElse -1
+    // TODO: disable toast option (quiet mode)
+    Toast.makeText(App.instance, "#%d: %s".format(code, json \ App.replyMsg extractOrElse "null"), Toast.LENGTH_SHORT).show
+    code
   }
 
   /**
@@ -69,7 +69,7 @@ object PortalManager {
       conn.setDoOutput(true)
       (() => conn.getOutputStream).closeAfter(os => IOUtils.writeAllText(os, "username=%s&password=%s".format(
         App.instance.pref.getString("account.username", ""), App.instance.pref.getString("account.password", ""))))
-      if (processResult(IOUtils.readAllText(conn.getInputStream())).reply_code == 1) return
+      if (processResult(IOUtils.readAllText(conn.getInputStream())) == 1) return
     } catch {
       case e: Throwable =>
         Toast.makeText(App.instance, e.getMessage, Toast.LENGTH_SHORT).show

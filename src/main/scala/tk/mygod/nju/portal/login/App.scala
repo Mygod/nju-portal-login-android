@@ -27,6 +27,8 @@ object App {
   final val http = "http"
   final val portalDomain = "p.nju.edu.cn"
   final val post = "POST"
+  final val replyCode = "reply_code"
+  final val replyMsg = "reply_msg"
 
   lazy val isRoot = SU.available
 
