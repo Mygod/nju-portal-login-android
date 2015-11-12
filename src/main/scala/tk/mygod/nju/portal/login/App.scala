@@ -1,7 +1,7 @@
 package tk.mygod.nju.portal.login
 
 import android.app.Application
-import android.content.Context
+import android.content.{ComponentName, Context}
 import android.content.pm.PackageManager
 import android.net.{ConnectivityManager, NetworkInfo}
 import android.os.{Handler, Build}
@@ -18,6 +18,7 @@ object App {
   final val DEBUG = true
   private final val TAG = "App"
   final val prefName = "pref"
+  final val autoConnectEnabledKey = "autoConnect.enabled"
 
   final val systemId = "NJUPortalLogin"
   final val systemDir = "/system/priv-app/" + systemId
@@ -68,4 +69,12 @@ class App extends Application {
   lazy val pref = getSharedPreferences(prefName, Context.MODE_PRIVATE)
   lazy val editor = pref.edit
   lazy val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE).asInstanceOf[ConnectivityManager]
+
+  def autoConnectEnabled = pref.getBoolean(autoConnectEnabledKey, true)
+  def autoConnectEnabled(value: Boolean) = {
+    editor.putBoolean(autoConnectEnabledKey, value)
+    getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[NetworkConditionsReceiver]),
+      if (value) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+      PackageManager.DONT_KILL_APP)
+  }
 }

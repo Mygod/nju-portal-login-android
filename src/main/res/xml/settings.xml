@@ -6,4 +6,25 @@
         <tk.mygod.preference.EditTextPreference android:key="account.password" android:title="Password"
                                                 android:inputType="textPassword" android:summary="%s"/>
     </android.support.v7.preference.PreferenceCategory>
+    <android.support.v7.preference.PreferenceCategory android:title="Auto connect">
+        <android.support.v14.preference.SwitchPreference android:key="autoConnect.enabled"
+                                                         android:title="Enabled"
+                                                         android:defaultValue="true"/>
+        <android.support.v7.preference.Preference android:key="autoConnect.useSystemNetworkMonitor"
+                                                  android:title="Use system NetworkMonitor"/>
+        <android.support.v7.preference.Preference android:key="autoConnect.useBindedConnections"
+                                                  android:title="Use binded connections"/>
+    </android.support.v7.preference.PreferenceCategory>
+    <android.support.v7.preference.PreferenceCategory android:title="Manual connect">
+        <android.support.v7.preference.Preference android:key="manualConnect.login"
+                                                  android:title="Login"/>
+        <android.support.v7.preference.Preference android:key="manualConnect.logout"
+                                                  android:title="Logout"/>
+    </android.support.v7.preference.PreferenceCategory>
+    <android.support.v7.preference.PreferenceCategory android:title="Misc">
+        <android.support.v7.preference.Preference android:key="misc.update"
+                                                  android:title="Check for updates"/>
+        <android.support.v7.preference.Preference android:key="misc.support"
+                                                  android:title="FAQ &amp; Support"/>
+    </android.support.v7.preference.PreferenceCategory>
 </android.support.v7.preference.PreferenceScreen>

@@ -26,18 +26,21 @@ object PortalManager {
     case _ => NetworkCapabilities.TRANSPORT_CELLULAR  // should probably never hit
   }
 
-  private def bindNetwork[T](callback: Network => T) = App.testingNetwork.synchronized {
-    if (App.instance.bindedConnectionsAvailable > 1) {
-      if (App.DEBUG) Log.d(TAG, "Binding to network with type: " + networkTransportType)
-      App.instance.connectivityManager.requestNetwork(
-        new NetworkRequest.Builder().addTransportType(networkTransportType).build, new NetworkCallback {
-          override def onAvailable(network: Network) = callback(network)
-        })
-    } else {
-      //noinspection ScalaDeprecation
-      App.instance.connectivityManager.setNetworkPreference(App.testingNetwork.getType)
-      if (App.DEBUG) Log.d(TAG, "Setting network preference: " + App.testingNetwork.getType)
-      callback(null)
+  private def bindNetwork[T](callback: Network => T) {
+    if (App.testingNetwork == null) return
+    App.testingNetwork.synchronized {
+      if (App.instance.bindedConnectionsAvailable > 1) {
+        if (App.DEBUG) Log.d(TAG, "Binding to network with type: " + networkTransportType)
+        App.instance.connectivityManager.requestNetwork(
+          new NetworkRequest.Builder().addTransportType(networkTransportType).build, new NetworkCallback {
+            override def onAvailable(network: Network) = callback(network)
+          })
+      } else {
+        //noinspection ScalaDeprecation
+        App.instance.connectivityManager.setNetworkPreference(App.testingNetwork.getType)
+        if (App.DEBUG) Log.d(TAG, "Setting network preference: " + App.testingNetwork.getType)
+        callback(null)
+      }
     }
   }
 
