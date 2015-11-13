@@ -89,7 +89,7 @@ object PortalManager {
   /**
     * Based on: https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/connectivity/NetworkMonitor.java#640
     */
-  def login[T](network: NetworkInfo = null, onResult: Option[Int] => T = null) = bindNetwork(network, network => {
+  def login(network: Network, onResult: Option[Int] => Unit) {
     if (App.DEBUG) Log.d(TAG, "Logging in...")
     try any2CloseAfterDisconnectable(() => {
       val url = new URL(http, portalDomain, "/portal_io/login")
@@ -103,14 +103,17 @@ object PortalManager {
       conn.setDoOutput(true)
       (() => conn.getOutputStream).closeAfter(os => IOUtils.writeAllText(os, "username=%s&password=%s".format(
         App.instance.pref.getString("account.username", ""), App.instance.pref.getString("account.password", ""))))
-      if (onResult != null) onResult(Some(processResult(IOUtils.readAllText(conn.getInputStream()))))
+      val result = processResult(IOUtils.readAllText(conn.getInputStream()))
+      if (onResult != null) onResult(Some(result))
     } catch {
       case e: Exception =>
         App.instance.showToast(e.getMessage)
         e.printStackTrace
         if (onResult != null) onResult(None)
     }
-  })
+  }
+  def login(network: NetworkInfo = null, onResult: Option[Int] => Unit = null): Unit =
+    bindNetwork(network, network => login(network, onResult))
 
   def logout(network: NetworkInfo = null) = bindNetwork(network, network => {
     try {
@@ -144,8 +147,10 @@ final class PortalManager extends Service {
     @volatile var networkAvailable: Boolean = _
     private var network: Network = _
 
-    def work =
-      if (networkInfo.getType != ConnectivityManager.TYPE_WIFI || App.instance.systemNetworkMonitorAvailable != 3)
+    def work {
+      val skip = App.instance.pref.getBoolean("speed.skipConnect", false)
+      if (!skip && networkInfo.getType != ConnectivityManager.TYPE_WIFI ||
+        App.instance.systemNetworkMonitorAvailable != 3) {
         bindNetwork(networkInfo, network => Future {
           this.network = network
           if (App.DEBUG) Log.d(TAG, "Testing connection manually...")
@@ -165,17 +170,18 @@ final class PortalManager extends Service {
               onNetworkAvailable(SystemClock.elapsedRealtime - time)
           } catch {
             case e: SocketTimeoutException =>
-              login(networkInfo, onLoginResult)
+              login(network, onLoginResult _)
             case e: Exception =>
               App.instance.showToast(e.getMessage)
               e.printStackTrace
               taskEnded
           }
         })
-      else {
-        Thread.sleep(App.instance.connectTimeout)
-        if (isStopped) taskEnded else if (!networkAvailable) login(networkInfo, onLoginResult)
+        return
       }
+      if (!skip) Thread.sleep(App.instance.connectTimeout)
+      if (isStopped) taskEnded else if (!networkAvailable) login(networkInfo, onLoginResult _)
+    }
 
     def onLoginResult(code: Option[Int]): Unit = if (code.contains(1) || code.contains(6)) {
       //noinspection ScalaDeprecation
@@ -185,7 +191,7 @@ final class PortalManager extends Service {
       taskEnded
     } else if (isStopped) taskEnded else {
       Thread.sleep(App.instance.pref.getInt("speed.retryDelay", 4000))
-      login(networkInfo, onLoginResult)
+      login(networkInfo, onLoginResult _)
     }
 
     def taskEnded = if (isTesting(networkInfo)) {

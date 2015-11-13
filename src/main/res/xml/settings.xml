@@ -40,18 +40,20 @@
         <android.support.v7.preference.Preference android:key="status.mac" android:title="@string/settings_status_mac"/>
     </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory android:title="@string/settings_speed">
+        <android.support.v14.preference.SwitchPreference android:key="speed.skipConnect"
+                                                         android:title="@string/settings_speed_skip_connect"/>
         <tk.mygod.preference.NumberPickerPreference android:key="speed.connectTimeout"
-                                                    android:defaultValue="4000" app:min="0" app:max="11111"
+                                                    android:defaultValue="4000" app:max="11111"
                                                     android:title="@string/settings_speed_connect_timeout"
-                                                    android:summary="@string/settings_speed_ms"/>
+                                                    android:summary="@string/settings_speed_timeout_summary"/>
         <tk.mygod.preference.NumberPickerPreference android:key="speed.loginTimeout"
-                                                    android:defaultValue="4000" app:min="0" app:max="11111"
+                                                    android:defaultValue="4000" app:max="11111"
                                                     android:title="@string/settings_speed_login_timeout"
-                                                    android:summary="@string/settings_speed_ms"/>
+                                                    android:summary="@string/settings_speed_timeout_summary"/>
         <tk.mygod.preference.NumberPickerPreference android:key="speed.retryDelay"
-                                                    android:defaultValue="4000" app:min="0" app:max="11111"
+                                                    android:defaultValue="4000" app:max="11111"
                                                     android:title="@string/settings_speed_retry_delay"
-                                                    android:summary="@string/settings_speed_ms"/>
+                                                    android:summary="@string/settings_speed_retry_delay_summary"/>
     </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory android:title="Notifications">
         <android.support.v14.preference.SwitchPreference

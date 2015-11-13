@@ -24,10 +24,12 @@
     <string name="settings_status_mac">MAC address</string>
 
     <string name="settings_speed">Speed optimizations</string>
+    <string name="settings_speed_skip_connect">Skip connection test</string>
     <string name="settings_speed_connect_timeout">Connect timeout</string>
     <string name="settings_speed_login_timeout">Login timeout</string>
+    <string name="settings_speed_timeout_summary">%dms (0ms = infinite)</string>
     <string name="settings_speed_retry_delay">Retry delay</string>
-    <string name="settings_speed_ms">%dms</string>
+    <string name="settings_speed_retry_delay_summary">%dms</string>
 
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_connection">Connection available</string>
