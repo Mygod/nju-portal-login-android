@@ -4,6 +4,8 @@ import java.net.InetAddress
 import java.text.{DateFormat, DecimalFormat}
 import java.util.Date
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.support.v7.preference.Preference
 import android.util.Log
@@ -64,6 +66,11 @@ final class SettingsFragment extends PreferenceFragmentPlus {
       true
     })
     PortalManager.setUserInfoListener(userInfoUpdated)
+
+    findPreference("misc.support").setOnPreferenceClickListener((preference: Preference) => {
+      startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Mygod/nju-portal-login-android/wiki")))
+      true
+    })
   }
 
   override def onDisplayPreferenceDialog(preference: Preference) =
