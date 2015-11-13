@@ -14,6 +14,7 @@ final class NetworkConditionsReceiver extends BroadcastReceiver {
   import NetworkConditionsReceiver._
 
   override def onReceive(context: Context, intent: Intent) {
+    if (App.DEBUG) Log.d(TAG, intent.getAction)
     intent.getAction match {
       //noinspection ScalaDeprecation
       case ConnectivityManager.CONNECTIVITY_ACTION =>
@@ -27,8 +28,8 @@ final class NetworkConditionsReceiver extends BroadcastReceiver {
           } else {
             if (App.DEBUG)
               Log.d(TAG, "Network %s[%s] disconnected.".format(networkInfo.getTypeName, networkInfo.getSubtypeName))
-            context.startService(new Intent(context, classOf[PortalManager]).setAction(PortalManager.STOP)
-              .putExtra(ConnectivityManager.EXTRA_NETWORK_INFO, networkInfo))
+            if (PortalManager.running) context.startService(new Intent(context, classOf[PortalManager])
+              .setAction(PortalManager.STOP).putExtra(ConnectivityManager.EXTRA_NETWORK_INFO, networkInfo))
           }
       case "android.net.conn.NETWORK_CONDITIONS_MEASURED" => if (!intent.getBooleanExtra("extra_is_captive_portal",
         false) && isNotMobile(intent.getIntExtra("extra_connectivity_type", ConnectivityManager.TYPE_MOBILE))) {

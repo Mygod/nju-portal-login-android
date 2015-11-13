@@ -1,6 +1,6 @@
 package tk.mygod.nju.portal.login
 
-import java.net.{HttpURLConnection, SocketTimeoutException, URL}
+import java.net.{UnknownHostException, HttpURLConnection, SocketTimeoutException, URL}
 
 import android.app.Service
 import android.content.Intent
@@ -34,6 +34,8 @@ object PortalManager {
   private val userInfo = "userinfo"
 
   private val status = "status"
+
+  var running: Boolean = _
 
   private var userInfoListener: JObject => Any = _
   def setUserInfoListener(listener: JObject => Any) {
@@ -77,7 +79,11 @@ object PortalManager {
       if (App.DEBUG) Log.d(TAG, "Binding to network with type: " + networkTransportType(network))
       App.instance.connectivityManager.requestNetwork(
         new NetworkRequest.Builder().addTransportType(networkTransportType(network)).build, new NetworkCallback {
-          override def onAvailable(network: Network) = callback(network)
+          var pending = true
+          override def onAvailable(network: Network) = if (pending) { // prevent duplicate calls
+            pending = false
+            callback(network)
+          }
         })
     } else {
       App.instance.connectivityManager.setNetworkPreference(network.getType)
@@ -169,13 +175,14 @@ final class PortalManager extends Service {
             if (code == 204 || code == 200 && conn.getContentLength == 0)
               onNetworkAvailable(SystemClock.elapsedRealtime - time)
           } catch {
-            case e: SocketTimeoutException =>
+            case _: SocketTimeoutException | _: UnknownHostException =>
               login(network, onLoginResult _)
+              return
             case e: Exception =>
               App.instance.showToast(e.getMessage)
               e.printStackTrace
-              taskEnded
           }
+          taskEnded
         })
         return
       }
@@ -227,11 +234,13 @@ final class PortalManager extends Service {
 
   override def onCreate = {
     super.onCreate
+    running = true
     if (App.DEBUG) Log.d(TAG, "Service created.")
   }
 
   override def onDestroy = {
     super.onDestroy
+    running = false
     if (App.DEBUG) Log.d(TAG, "Service destroyed.")
   }
 }
