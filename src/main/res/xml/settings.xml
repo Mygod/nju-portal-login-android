@@ -15,15 +15,6 @@
                                                   android:title="Use system NetworkMonitor"/>
         <android.support.v7.preference.Preference android:key="autoConnect.useBindedConnections"
                                                   android:title="Use binded connections"/>
-        <tk.mygod.preference.NumberPickerPreference android:key="autoConnect.connectTimeout"
-                                                    android:defaultValue="4000" app:min="0" app:max="11111"
-                                                    android:title="Connect timeout" android:summary="%dms"/>
-        <tk.mygod.preference.NumberPickerPreference android:key="autoConnect.loginTimeout"
-                                                    android:defaultValue="4000" app:min="0" app:max="11111"
-                                                    android:title="Login timeout" android:summary="%dms"/>
-        <tk.mygod.preference.NumberPickerPreference android:key="autoConnect.retryDelay"
-                                                    android:defaultValue="4000" app:min="0" app:max="11111"
-                                                    android:title="Retry delay" android:summary="%dms"/>
     </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory android:title="Status">
         <android.support.v7.preference.Preference android:key="status.login" android:title="Login"/>
@@ -38,6 +29,26 @@
         <android.support.v7.preference.Preference android:key="status.useripv4" android:title="IPv4 address"/>
         <android.support.v7.preference.Preference android:key="status.useripv6" android:title="IPv6 address"/>
         <android.support.v7.preference.Preference android:key="status.mac" android:title="MAC address"/>
+    </android.support.v7.preference.PreferenceCategory>
+    <android.support.v7.preference.PreferenceCategory android:title="Speed optimizations">
+        <tk.mygod.preference.NumberPickerPreference android:key="speed.connectTimeout"
+                                                    android:defaultValue="4000" app:min="0" app:max="11111"
+                                                    android:title="Connect timeout" android:summary="%dms"/>
+        <tk.mygod.preference.NumberPickerPreference android:key="speed.loginTimeout"
+                                                    android:defaultValue="4000" app:min="0" app:max="11111"
+                                                    android:title="Login timeout" android:summary="%dms"/>
+        <tk.mygod.preference.NumberPickerPreference android:key="speed.retryDelay"
+                                                    android:defaultValue="4000" app:min="0" app:max="11111"
+                                                    android:title="Retry delay" android:summary="%dms"/>
+    </android.support.v7.preference.PreferenceCategory>
+    <android.support.v7.preference.PreferenceCategory android:title="Notifications">
+        <android.support.v14.preference.SwitchPreference android:key="notifications.connection"
+                                                         android:title="Connection available"
+                                                         android:summary="Display a toast when the current connection has access to Internet with an HTTP ping time."
+                                                         android:defaultValue="true"/>
+        <android.support.v14.preference.SwitchPreference android:key="notifications.login"
+                                                         android:title="Login/logout successfully"
+                                                         android:defaultValue="true"/>
     </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory android:title="Misc">
         <android.support.v7.preference.Preference android:key="misc.update"

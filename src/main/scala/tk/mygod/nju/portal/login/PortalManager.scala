@@ -57,8 +57,8 @@ object PortalManager {
         if (userInfoListener != null) App.handler.post(() => userInfoListener(obj))
       case _ =>
     }
-    // TODO: disable toast option (quiet mode)
-    App.instance.showToast("#%d: %s".format(code, (json \ replyMsg).asInstanceOf[JString].values))
+    if (App.instance.pref.getBoolean("notifications.login", true))
+      App.instance.showToast("#%d: %s".format(code, (json \ replyMsg).asInstanceOf[JString].values))
     code
   }
 
@@ -138,7 +138,7 @@ object PortalManager {
 final class PortalManager extends Service {
   import PortalManager._
 
-  private def onNetworkAvailable(time: Long) =
+  private def onNetworkAvailable(time: Long) = if (App.instance.pref.getBoolean("notifications.connection", true))
     App.instance.showToast("Network available. Time=%dms".format(time))
 
   private final class NetworkTester(val networkInfo: NetworkInfo) extends StoppableFuture {
@@ -177,7 +177,7 @@ final class PortalManager extends Service {
       }
 
     def onLoginResult(code: Option[Int]): Unit = if (code.contains(1) || code.contains(6) || isStopped) taskEnded else {
-      Thread.sleep(App.instance.pref.getInt("autoConnect.retryDelay", 4000))
+      Thread.sleep(App.instance.pref.getInt("speed.retryDelay", 4000))
       login(networkInfo, onLoginResult)
     }
 
