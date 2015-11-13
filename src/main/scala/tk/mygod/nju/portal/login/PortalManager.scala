@@ -97,8 +97,8 @@ object PortalManager {
       (if (network == null) url.openConnection else network.openConnection(url)).asInstanceOf[HttpURLConnection]
     }) closeAfter { conn =>
       conn.setInstanceFollowRedirects(false)
-      conn.setConnectTimeout(4000) // TODO: custom timeout for login/logout
-      conn.setReadTimeout(4000)
+      conn.setConnectTimeout(App.instance.loginTimeout)
+      conn.setReadTimeout(App.instance.loginTimeout)
       conn.setRequestMethod(post)
       conn.setUseCaches(false)
       conn.setDoOutput(true)
@@ -120,8 +120,8 @@ object PortalManager {
         (if (network == null) url.openConnection else network.openConnection(url)).asInstanceOf[HttpURLConnection]
       }) closeAfter { conn =>
         conn.setInstanceFollowRedirects(false)
-        conn.setConnectTimeout(4000)  // TODO: custom timeout for login/logout
-        conn.setReadTimeout(4000)
+        conn.setConnectTimeout(App.instance.loginTimeout)
+        conn.setReadTimeout(App.instance.loginTimeout)
         conn.setRequestMethod(post)
         conn.setUseCaches(false)
         conn.setDoOutput(true)
@@ -154,8 +154,8 @@ final class PortalManager extends Service {
               .asInstanceOf[HttpURLConnection]
           }) closeAfter { conn =>
             conn.setInstanceFollowRedirects(false)
-            conn.setConnectTimeout(4000)  // TODO: custom timeout for testing
-            conn.setReadTimeout(4000)
+            conn.setConnectTimeout(App.instance.connectTimeout)
+            conn.setReadTimeout(App.instance.connectTimeout)
             conn.setUseCaches(false)
             val time = SystemClock.elapsedRealtime
             conn.getInputStream
@@ -172,12 +172,12 @@ final class PortalManager extends Service {
           }
         })
       else {
-        Thread.sleep(4000)  // TODO: custom timeout for testing
+        Thread.sleep(App.instance.connectTimeout)
         if (isStopped) taskEnded else if (!networkAvailable) login(networkInfo, onLoginResult)
       }
 
     def onLoginResult(code: Option[Int]): Unit = if (code.contains(1) || code.contains(6) || isStopped) taskEnded else {
-      Thread.sleep(4000)  // TODO: custom retry intervals
+      Thread.sleep(App.instance.pref.getInt("autoConnect.retryDelay", 4000))
       login(networkInfo, onLoginResult)
     }
 

@@ -52,5 +52,8 @@ class App extends Application {
       PackageManager.DONT_KILL_APP)
   }
 
+  def connectTimeout = pref.getInt("autoConnect.connectTimeout", 4000)
+  def loginTimeout = pref.getInt("autoConnect.loginTimeout", 4000)
+
   def showToast(msg: String) = handler.post(() => Toast.makeText(this, msg, Toast.LENGTH_SHORT).show)
 }

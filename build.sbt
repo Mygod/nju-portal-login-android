@@ -30,4 +30,5 @@ proguardOptions in Android ++= Seq("-keep class android.support.v7.preference.Pr
   "-keep class android.support.v7.preference.PreferenceCategory { <init>(...); }",
   "-keep class android.support.v14.preference.SwitchPreference { <init>(...); }",
   "-keep class tk.mygod.preference.EditTextPreference { <init>(...); }",
+  "-keep class tk.mygod.preference.NumberPickerPreference { <init>(...); }",
   "-dontwarn com.thoughtworks.paranamer.**")
