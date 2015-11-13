@@ -18,5 +18,12 @@
                 <action android:name="android.net.conn.NETWORK_CONDITIONS_MEASURED"/>
             </intent-filter>
         </receiver>
+        <service android:name=".PortalManager" android:exported="false">
+            <intent-filter>
+                <action android:name="tk.mygod.nju.portal.login.PortalManager.START"/>
+                <action android:name="android.net.conn.NETWORK_CONDITIONS_MEASURED"/>
+                <action android:name="tk.mygod.nju.portal.login.PortalManager.STOP"/>
+            </intent-filter>
+        </service>
     </application>
 </manifest>

@@ -12,10 +12,14 @@ import tk.mygod.app.ToolbarActivity
 import scala.collection.JavaConverters._
 
 object MainActivity {
-  val TAG = "MainActivity"
+  private val TAG = "MainActivity"
 
-  val askedBindedConnection = "askedBindedConnection"
-  val askedNetworkMonitor = "askedNetworkMonitor"
+  private val systemId = "NJUPortalLogin"
+  private val systemDir = "/system/priv-app/" + systemId
+  private val systemPath = systemDir + "/" + systemId + ".apk"
+
+  private val askedBindedConnection = "askedBindedConnection"
+  private val askedNetworkMonitor = "askedNetworkMonitor"
 }
 
 final class MainActivity extends ToolbarActivity {
@@ -42,7 +46,7 @@ final class MainActivity extends ToolbarActivity {
         .setMessage("System NetworkMonitor can be enabled to save battery via changing this app to a system privileged app. Do you want to do this now?")
         .setPositiveButton(android.R.string.yes, ((dialog: DialogInterface, which: Int) => su(
           "mount -o rw,remount /system && mkdir %1$s && chmod 755 %1$s && mv %2$s %3$s"
-            .format(App.systemDir, getApplicationInfo.sourceDir, App.systemPath))): DialogInterface.OnClickListener)
+            .format(systemDir, getApplicationInfo.sourceDir, systemPath))): DialogInterface.OnClickListener)
         .setNegativeButton(android.R.string.no, null).create.show
       App.instance.editor.putBoolean(askedNetworkMonitor, true).apply
       true
@@ -51,7 +55,7 @@ final class MainActivity extends ToolbarActivity {
       new AlertDialog.Builder(this).setTitle("Uninstall this app?")
         .setMessage("After doing this you might need to reboot then uninstall the app normally.")
         .setPositiveButton(android.R.string.yes,
-          ((dialog: DialogInterface, which: Int) => su("rm " + App.systemDir)): DialogInterface.OnClickListener)
+          ((dialog: DialogInterface, which: Int) => su("rm " + systemDir)): DialogInterface.OnClickListener)
         .setNegativeButton(android.R.string.no, null).create.show
       true
     } else false
