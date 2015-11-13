@@ -67,6 +67,8 @@
     <string name="binded_connections_summary_enabled_revokable">Enabled. Click to revoke the permission.</string>
     <string name="binded_connections_summary_enabled">Enabled.</string>
 
+    <string name="coming_soon">Coming soon…</string>
+
     <!-- PortalManager -->
     <string name="network_available">Network available. Time=%dms</string>
 </resources>

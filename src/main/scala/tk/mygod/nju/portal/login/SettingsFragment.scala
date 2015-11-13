@@ -67,6 +67,14 @@ final class SettingsFragment extends PreferenceFragmentPlus {
       true
     })
     PortalManager.setUserInfoListener(userInfoUpdated)
+    findPreference("status.username").setOnPreferenceClickListener((preference: Preference) => {
+      startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://p.nju.edu.cn")))
+      true
+    })
+    findPreference("status.fullname").setOnPreferenceClickListener(humorous)
+    findPreference("status.service_name").setOnPreferenceClickListener(humorous)
+    findPreference("status.area_name").setOnPreferenceClickListener(humorous)
+    findPreference("status.balance").setOnPreferenceClickListener(humorous)
 
     findPreference("misc.update").setOnPreferenceClickListener((preference: Preference) => {
       UpdateManager.check(activity, "https://github.com/Mygod/nju-portal-login-android/releases", App.handler)
@@ -101,5 +109,10 @@ final class SettingsFragment extends PreferenceFragmentPlus {
           (bytes >>> 8 & 0xFF).toByte, (bytes & 0xFF).toByte)).getHostAddress
       case _ => value.toString
     })
+  }
+
+  private def humorous(preference: Preference) = {
+    showToast(R.string.coming_soon)
+    true
   }
 }
