@@ -25,8 +25,12 @@ object PortalManager {
   val NETWORK_CONDITIONS_MEASURED = "android.net.conn.NETWORK_CONDITIONS_MEASURED"
   val STOP = "tk.mygod.nju.portal.login.PortalManager.STOP"
 
+  private val loggingIn = "Logging in..."
+
   private val http = "http"
   private val portalDomain = "p.nju.edu.cn"
+  private val portalLogin = "/portal_io/login"
+  private val testNetwork = "/generate_204"
   private val post = "POST"
 
   private val replyCode = "reply_code"
@@ -93,54 +97,67 @@ object PortalManager {
   }
 
   /**
+    * Setup HttpURLConnection.
+    * @param conn HttpURLConnection.
+    * @param timeout Connect/read timeout.
+    * @param output 0-2: Nothing, post, post username/password.
+    */
+  def setup(conn: HttpURLConnection, timeout: Int, output: Int = 0) {
+    conn.setInstanceFollowRedirects(false)
+    conn.setConnectTimeout(timeout)
+    conn.setReadTimeout(timeout)
+    conn.setUseCaches(false)
+    if (output == 0) return
+    conn.setRequestMethod(post)
+    if (output == 1) return
+    conn.setDoOutput(true)
+    autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, "username=%s&password=%s".format(
+      App.instance.pref.getString("account.username", ""), App.instance.pref.getString("account.password", ""))))
+  }
+
+  /**
     * Based on: https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/connectivity/NetworkMonitor.java#640
     */
   def login(network: Network, onResult: Option[Int] => Unit) {
-    if (App.DEBUG) Log.d(TAG, "Logging in...")
-    try autoDisconnect {
-      val url = new URL(http, portalDomain, "/portal_io/login")
-      (if (network == null) url.openConnection else network.openConnection(url)).asInstanceOf[HttpURLConnection]
-    } { conn =>
-      conn.setInstanceFollowRedirects(false)
-      conn.setConnectTimeout(App.instance.loginTimeout)
-      conn.setReadTimeout(App.instance.loginTimeout)
-      conn.setRequestMethod(post)
-      conn.setUseCaches(false)
-      conn.setDoOutput(true)
-      autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, "username=%s&password=%s".format(
-        App.instance.pref.getString("account.username", ""), App.instance.pref.getString("account.password", ""))))
-      val result = processResult(IOUtils.readAllText(conn.getInputStream()))
-      if (onResult != null) onResult(Some(result))
-    } catch {
-      case e: Exception =>
-        App.instance.showToast(e.getMessage)
-        e.printStackTrace
-        if (onResult != null) onResult(None)
-    }
+    if (App.DEBUG) Log.d(TAG, loggingIn)
+    try autoDisconnect(network.openConnection(new URL(http, portalDomain, portalLogin))
+      .asInstanceOf[HttpURLConnection]) { conn =>
+        setup(conn, App.instance.loginTimeout, 2)
+        val result = processResult(IOUtils.readAllText(conn.getInputStream()))
+        if (onResult != null) onResult(Some(result))
+      } catch {
+        case e: Exception =>
+          App.instance.showToast(e.getMessage)
+          e.printStackTrace
+          if (onResult != null) onResult(None)
+      }
   }
   def login(network: NetworkInfo = null, onResult: Option[Int] => Unit = null): Unit =
-    bindNetwork(network, network => login(network, onResult))
-
-  def logout(network: NetworkInfo = null) = bindNetwork(network, network => {
-    try {
-      autoDisconnect {
-        val url = new URL(http, portalDomain, "/portal_io/logout")
-        (if (network == null) url.openConnection else network.openConnection(url)).asInstanceOf[HttpURLConnection]
-      } { conn =>
-        conn.setInstanceFollowRedirects(false)
-        conn.setConnectTimeout(App.instance.loginTimeout)
-        conn.setReadTimeout(App.instance.loginTimeout)
-        conn.setRequestMethod(post)
-        conn.setUseCaches(false)
-        conn.setDoOutput(true)
-        processResult(IOUtils.readAllText(conn.getInputStream()))
+    if (Build.VERSION.SDK_INT >= 21 && network != null) bindNetwork(network, network => login(network, onResult)) else {
+      if (App.DEBUG) Log.d(TAG, loggingIn)
+      try autoDisconnect(new URL(http, portalDomain, portalLogin).openConnection.asInstanceOf[HttpURLConnection])
+      { conn =>
+        setup(conn, App.instance.loginTimeout, 2)
+        val result = processResult(IOUtils.readAllText(conn.getInputStream()))
+        if (onResult != null) onResult(Some(result))
+      } catch {
+        case e: Exception =>
+          App.instance.showToast(e.getMessage)
+          e.printStackTrace
+          if (onResult != null) onResult(None)
       }
+    }
+
+  def logout = try
+    autoDisconnect(new URL(http, portalDomain, "/portal_io/logout").openConnection.asInstanceOf[HttpURLConnection])
+    { conn =>
+      setup(conn, App.instance.loginTimeout, 1)
+      processResult(IOUtils.readAllText(conn.getInputStream()))
     } catch {
       case e: Exception =>
         App.instance.showToast(e.getMessage)
         e.printStackTrace
     }
-  })
 }
 
 final class PortalManager extends Service {
@@ -153,18 +170,34 @@ final class PortalManager extends Service {
     @volatile var networkAvailable: Boolean = _
     private var network: Network = _
 
-    def work {
+    def work {  // TODO: custom domain
       val skip = App.instance.pref.getBoolean("speed.skipConnect", false)
       if (!skip && networkInfo.getType != ConnectivityManager.TYPE_WIFI ||
         App.instance.systemNetworkMonitorAvailable != 4) {
-        bindNetwork(networkInfo, network => Future {
+        if (App.DEBUG) Log.d(TAG, "Testing connection manually...")
+        if (Build.VERSION.SDK_INT >= 21) bindNetwork(networkInfo, network => Future {
           this.network = network
-          if (App.DEBUG) Log.d(TAG, "Testing connection manually...")
-          try autoDisconnect {
-            val url = new URL(http, "mygod.tk", "/generate_204")  // TODO: custom domain
-            (if (network == null) url.openConnection else network.openConnection(url))
-              .asInstanceOf[HttpURLConnection]
-          } { conn =>
+          try autoDisconnect(network.openConnection(new URL(http, "mygod.tk", testNetwork))
+            .asInstanceOf[HttpURLConnection]) { conn =>
+              setup(conn, App.instance.connectTimeout)
+              val time = SystemClock.elapsedRealtime
+              conn.getInputStream
+              val code = conn.getResponseCode
+              if (code == 204 || code == 200 && conn.getContentLength == 0)
+                onNetworkAvailable(SystemClock.elapsedRealtime - time)
+            } catch {
+              case _: SocketTimeoutException | _: UnknownHostException =>
+                login(network, onLoginResult _)
+                return
+              case e: Exception =>
+                App.instance.showToast(e.getMessage)
+                e.printStackTrace
+            }
+            taskEnded
+          })
+        else {
+          try autoDisconnect(new URL(http, "mygod.tk", "/generate_204").openConnection.asInstanceOf[HttpURLConnection])
+          { conn =>
             conn.setInstanceFollowRedirects(false)
             conn.setConnectTimeout(App.instance.connectTimeout)
             conn.setReadTimeout(App.instance.connectTimeout)
@@ -176,14 +209,14 @@ final class PortalManager extends Service {
               onNetworkAvailable(SystemClock.elapsedRealtime - time)
           } catch {
             case _: SocketTimeoutException | _: UnknownHostException =>
-              login(network, onLoginResult _)
+              login(networkInfo, onLoginResult _)
               return
             case e: Exception =>
               App.instance.showToast(e.getMessage)
               e.printStackTrace
           }
           taskEnded
-        })
+        }
         return
       }
       if (!skip) Thread.sleep(App.instance.connectTimeout)
@@ -241,6 +274,7 @@ final class PortalManager extends Service {
   override def onDestroy = {
     super.onDestroy
     running = false
+    if (tester != null) tester.stop
     if (App.DEBUG) Log.d(TAG, "Service destroyed.")
   }
 }

@@ -42,7 +42,7 @@ final class SettingsFragment extends PreferenceFragmentPlus {
       true
     })
     findPreference("status.logout").setOnPreferenceClickListener((preference: Preference) => {
-      Future(PortalManager.logout())
+      Future(PortalManager.logout)
       true
     })
     PortalManager.setUserInfoListener(userInfoUpdated)
