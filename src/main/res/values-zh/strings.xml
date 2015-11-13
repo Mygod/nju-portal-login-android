@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">南京大学校园网登陆</string>
+
+    <!-- Settings -->
+    <string name="settings_account">帐号</string>
+
+    <string name="settings_auto_connect">自动连接</string>
+    <string name="settings_auto_connect_enabled">启用</string>
+    <string name="settings_auto_connect_networkmonitor">使用系统自带的网络监视</string>
+    <string name="settings_auto_connect_binded_connections">使用绑定连接</string>
+
+    <string name="settings_status">状态</string>
+    <string name="settings_status_login">登录</string>
+    <string name="settings_status_logout">登出</string>
+    <string name="settings_status_username">用户名</string>
+    <string name="settings_status_fullname">姓名</string>
+    <string name="settings_status_service_name">服务名</string>
+    <string name="settings_status_area_name">区域名称</string>
+    <string name="settings_status_acctstarttime">上线时间</string>
+    <string name="settings_status_balance">账户余额</string>
+    <string name="settings_status_useripv4">IPv4 地址</string>
+    <string name="settings_status_useripv6">IPv6 地址</string>
+    <string name="settings_status_mac">MAC 地址</string>
+
+    <string name="settings_speed">速度优化</string>
+    <string name="settings_speed_skip_connect">跳过连接测试</string>
+    <string name="settings_speed_connect_timeout">连接超时</string>
+    <string name="settings_speed_login_timeout">登录超时</string>
+    <string name="settings_speed_timeout_summary">%d 毫秒 (0 毫秒 = 无限长)</string>
+    <string name="settings_speed_retry_delay">重试延迟</string>
+    <string name="settings_speed_retry_delay_summary">%d 毫秒</string>
+
+    <string name="settings_notifications">通知</string>
+    <string name="settings_notifications_connection">网络可用</string>
+    <string name="settings_notifications_connection_summary">当前连接有 Internet 连接时显示通知，并显示 HTTP ping 延迟。</string>
+    <string name="settings_notifications_login">登录/登出成功</string>
+
+    <string name="settings_misc">其他</string>
+    <string name="settings_misc_update">检查更新</string>
+    <string name="settings_misc_support">常见问题与支持</string>
+
+    <!-- MainActivity/SettingsFragment -->
+    <string name="su_success">操作成功，重启后生效。</string>
+    <string name="su_fail">操作失败。</string>
+    <string name="su_fail_msg">操作失败：%s</string>
+
+    <string name="networkmonitor_install_title">使用系统自带的网络监视？</string>
+    <string name="networkmonitor_install_message">使用系统自带的网络监视可减少耗电，但需要切换为系统特权应用。现在执行此操作吗？</string>
+    <string name="networkmonitor_uninstall_title">卸载本应用？</string>
+    <string name="networkmonitor_uninstall_message">卸载完毕后你可能需要重启后再次用正常方式卸载。</string>
+    <string name="networkmonitor_summary">使用系统自带的网络监视来减少耗电。\n</string>
+    <string name="networkmonitor_summary_na">不支持 Android 4.x。</string>
+    <string name="networkmonitor_summary_no_root">需要 root。</string>
+    <string name="networkmonitor_summary_priv_app">需要切换为系统特权应用。</string>
+    <string name="networkmonitor_summary_wifi_scanning_disabled">未开启 Wi-Fi 随时都可扫描。点击修改此设置。</string>
+    <string name="networkmonitor_summary_enabled">已启用。点击卸载。</string>
+
+    <string name="binded_connections_title">使用绑定连接？</string>
+    <string name="binded_connections_message">绑定连接通过强制流量通过某连接来避免使用手机流量。</string>
+    <string name="binded_connections_summary">绑定连接以避免使用手机流量。\n</string>
+    <string name="binded_connections_summary_na">不支持 Android 4.x。</string>
+    <string name="binded_connections_summary_permission_missing">需要修改系统设置的权限。</string>
+    <string name="binded_connections_summary_enabled_revokable">已启用。点击撤销权限。</string>
+    <string name="binded_connections_summary_enabled">已启用。</string>
+
+    <string name="coming_soon">即将推出……</string>
+
+    <!-- PortalManager -->
+    <string name="network_available">网络可用。延迟 = %d 毫秒</string>
+</resources>
