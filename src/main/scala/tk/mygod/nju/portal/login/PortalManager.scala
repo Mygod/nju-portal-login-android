@@ -6,7 +6,7 @@ import android.app.Service
 import android.content.Intent
 import android.net.ConnectivityManager.NetworkCallback
 import android.net._
-import android.os.SystemClock
+import android.os.{Build, SystemClock}
 import android.util.Log
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.native.Serialization
@@ -15,7 +15,6 @@ import tk.mygod.concurrent.StoppableFuture
 import tk.mygod.util.CloseUtils._
 import tk.mygod.util.IOUtils
 
-import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -143,10 +142,12 @@ final class PortalManager extends Service {
 
   private final class NetworkTester(val networkInfo: NetworkInfo) extends StoppableFuture {
     @volatile var networkAvailable: Boolean = _
+    private var network: Network = _
 
     def work =
       if (networkInfo.getType != ConnectivityManager.TYPE_WIFI || App.instance.systemNetworkMonitorAvailable != 3)
         bindNetwork(networkInfo, network => Future {
+          this.network = network
           if (App.DEBUG) Log.d(TAG, "Testing connection manually...")
           try any2CloseAfterDisconnectable(() => {
             val url = new URL(http, "mygod.tk", "/generate_204")  // TODO: custom domain
@@ -176,7 +177,13 @@ final class PortalManager extends Service {
         if (isStopped) taskEnded else if (!networkAvailable) login(networkInfo, onLoginResult)
       }
 
-    def onLoginResult(code: Option[Int]): Unit = if (code.contains(1) || code.contains(6) || isStopped) taskEnded else {
+    def onLoginResult(code: Option[Int]): Unit = if (code.contains(1) || code.contains(6)) {
+      //noinspection ScalaDeprecation
+      if (Build.VERSION.SDK_INT >= 21 && network != null)
+        if (Build.VERSION.SDK_INT >= 23) App.instance.connectivityManager.reportNetworkConnectivity(network, true)
+        else App.instance.connectivityManager.reportBadNetwork(network) // re-evaluate to reduce mobile data usage
+      taskEnded
+    } else if (isStopped) taskEnded else {
       Thread.sleep(App.instance.pref.getInt("speed.retryDelay", 4000))
       login(networkInfo, onLoginResult)
     }
@@ -193,11 +200,6 @@ final class PortalManager extends Service {
 
   def onBind(intent: Intent) = null
   override def onStartCommand(intent: Intent, flags: Int, startId: Int): Int = {
-    if (App.DEBUG) {
-      val bundle = intent.getExtras
-      for (key <- bundle.keySet.asScala)
-        Log.d(TAG, "%s: %s => %s".format(intent.getAction, key.toString, bundle.get(key).toString))
-    }
     //noinspection ScalaDeprecation
     intent.getAction match {
       case START =>
