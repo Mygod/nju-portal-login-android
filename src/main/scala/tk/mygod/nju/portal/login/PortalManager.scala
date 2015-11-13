@@ -91,17 +91,17 @@ object PortalManager {
     */
   def login(network: Network, onResult: Option[Int] => Unit) {
     if (App.DEBUG) Log.d(TAG, "Logging in...")
-    try any2CloseAfterDisconnectable(() => {
+    try autoDisconnect {
       val url = new URL(http, portalDomain, "/portal_io/login")
       (if (network == null) url.openConnection else network.openConnection(url)).asInstanceOf[HttpURLConnection]
-    }) closeAfter { conn =>
+    } { conn =>
       conn.setInstanceFollowRedirects(false)
       conn.setConnectTimeout(App.instance.loginTimeout)
       conn.setReadTimeout(App.instance.loginTimeout)
       conn.setRequestMethod(post)
       conn.setUseCaches(false)
       conn.setDoOutput(true)
-      (() => conn.getOutputStream).closeAfter(os => IOUtils.writeAllText(os, "username=%s&password=%s".format(
+      autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, "username=%s&password=%s".format(
         App.instance.pref.getString("account.username", ""), App.instance.pref.getString("account.password", ""))))
       val result = processResult(IOUtils.readAllText(conn.getInputStream()))
       if (onResult != null) onResult(Some(result))
@@ -117,10 +117,10 @@ object PortalManager {
 
   def logout(network: NetworkInfo = null) = bindNetwork(network, network => {
     try {
-      (() => {
+      autoDisconnect {
         val url = new URL(http, portalDomain, "/portal_io/logout")
         (if (network == null) url.openConnection else network.openConnection(url)).asInstanceOf[HttpURLConnection]
-      }) closeAfter { conn =>
+      } { conn =>
         conn.setInstanceFollowRedirects(false)
         conn.setConnectTimeout(App.instance.loginTimeout)
         conn.setReadTimeout(App.instance.loginTimeout)
@@ -154,11 +154,11 @@ final class PortalManager extends Service {
         bindNetwork(networkInfo, network => Future {
           this.network = network
           if (App.DEBUG) Log.d(TAG, "Testing connection manually...")
-          try any2CloseAfterDisconnectable(() => {
+          try autoDisconnect {
             val url = new URL(http, "mygod.tk", "/generate_204")  // TODO: custom domain
             (if (network == null) url.openConnection else network.openConnection(url))
               .asInstanceOf[HttpURLConnection]
-          }) closeAfter { conn =>
+          } { conn =>
             conn.setInstanceFollowRedirects(false)
             conn.setConnectTimeout(App.instance.connectTimeout)
             conn.setReadTimeout(App.instance.connectTimeout)
