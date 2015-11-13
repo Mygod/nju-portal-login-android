@@ -1,59 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v7.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
                                                 xmlns:app="http://schemas.android.com/apk/res-auto">
-    <android.support.v7.preference.PreferenceCategory android:title="Account">
+    <android.support.v7.preference.PreferenceCategory android:title="@string/settings_account">
         <tk.mygod.preference.EditTextPreference android:key="account.username" android:title="Username"
                                                 android:summary="%s"/>
         <tk.mygod.preference.EditTextPreference android:key="account.password" android:title="Password"
                                                 android:inputType="textPassword" android:summary="%s"/>
     </android.support.v7.preference.PreferenceCategory>
-    <android.support.v7.preference.PreferenceCategory android:title="Auto connect">
+    <android.support.v7.preference.PreferenceCategory android:title="@string/settings_auto_connect">
         <android.support.v14.preference.SwitchPreference android:key="autoConnect.enabled"
-                                                         android:title="Enabled"
+                                                         android:title="@string/settings_auto_connect_enabled"
                                                          android:defaultValue="true"/>
         <android.support.v7.preference.Preference android:key="autoConnect.useSystemNetworkMonitor"
-                                                  android:title="Use system NetworkMonitor"/>
+                                                  android:title="@string/settings_auto_connect_networkmonitor"/>
         <android.support.v7.preference.Preference android:key="autoConnect.useBindedConnections"
-                                                  android:title="Use binded connections"/>
+                                                  android:title="@string/settings_auto_connect_binded_connections"/>
     </android.support.v7.preference.PreferenceCategory>
-    <android.support.v7.preference.PreferenceCategory android:title="Status">
-        <android.support.v7.preference.Preference android:key="status.login" android:title="Login"/>
-        <android.support.v7.preference.Preference android:key="status.logout" android:title="Logout"/>
-        <android.support.v7.preference.Preference android:key="status.username" android:title="Username"/>
-        <android.support.v7.preference.Preference android:key="status.fullname" android:title="Full name"/>
-        <android.support.v7.preference.Preference android:key="status.service_name" android:title="Service name"/>
-        <android.support.v7.preference.Preference android:key="status.area_name" android:title="Area name"/>
+    <android.support.v7.preference.PreferenceCategory android:title="@string/settings_status">
+        <android.support.v7.preference.Preference android:key="status.login"
+                                                  android:title="@string/settings_status_login"/>
+        <android.support.v7.preference.Preference android:key="status.logout"
+                                                  android:title="@string/settings_status_logout"/>
+        <android.support.v7.preference.Preference android:key="status.username"
+                                                  android:title="@string/settings_status_username"/>
+        <android.support.v7.preference.Preference android:key="status.fullname"
+                                                  android:title="@string/settings_status_fullname"/>
+        <android.support.v7.preference.Preference android:key="status.service_name"
+                                                  android:title="@string/settings_status_service_name"/>
+        <android.support.v7.preference.Preference android:key="status.area_name"
+                                                  android:title="@string/settings_status_area_name"/>
         <android.support.v7.preference.Preference android:key="status.acctstarttime"
-                                                  android:title="Activity start time"/>
-        <android.support.v7.preference.Preference android:key="status.balance" android:title="Balance"/>
-        <android.support.v7.preference.Preference android:key="status.useripv4" android:title="IPv4 address"/>
-        <android.support.v7.preference.Preference android:key="status.useripv6" android:title="IPv6 address"/>
-        <android.support.v7.preference.Preference android:key="status.mac" android:title="MAC address"/>
+                                                  android:title="@string/settings_status_acctstarttime"/>
+        <android.support.v7.preference.Preference android:key="status.balance"
+                                                  android:title="@string/settings_status_balance"/>
+        <android.support.v7.preference.Preference android:key="status.useripv4"
+                                                  android:title="@string/settings_status_useripv4"/>
+        <android.support.v7.preference.Preference android:key="status.useripv6"
+                                                  android:title="@string/settings_status_useripv6"/>
+        <android.support.v7.preference.Preference android:key="status.mac" android:title="@string/settings_status_mac"/>
     </android.support.v7.preference.PreferenceCategory>
-    <android.support.v7.preference.PreferenceCategory android:title="Speed optimizations">
+    <android.support.v7.preference.PreferenceCategory android:title="@string/settings_speed">
         <tk.mygod.preference.NumberPickerPreference android:key="speed.connectTimeout"
                                                     android:defaultValue="4000" app:min="0" app:max="11111"
-                                                    android:title="Connect timeout" android:summary="%dms"/>
+                                                    android:title="@string/settings_speed_connect_timeout"
+                                                    android:summary="@string/settings_speed_ms"/>
         <tk.mygod.preference.NumberPickerPreference android:key="speed.loginTimeout"
                                                     android:defaultValue="4000" app:min="0" app:max="11111"
-                                                    android:title="Login timeout" android:summary="%dms"/>
+                                                    android:title="@string/settings_speed_login_timeout"
+                                                    android:summary="@string/settings_speed_ms"/>
         <tk.mygod.preference.NumberPickerPreference android:key="speed.retryDelay"
                                                     android:defaultValue="4000" app:min="0" app:max="11111"
-                                                    android:title="Retry delay" android:summary="%dms"/>
+                                                    android:title="@string/settings_speed_retry_delay"
+                                                    android:summary="@string/settings_speed_ms"/>
     </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory android:title="Notifications">
-        <android.support.v14.preference.SwitchPreference android:key="notifications.connection"
-                                                         android:title="Connection available"
-                                                         android:summary="Display a toast when the current connection has access to Internet with an HTTP ping time."
-                                                         android:defaultValue="true"/>
+        <android.support.v14.preference.SwitchPreference
+                android:key="notifications.connection" android:title="@string/settings_notifications_connection"
+                android:summary="@string/settings_notifications_connection_summary" android:defaultValue="true"/>
         <android.support.v14.preference.SwitchPreference android:key="notifications.login"
-                                                         android:title="Login/logout successfully"
+                                                         android:title="@string/settings_notifications_login"
                                                          android:defaultValue="true"/>
     </android.support.v7.preference.PreferenceCategory>
-    <android.support.v7.preference.PreferenceCategory android:title="Misc">
+    <android.support.v7.preference.PreferenceCategory android:title="@string/settings_misc">
         <android.support.v7.preference.Preference android:key="misc.update"
-                                                  android:title="Check for updates"/>
+                                                  android:title="@string/settings_misc_update"/>
         <android.support.v7.preference.Preference android:key="misc.support"
-                                                  android:title="FAQ &amp; Support"/>
+                                                  android:title="@string/settings_misc_support"/>
     </android.support.v7.preference.PreferenceCategory>
 </android.support.v7.preference.PreferenceScreen>

@@ -35,24 +35,24 @@ final class SettingsFragment extends PreferenceFragmentPlus {
     var preference = findPreference("autoConnect.useSystemNetworkMonitor")
     preference.setEnabled(App.instance.systemNetworkMonitorAvailable >= 2)
     preference.setOnPreferenceClickListener((preference: Preference) => activity.testNetworkMonitor(true))
-    preference.setSummary("Use system NetworkMonitor to save battery.\n" +
-      (App.instance.systemNetworkMonitorAvailable match {
-        case 0 => "Not available on Android 4.x."
-        case 1 => "Requires root."
-        case 2 => "Needs changing to a system privileged app."
-        case 3 => "Enabled. Click to uninstall."
+    preference.setSummary(getString(R.string.networkmonitor_summary) +
+      getString(App.instance.systemNetworkMonitorAvailable match {
+        case 0 => R.string.networkmonitor_summary_na
+        case 1 => R.string.networkmonitor_summary_no_root
+        case 2 => R.string.networkmonitor_summary_priv_app
+        case 3 => R.string.networkmonitor_summary_enabled
       }))
 
     preference = findPreference("autoConnect.useBindedConnections")
     val available = App.instance.bindedConnectionsAvailable
     preference.setEnabled(available == 1 || available == 2)
     preference.setOnPreferenceClickListener((preference: Preference) => activity.testBindedConnections(true))
-    preference.setSummary("Use binded connections to avoid mobile traffic.\n" +
-      (App.instance.bindedConnectionsAvailable match {
-        case 0 => "Not available on Android 4.x."
-        case 1 => "Needs permission to modify system settings."
-        case 2 => "Enabled. Click to revoke the permission."
-        case 3 => "Enabled."
+    preference.setSummary(getString(R.string.binded_connections_summary) +
+      getString(App.instance.bindedConnectionsAvailable match {
+        case 0 => R.string.binded_connections_summary_na
+        case 1 => R.string.binded_connections_summary_permission_missing
+        case 2 => R.string.binded_connections_summary_enabled_revokable
+        case 3 => R.string.binded_connections_summary_enabled
       }))
 
     findPreference("status.login").setOnPreferenceClickListener((preference: Preference) => {

@@ -36,25 +36,22 @@ final class MainActivity extends ToolbarActivity {
   private def su(command: String) {
     if (App.DEBUG) Log.d(TAG, "Executing su: " + command)
     val result = SU.run(command + " && echo 1").asScala
-    makeSnackbar(if (result.size == 1 && result.head == "1") "Operation completed. Reboot your device to apply changes."
-      else if (result.isEmpty) "Operation failed." else "Operation failed: %s".format(result.mkString("\n"))).show
+    makeSnackbar(if (result.size == 1 && result.head == "1") R.string.su_success
+      else if (result.isEmpty) R.string.su_fail else getString(R.string.su_fail_msg, result.mkString("\n"))).show
   }
   def testNetworkMonitor(requested: Boolean = false) = App.instance.systemNetworkMonitorAvailable match {
     case 2 => if (requested || !App.instance.pref.getBoolean(askedNetworkMonitor, false)) {
-      new AlertDialog.Builder(this)
-        .setTitle("Enable system NetworkMonitor?")
-        .setMessage("System NetworkMonitor can be enabled to save battery via changing this app to a system privileged app. Do you want to do this now?")
+      new AlertDialog.Builder(this).setTitle(R.string.networkmonitor_install_title)
         .setPositiveButton(android.R.string.yes, ((dialog: DialogInterface, which: Int) => su(
           "mount -o rw,remount /system && mkdir %1$s && chmod 755 %1$s && mv %2$s %3$s"
             .format(systemDir, getApplicationInfo.sourceDir, systemPath))): DialogInterface.OnClickListener)
-        .setNegativeButton(android.R.string.no, null).create.show
+        .setMessage(R.string.networkmonitor_install_message).setNegativeButton(android.R.string.no, null).create.show
       App.instance.editor.putBoolean(askedNetworkMonitor, true).apply
       true
     } else false
     case 3 => if (requested) {
-      new AlertDialog.Builder(this).setTitle("Uninstall this app?")
-        .setMessage("After doing this you might need to reboot then uninstall the app normally.")
-        .setPositiveButton(android.R.string.yes,
+      new AlertDialog.Builder(this).setTitle(R.string.networkmonitor_uninstall_title)
+        .setMessage(R.string.networkmonitor_uninstall_message).setPositiveButton(android.R.string.yes,
           ((dialog: DialogInterface, which: Int) => su("rm " + systemDir)): DialogInterface.OnClickListener)
         .setNegativeButton(android.R.string.no, null).create.show
       true
@@ -66,11 +63,9 @@ final class MainActivity extends ToolbarActivity {
     new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).setData(Uri.parse("package:" + getPackageName)))
   def testBindedConnections(requested: Boolean = false) = App.instance.bindedConnectionsAvailable match {
     case 1 => if (requested || !App.instance.pref.getBoolean(askedBindedConnection, false)) {
-      new AlertDialog.Builder(this)
-        .setTitle("Enable binded connections?")
-        .setMessage("Binded connections will enforce the connections to go on a specific network so that it wouldn't use any mobile data traffic.")
+      new AlertDialog.Builder(this).setTitle(R.string.binded_connections_title)
         .setPositiveButton(android.R.string.yes, manageWriteSettings: DialogInterface.OnClickListener)
-        .setNegativeButton(android.R.string.no, null).create.show
+        .setMessage(R.string.binded_connections_message).setNegativeButton(android.R.string.no, null).create.show
       App.instance.editor.putBoolean(askedBindedConnection, true)
       true
     } else false

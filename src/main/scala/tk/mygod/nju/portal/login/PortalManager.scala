@@ -139,7 +139,7 @@ final class PortalManager extends Service {
   import PortalManager._
 
   private def onNetworkAvailable(time: Long) = if (App.instance.pref.getBoolean("notifications.connection", true))
-    App.instance.showToast("Network available. Time=%dms".format(time))
+    App.instance.showToast(getString(R.string.toast_network_available, time))
 
   private final class NetworkTester(val networkInfo: NetworkInfo) extends StoppableFuture {
     @volatile var networkAvailable: Boolean = _
@@ -149,7 +149,7 @@ final class PortalManager extends Service {
         bindNetwork(networkInfo, network => Future {
           if (App.DEBUG) Log.d(TAG, "Testing connection manually...")
           try any2CloseAfterDisconnectable(() => {
-            val url = new URL(http, "mygod.tk", "/generate_204")
+            val url = new URL(http, "mygod.tk", "/generate_204")  // TODO: custom domain
             (if (network == null) url.openConnection else network.openConnection(url))
               .asInstanceOf[HttpURLConnection]
           }) closeAfter { conn =>
