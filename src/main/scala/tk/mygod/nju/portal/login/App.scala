@@ -2,7 +2,7 @@ package tk.mygod.nju.portal.login
 
 import android.app.Application
 import android.content.pm.PackageManager
-import android.content.{ComponentName, Context}
+import android.content.{Intent, ComponentName, Context}
 import android.net.ConnectivityManager
 import android.os.{Build, Handler}
 import android.provider.Settings
@@ -47,9 +47,14 @@ class App extends Application {
   def autoConnectEnabled = pref.getBoolean(autoConnectEnabledKey, true)
   def autoConnectEnabled(value: Boolean) = {
     editor.putBoolean(autoConnectEnabledKey, value)
-    getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[NetworkConditionsReceiver]),
-      if (value) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-      PackageManager.DONT_KILL_APP)
+    if (value)
+      getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[NetworkConditionsReceiver]),
+        PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
+    else {
+      getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[NetworkConditionsReceiver]),
+        PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
+      stopService(new Intent(this, classOf[PortalManager]))
+    }
   }
 
   def connectTimeout = pref.getInt("speed.connectTimeout", 4000)
