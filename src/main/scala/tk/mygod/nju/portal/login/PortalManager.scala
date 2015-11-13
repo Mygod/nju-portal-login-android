@@ -41,7 +41,7 @@ object PortalManager {
     info match {
       case obj: JObject =>
         App.instance.editor.putString(status, compact(render(info))).apply
-        if (userInfoListener != null) userInfoListener(obj)
+        if (userInfoListener != null) App.handler.post(() => userInfoListener(obj))
       case _ =>
     }
     // TODO: disable toast option (quiet mode)

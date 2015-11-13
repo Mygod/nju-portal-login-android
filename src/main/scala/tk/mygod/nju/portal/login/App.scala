@@ -29,7 +29,7 @@ object App {
 
   lazy val isRoot = SU.available
 
-  private var handler: Handler = _
+  var handler: Handler = _
   var testingNetwork: NetworkInfo = _
   lazy val connectTimeout = (() => Future(PortalManager.login(true))): Runnable
   def clearTimeout = {
