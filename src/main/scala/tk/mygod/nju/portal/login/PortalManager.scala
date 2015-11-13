@@ -138,8 +138,8 @@ object PortalManager {
 final class PortalManager extends Service {
   import PortalManager._
 
-  private def onNetworkAvailable(time: Long) = if (App.instance.pref.getBoolean("notifications.connection", true))
-    App.instance.showToast(getString(R.string.toast_network_available, time))
+  private def onNetworkAvailable(time: Long): Unit = if (App.instance.pref.getBoolean("notifications.connection", true))
+    App.instance.showToast(getString(R.string.network_available).format(time))
 
   private final class NetworkTester(val networkInfo: NetworkInfo) extends StoppableFuture {
     @volatile var networkAvailable: Boolean = _

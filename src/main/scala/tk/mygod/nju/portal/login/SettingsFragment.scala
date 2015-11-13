@@ -10,7 +10,7 @@ import android.os.Bundle
 import android.support.v7.preference.Preference
 import android.util.Log
 import org.json4s.JObject
-import tk.mygod.preference.{EditTextPreference, EditTextPreferenceDialogFragment, PreferenceFragmentPlus}
+import tk.mygod.preference._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -73,10 +73,12 @@ final class SettingsFragment extends PreferenceFragmentPlus {
     })
   }
 
-  override def onDisplayPreferenceDialog(preference: Preference) =
-    if (preference.isInstanceOf[EditTextPreference])
-      displayPreferenceDialog(new EditTextPreferenceDialogFragment(preference.getKey))
-    else super.onDisplayPreferenceDialog(preference)
+  override def onDisplayPreferenceDialog(preference: Preference) = preference match {
+    case _: EditTextPreference => displayPreferenceDialog(new EditTextPreferenceDialogFragment(preference.getKey))
+    case _: NumberPickerPreference =>
+      displayPreferenceDialog(new NumberPickerPreferenceDialogFragment(preference.getKey))
+    case _ => super.onDisplayPreferenceDialog(preference)
+  }
 
   override def onDestroy {
     PortalManager.setUserInfoListener(null)
