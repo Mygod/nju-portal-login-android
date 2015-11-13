@@ -7,7 +7,8 @@
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
-    <application android:name=".App" android:label="@string/app_name" android:theme="@style/Theme.Material">
+    <application android:name=".App" android:label="@string/app_name" android:icon="@drawable/logo"
+                 android:theme="@style/Theme.Material">
         <activity android:name=".MainActivity" android:label="@string/app_name" android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
