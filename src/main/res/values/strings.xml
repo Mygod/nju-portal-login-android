@@ -56,6 +56,8 @@
     <string name="networkmonitor_summary_na">Not available on Android 4.x.</string>
     <string name="networkmonitor_summary_no_root">Requires root.</string>
     <string name="networkmonitor_summary_priv_app">Needs changing to a system privileged app.</string>
+    <string name="networkmonitor_summary_wifi_scanning_disabled">Wi-Fi scanning not always enabled. Click to
+        change.</string>
     <string name="networkmonitor_summary_enabled">Enabled. Click to uninstall.</string>
 
     <string name="binded_connections_title">Enable binded connections?</string>

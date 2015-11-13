@@ -50,6 +50,10 @@ final class MainActivity extends ToolbarActivity {
       true
     } else false
     case 3 => if (requested) {
+      startActivity(new Intent(Settings.ACTION_WIFI_IP_SETTINGS))
+      true
+    } else false
+    case 4 => if (requested) {
       new AlertDialog.Builder(this).setTitle(R.string.networkmonitor_uninstall_title)
         .setMessage(R.string.networkmonitor_uninstall_message).setPositiveButton(android.R.string.yes,
           ((dialog: DialogInterface, which: Int) => su("rm " + systemDir)): DialogInterface.OnClickListener)

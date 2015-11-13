@@ -24,6 +24,8 @@ final class SettingsFragment extends PreferenceFragmentPlus {
   import SettingsFragment._
 
   private lazy val activity = getActivity.asInstanceOf[MainActivity]
+  private lazy val useSystemNetworkMonitor = findPreference("autoConnect.useSystemNetworkMonitor")
+  private lazy val useBindedConnections = findPreference("autoConnect.useBindedConnections")
 
   def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
     getPreferenceManager.setSharedPreferencesName(App.prefName)
@@ -34,29 +36,6 @@ final class SettingsFragment extends PreferenceFragmentPlus {
         App.instance.autoConnectEnabled(newValue.asInstanceOf[Boolean])
         true
       })
-
-    var preference = findPreference("autoConnect.useSystemNetworkMonitor")
-    preference.setEnabled(App.instance.systemNetworkMonitorAvailable >= 2)
-    preference.setOnPreferenceClickListener((preference: Preference) => activity.testNetworkMonitor(true))
-    preference.setSummary(getString(R.string.networkmonitor_summary) +
-      getString(App.instance.systemNetworkMonitorAvailable match {
-        case 0 => R.string.networkmonitor_summary_na
-        case 1 => R.string.networkmonitor_summary_no_root
-        case 2 => R.string.networkmonitor_summary_priv_app
-        case 3 => R.string.networkmonitor_summary_enabled
-      }))
-
-    preference = findPreference("autoConnect.useBindedConnections")
-    val available = App.instance.bindedConnectionsAvailable
-    preference.setEnabled(available == 1 || available == 2)
-    preference.setOnPreferenceClickListener((preference: Preference) => activity.testBindedConnections(true))
-    preference.setSummary(getString(R.string.binded_connections_summary) +
-      getString(App.instance.bindedConnectionsAvailable match {
-        case 0 => R.string.binded_connections_summary_na
-        case 1 => R.string.binded_connections_summary_permission_missing
-        case 2 => R.string.binded_connections_summary_enabled_revokable
-        case 3 => R.string.binded_connections_summary_enabled
-      }))
 
     findPreference("status.login").setOnPreferenceClickListener((preference: Preference) => {
       Future(PortalManager.login())
@@ -84,6 +63,31 @@ final class SettingsFragment extends PreferenceFragmentPlus {
       startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Mygod/nju-portal-login-android/wiki")))
       true
     })
+  }
+
+  override def onResume {
+    super.onResume
+
+    var available = App.instance.systemNetworkMonitorAvailable
+    useSystemNetworkMonitor.setEnabled(available >= 2)
+    useSystemNetworkMonitor.setOnPreferenceClickListener((preference: Preference) => activity.testNetworkMonitor(true))
+    useSystemNetworkMonitor.setSummary(getString(R.string.networkmonitor_summary) + getString(available match {
+      case 0 => R.string.networkmonitor_summary_na
+      case 1 => R.string.networkmonitor_summary_no_root
+      case 2 => R.string.networkmonitor_summary_priv_app
+      case 3 => R.string.networkmonitor_summary_wifi_scanning_disabled
+      case 4 => R.string.networkmonitor_summary_enabled
+    }))
+
+    available = App.instance.bindedConnectionsAvailable
+    useBindedConnections.setEnabled(available == 1 || available == 2)
+    useBindedConnections.setOnPreferenceClickListener((preference: Preference) => activity.testBindedConnections(true))
+    useBindedConnections.setSummary(getString(R.string.binded_connections_summary) + getString(available match {
+      case 0 => R.string.binded_connections_summary_na
+      case 1 => R.string.binded_connections_summary_permission_missing
+      case 2 => R.string.binded_connections_summary_enabled_revokable
+      case 3 => R.string.binded_connections_summary_enabled
+    }))
   }
 
   override def onDisplayPreferenceDialog(preference: Preference) = preference match {

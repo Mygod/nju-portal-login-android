@@ -156,7 +156,7 @@ final class PortalManager extends Service {
     def work {
       val skip = App.instance.pref.getBoolean("speed.skipConnect", false)
       if (!skip && networkInfo.getType != ConnectivityManager.TYPE_WIFI ||
-        App.instance.systemNetworkMonitorAvailable != 3) {
+        App.instance.systemNetworkMonitorAvailable != 4) {
         bindNetwork(networkInfo, network => Future {
           this.network = network
           if (App.DEBUG) Log.d(TAG, "Testing connection manually...")

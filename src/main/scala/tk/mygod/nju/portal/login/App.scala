@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.pm.PackageManager
 import android.content.{Intent, ComponentName, Context}
 import android.net.ConnectivityManager
+import android.net.wifi.WifiManager
 import android.os.{Build, Handler}
 import android.provider.Settings
 import android.widget.Toast
@@ -28,12 +29,15 @@ class App extends Application {
     handler = new Handler
   }
 
+  lazy val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE).asInstanceOf[ConnectivityManager]
+  private lazy val wifiManager = getSystemService(Context.WIFI_SERVICE).asInstanceOf[WifiManager]
+  private lazy val networkMonitorPermissionGranted = checkCallingOrSelfPermission(
+    "android.permission.ACCESS_NETWORK_CONDITIONS") == PackageManager.PERMISSION_GRANTED
   /**
-    * 0-3: Not available, no root, need moving, yes.
+    * 0-4: Not available, no root, need moving, wifi scanning not available, yes.
     */
-  lazy val systemNetworkMonitorAvailable = if (Build.VERSION.SDK_INT >= 21) if (checkCallingOrSelfPermission(
-    "android.permission.ACCESS_NETWORK_CONDITIONS") == PackageManager.PERMISSION_GRANTED) 3
-  else if (App.isRoot) 2 else 1 else 0
+  def systemNetworkMonitorAvailable = if (Build.VERSION.SDK_INT >= 21) if (networkMonitorPermissionGranted)
+    if (wifiManager.isScanAlwaysAvailable) 4 else 3 else if (App.isRoot) 2 else 1 else 0
   /**
     * 0-3: Not available, permission missing, yes (revoke available), yes.
     */
@@ -42,7 +46,6 @@ class App extends Application {
 
   lazy val pref = getSharedPreferences(prefName, Context.MODE_PRIVATE)
   lazy val editor = pref.edit
-  lazy val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE).asInstanceOf[ConnectivityManager]
 
   def autoConnectEnabled = pref.getBoolean(autoConnectEnabledKey, true)
   def autoConnectEnabled(value: Boolean) = {
