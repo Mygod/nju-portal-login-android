@@ -1,23 +1,29 @@
 package tk.mygod.nju.portal.login
 
-import java.net.{URL, HttpURLConnection}
+import java.net.{SocketTimeoutException, HttpURLConnection, URL}
 
 import android.content.{BroadcastReceiver, Context, Intent}
 import android.net.{ConnectivityManager, NetworkInfo}
 import android.os.SystemClock
 import android.util.Log
 import android.widget.Toast
+import tk.mygod.util.CloseUtils._
 
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object NetworkConditionsReceiver {
-  val TAG = "NetworkConditionsReceiver"
+  private val TAG = "NetworkConditionsReceiver"
+
+  private def isNotMobile(network: Int) = network > 5 || network == ConnectivityManager.TYPE_WIFI
+
+  private def networkAvailable(context: Context, time: Long) = Toast.makeText(context, "Network available. Time=%dms"
+    .format(time),Toast.LENGTH_SHORT).show
 }
 
 final class NetworkConditionsReceiver extends BroadcastReceiver {
   import NetworkConditionsReceiver._
-
-  private def isNotMobile(network: Int) = network > 5 || network == ConnectivityManager.TYPE_WIFI
 
   override def onReceive(context: Context, intent: Intent) {
     if (App.DEBUG) {
@@ -33,27 +39,39 @@ final class NetworkConditionsReceiver extends BroadcastReceiver {
         if (isNotMobile(networkType) && networkInfo.isConnected) {  // TODO: disable tests for custom hotspots
           if (App.DEBUG)
             Log.d(TAG, "Network connected: %s, %s".format(networkInfo.getTypeName, networkInfo.getSubtypeName))
-          if (networkType != ConnectivityManager.TYPE_WIFI || App.instance.systemNetworkMonitorAvailable != 3) {
-            if (App.DEBUG) Log.d(TAG, "Testing connection manually...")
-            var conn: HttpURLConnection = null
-            try {
-              val url = new URL(App.http, "mygod.tk", "/generate_204")  // TODO: custom domain
-              // TODO: complete
-              var time = SystemClock.elapsedRealtime
-              time = SystemClock.elapsedRealtime - time
-            } catch {
-              case e: Throwable => e.printStackTrace
-            }
-          }
-          App.setTimeout(networkInfo)
+          if (networkType != ConnectivityManager.TYPE_WIFI || App.instance.systemNetworkMonitorAvailable != 3)
+            App.bindNetwork(networkInfo, network => Future {
+              if (App.DEBUG) Log.d(TAG, "Testing connection manually...")
+              try any2CloseAfterDisconnectable(() => {
+                val url = new URL(App.http, "mygod.tk", "/generate_204")
+                (if (network == null) url.openConnection else network.openConnection(url))
+                  .asInstanceOf[HttpURLConnection]
+              }) closeAfter { conn =>
+                conn.setInstanceFollowRedirects(false)
+                conn.setConnectTimeout(4000)  // TODO: custom timeout for testing
+                conn.setReadTimeout(4000)
+                conn.setUseCaches(false)
+                val time = SystemClock.elapsedRealtime
+                conn.getInputStream
+                val code = conn.getResponseCode
+                if (code == 204 || code == 200 && conn.getContentLength == 0)
+                  networkAvailable(context, SystemClock.elapsedRealtime - time)
+              } catch {
+                case e: SocketTimeoutException =>
+                  PortalManager.login(true)
+                case e: Throwable =>
+                  Toast.makeText(App.instance, e.getMessage, Toast.LENGTH_SHORT).show
+                  e.printStackTrace
+              }
+            }) else App.setTimeout(networkInfo)
         }
       case "android.net.conn.NETWORK_CONDITIONS_MEASURED" => if (!intent.getBooleanExtra("extra_is_captive_portal",
         false) && isNotMobile(intent.getIntExtra("extra_connectivity_type", ConnectivityManager.TYPE_MOBILE))) {
         // drop all captive portal and mobile connections
         App.clearTimeout
         if (App.testingNetwork != null && App.testingNetwork.getType == ConnectivityManager.TYPE_WIFI)
-          Toast.makeText(context, "Network available. Time=%dms".format(intent.getLongExtra("extra_response_timestamp_ms",
-            0) - intent.getLongExtra("extra_request_timestamp_ms", 0)), Toast.LENGTH_SHORT).show
+          networkAvailable(context, intent.getLongExtra("extra_response_timestamp_ms", 0) -
+            intent.getLongExtra("extra_request_timestamp_ms", 0))
       }
     }
   }

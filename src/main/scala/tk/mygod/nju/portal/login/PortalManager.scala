@@ -2,13 +2,11 @@ package tk.mygod.nju.portal.login
 
 import java.net.{HttpURLConnection, URL}
 
-import android.net.ConnectivityManager.NetworkCallback
-import android.net.{ConnectivityManager, Network, NetworkCapabilities, NetworkRequest}
 import android.util.Log
 import android.widget.Toast
-import org.json4s._
+import org.json4s.{JString, JInt, JObject, NoTypeHints}
+import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.native.Serialization
-import org.json4s.native.JsonMethods.{compact, render, parse}
 import tk.mygod.util.CloseUtils._
 import tk.mygod.util.IOUtils
 
@@ -34,32 +32,6 @@ object PortalManager {
     if (!info.isEmpty) listener(parse(info).asInstanceOf[JObject])
   }
 
-  private def networkTransportType: Int = App.testingNetwork.getType match {
-    case ConnectivityManager.TYPE_WIFI | ConnectivityManager.TYPE_WIMAX => NetworkCapabilities.TRANSPORT_WIFI
-    case ConnectivityManager.TYPE_BLUETOOTH => NetworkCapabilities.TRANSPORT_BLUETOOTH
-    case ConnectivityManager.TYPE_ETHERNET => NetworkCapabilities.TRANSPORT_ETHERNET
-    case ConnectivityManager.TYPE_VPN => NetworkCapabilities.TRANSPORT_VPN
-    case _ => NetworkCapabilities.TRANSPORT_CELLULAR  // should probably never hit
-  }
-
-  //noinspection ScalaDeprecation
-  private def bindNetwork[T](callback: Network => T) = if (App.testingNetwork == null) {
-    App.instance.connectivityManager.setNetworkPreference(ConnectivityManager.TYPE_WIFI)  // a random guess
-    callback(null)
-  } else App.testingNetwork.synchronized {
-    if (App.instance.bindedConnectionsAvailable > 1) {
-      if (App.DEBUG) Log.d(TAG, "Binding to network with type: " + networkTransportType)
-      App.instance.connectivityManager.requestNetwork(
-        new NetworkRequest.Builder().addTransportType(networkTransportType).build, new NetworkCallback {
-          override def onAvailable(network: Network) = callback(network)
-        })
-    } else {
-      App.instance.connectivityManager.setNetworkPreference(App.testingNetwork.getType)
-      if (App.DEBUG) Log.d(TAG, "Setting network preference: " + App.testingNetwork.getType)
-      callback(null)
-    }
-  }
-
   private def processResult(resultStr: String) = {
     if (App.DEBUG) Log.d(TAG, resultStr)
     val json = parse(resultStr)
@@ -81,7 +53,7 @@ object PortalManager {
   /**
     * Based on: https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/connectivity/NetworkMonitor.java#640
     */
-  def login(retry: Boolean = false): Unit = bindNetwork { network =>
+  def login(retry: Boolean = false): Unit = App.bindNetwork(App.testingNetwork, network => {
     if (App.DEBUG) Log.d(TAG, "Logging in...")
     try any2CloseAfterDisconnectable(() => {
       val url = new URL(App.http, portalDomain, "/portal_io/login")
@@ -102,9 +74,9 @@ object PortalManager {
         e.printStackTrace
     }
     if (retry) App.setTimeout()
-  }
+  })
 
-  def logout = bindNetwork { network =>
+  def logout = App.bindNetwork(App.testingNetwork, network => {
     try {
       (() => {
         val url = new URL(App.http, portalDomain, "/portal_io/logout")
@@ -123,5 +95,5 @@ object PortalManager {
         Toast.makeText(App.instance, e.getMessage, Toast.LENGTH_SHORT).show
         e.printStackTrace
     }
-  }
+  })
 }

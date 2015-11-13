@@ -1,7 +1,7 @@
 package tk.mygod.nju.portal.login
 
 import java.net.InetAddress
-import java.text.{DateFormat, SimpleDateFormat, DecimalFormat}
+import java.text.{DateFormat, DecimalFormat}
 import java.util.Date
 
 import android.os.Bundle
