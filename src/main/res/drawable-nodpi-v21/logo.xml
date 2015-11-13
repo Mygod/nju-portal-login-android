@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Generated with: http://inloop.github.io/svg2android/ -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-        android:width="268.223dp"
+        android:width="336.246dp"
         android:height="336.246dp"
-        android:viewportWidth="268.223"
+        android:viewportWidth="336.246"
         android:viewportHeight="336.246">
-
+    <group android:translateX="34.0115">
     <path
             android:fillColor="#6A005F"
             android:pathData="M0.117,0C17.14,9.924,39.544,16.917,66.38,17.159
@@ -472,4 +472,5 @@ c-0.528,0.586-1.436,1.384-2.686,2.447c-1.032,0.854-1.699,1.488-1.992,1.758c-0.27
 M142.839,210.792l0.449,3.728h-16.119l0.477-3.728H77.103l6.306-7.739c5.346-0.294,15.665-1.65,24.501-4.949
 c17.183-6.438,27.612,2.395,27.612,2.395c8.218-6.89,18.542-5.456,28.093-1.94c8.987,3.298,22.744,4.309,22.744,4.309l5.928,7.926
 H142.839z" />
+    </group>
 </vector>
