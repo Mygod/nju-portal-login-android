@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.support.v7.preference.Preference
 import android.util.Log
 import org.json4s.JObject
+import tk.mygod.net.UpdateManager
 import tk.mygod.preference._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -67,6 +68,10 @@ final class SettingsFragment extends PreferenceFragmentPlus {
     })
     PortalManager.setUserInfoListener(userInfoUpdated)
 
+    findPreference("misc.update").setOnPreferenceClickListener((preference: Preference) => {
+      UpdateManager.check(activity, "https://github.com/Mygod/nju-portal-login-android/releases", App.handler)
+      true
+    })
     findPreference("misc.support").setOnPreferenceClickListener((preference: Preference) => {
       startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Mygod/nju-portal-login-android/wiki")))
       true
