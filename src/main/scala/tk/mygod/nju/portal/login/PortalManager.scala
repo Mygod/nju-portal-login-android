@@ -74,12 +74,11 @@ object PortalManager {
     private var network: Network = _
     def setCallback(c: Network => Unit) = if (network != null) c(network) else callback = c
     
-    override def onAvailable(n: Network) = {
+    override def onAvailable(n: Network) {
       network = n
-      if (callback != null) { // prevent duplicate calls
-        callback(n)
-        callback = null
-      }
+      if (callback == null) return  // prevent duplicate calls
+      callback(n)
+      callback = null // release it for GC
     }
     override def onLost(n: Network) = if (n == network) network = null
   }
