@@ -76,21 +76,38 @@ object PortalManager {
   }
 
   @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-  private class NetworkAvailableCallback(private var callback: Network => Unit) extends NetworkCallback {
-    // TODO: NET_CAPABILITY_INTERNET changed
+  private class NetworkAvailableCallback extends NetworkCallback {
+    private var callback: Network => Unit = _
     var network: Network = _
     def setCallback(c: Network => Unit) = if (network != null) c(network) else callback = c
     
     override def onAvailable(n: Network) {
       network = n
       if (callback == null) return  // prevent duplicate calls
-      callback(n)
+      if (App.instance.autoConnectEnabled) callback(n)
       callback = null // release it for GC
     }
     override def onLost(n: Network) = if (n == network) network = null
+
+    override def onCapabilitiesChanged(n: Network, networkCapabilities: NetworkCapabilities) {
+      if (App.DEBUG) Log.d(TAG, "onCapabilitiesChanged (%s): %s".format(n.toString, networkCapabilities.toString))
+      if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL)) return
+      if (network != n) network = n
+      if (App.instance.autoConnectEnabled &&
+        (!networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) || Build.VERSION.SDK_INT >= 23
+          && !networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)))
+        login(n, (code: Option[Int]) => onLoginResult(n, code))
+    }
+
+    private def onLoginResult(n: Network, code: Option[Int]): Unit =
+      if (network == n && !(code.contains(1) || code.contains(6))) {
+        Thread.sleep(App.instance.pref.getInt("speed.retryDelay", 4000))
+        if (App.instance.autoConnectEnabled) login(n, (code: Option[Int]) => onLoginResult(n, code))
+      }
   }
   @TargetApi(Build.VERSION_CODES.LOLLIPOP)
   private val callbacks = new mutable.HashMap[Int, NetworkAvailableCallback]
+  private var lastTransport: Int = _
 
   //noinspection ScalaDeprecation
   private def bindNetwork(network: NetworkInfo, callback: Network => Unit): Unit = if (network == null) {
@@ -98,28 +115,29 @@ object PortalManager {
     callback(null)
   } else network.synchronized {
     if (App.instance.bindedConnectionsAvailable > 1) {
-      val transport = network.getType match {
+      lastTransport = network.getType match {
         case ConnectivityManager.TYPE_WIFI | ConnectivityManager.TYPE_WIMAX => NetworkCapabilities.TRANSPORT_WIFI
         case ConnectivityManager.TYPE_BLUETOOTH => NetworkCapabilities.TRANSPORT_BLUETOOTH
         case ConnectivityManager.TYPE_ETHERNET => NetworkCapabilities.TRANSPORT_ETHERNET
         case ConnectivityManager.TYPE_VPN => NetworkCapabilities.TRANSPORT_VPN
-        case _ => NetworkCapabilities.TRANSPORT_CELLULAR  // should probably never hit
+        case _ => NetworkCapabilities.TRANSPORT_CELLULAR  // will crash if hit
       }
-      if (App.DEBUG) Log.d(TAG, "Binding to network with type: " + transport)
-      callbacks.get(transport) match {
-        case Some(c) => c.setCallback(callback)
-        case None =>
-          val c = new NetworkAvailableCallback(callback)
-          callbacks += ((transport, c))
-          App.instance.connectivityManager.requestNetwork(new NetworkRequest.Builder().addTransportType(transport)
-            .build, c)
-      }
+      if (App.DEBUG) Log.d(TAG, "Binding to network with type: " + lastTransport)
+      callbacks.get(lastTransport).get.setCallback(callback)
     } else {
       App.instance.connectivityManager.setNetworkPreference(network.getType)
       if (App.DEBUG) Log.d(TAG, "Setting network preference: " + network.getType)
       callback(null)
     }
   }
+
+  def startListenNetwork = for (transport <- Array(NetworkCapabilities.TRANSPORT_WIFI,
+    NetworkCapabilities.TRANSPORT_BLUETOOTH, NetworkCapabilities.TRANSPORT_ETHERNET, NetworkCapabilities.TRANSPORT_VPN))
+    if (!callbacks.contains(transport)) {
+      val c = new NetworkAvailableCallback
+      callbacks += ((transport, c))
+      App.instance.connectivityManager.requestNetwork(new NetworkRequest.Builder().addTransportType(transport).build, c)
+    }
 
   /**
     * Setup HttpURLConnection.
