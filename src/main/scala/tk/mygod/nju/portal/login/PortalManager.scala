@@ -1,6 +1,6 @@
 package tk.mygod.nju.portal.login
 
-import java.net.{UnknownHostException, HttpURLConnection, SocketTimeoutException, URL}
+import java.net._
 
 import android.annotation.TargetApi
 import android.app.Service
@@ -96,13 +96,13 @@ object PortalManager {
       if (App.instance.autoConnectEnabled &&
         (!networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) || Build.VERSION.SDK_INT >= 23
           && !networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)))
-        login(n, (code: Option[Int]) => onLoginResult(n, code))
+        login(n, (result: Int, code: Int) => onLoginResult(n, result, code))
     }
 
-    private def onLoginResult(n: Network, code: Option[Int]): Unit =
-      if (network == n && !(code.contains(1) || code.contains(6))) {
+    private def onLoginResult(n: Network, result: Int, code: Int): Unit =
+      if (network == n && result != 2 && !(code == 1 || code == 6)) {
         Thread.sleep(App.instance.pref.getInt("speed.retryDelay", 4000))
-        if (App.instance.autoConnectEnabled) login(n, (code: Option[Int]) => onLoginResult(n, code))
+        if (App.instance.autoConnectEnabled) login(n, (result: Int, code: Int) => onLoginResult(n, result, code))
       }
   }
   @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -162,34 +162,40 @@ object PortalManager {
     * Based on: https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/connectivity/NetworkMonitor.java#640
     */
   @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-  def login(network: Network, onResult: Option[Int] => Unit) {
+  def login(network: Network, onResult: (Int, Int) => Unit) {
     if (App.DEBUG) Log.d(TAG, loggingIn)
     try autoDisconnect(network.openConnection(new URL(http, portalDomain, portalLogin))
       .asInstanceOf[HttpURLConnection]) { conn =>
         setup(conn, App.instance.loginTimeout, 2)
         val result = processResult(IOUtils.readAllText(conn.getInputStream()))
         if (result == 1 || result == 6) reportNetworkConnectivity(network, true)
-        if (onResult != null) onResult(Some(result))
+        if (onResult != null) onResult(if (result == 3 || result == 8) 2 else 0, result)
       } catch {
+        case e: SocketException =>
+          e.printStackTrace
+          onResult(2, 0)
         case e: Exception =>
           App.instance.showToast(e.getMessage)
           e.printStackTrace
-          if (onResult != null) onResult(None)
+          if (onResult != null) onResult(1, 0)
       }
   }
-  def login(network: NetworkInfo = null, onResult: Option[Int] => Unit = null): Unit =
+  def login(network: NetworkInfo = null, onResult: (Int, Int) => Unit = null): Unit =
     if (Build.VERSION.SDK_INT >= 21 && network != null) bindNetwork(network, network => login(network, onResult)) else {
       if (App.DEBUG) Log.d(TAG, loggingIn)
       try autoDisconnect(new URL(http, portalDomain, portalLogin).openConnection.asInstanceOf[HttpURLConnection])
       { conn =>
         setup(conn, App.instance.loginTimeout, 2)
         val result = processResult(IOUtils.readAllText(conn.getInputStream()))
-        if (onResult != null) onResult(Some(result))
+        if (onResult != null) onResult(if (result == 3 || result == 8) 2 else 0, result)
       } catch {
+        case e: SocketException =>
+          e.printStackTrace
+          onResult(2, 0)
         case e: Exception =>
           App.instance.showToast(e.getMessage)
           e.printStackTrace
-          if (onResult != null) onResult(None)
+          if (onResult != null) onResult(1, 0)
       }
     }
 
@@ -272,7 +278,8 @@ final class PortalManager extends Service {
       if (isStopped) taskEnded else if (!networkAvailable) login(networkInfo, onLoginResult _)
     }
 
-    def onLoginResult(code: Option[Int]): Unit = if (code.contains(1) || code.contains(6) || isStopped) taskEnded else {
+    def onLoginResult(result: Int, code: Int): Unit = if (result == 1 || code == 1 || code == 6 || isStopped) taskEnded
+    else {
       Thread.sleep(App.instance.pref.getInt("speed.retryDelay", 4000))
       login(networkInfo, onLoginResult _)
     }
