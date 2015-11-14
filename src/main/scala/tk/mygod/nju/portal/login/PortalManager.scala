@@ -246,13 +246,14 @@ final class PortalManager extends Service {
 
   def onBind(intent: Intent) = null
   override def onStartCommand(intent: Intent, flags: Int, startId: Int): Int = {
+    if (App.DEBUG) Log.d(TAG, if (intent == null) "null" else intent.getAction)
     //noinspection ScalaDeprecation
-    intent.getAction match {
-      case START =>
+    (if (intent == null) None else Some(intent.getAction)) match {
+      case Some(START) =>
         val info = intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO).asInstanceOf[NetworkInfo]
         if (tester != null) if (isTesting(info)) return Service.START_STICKY else tester.stop
         tester = new NetworkTester(info)
-      case NETWORK_CONDITIONS_MEASURED =>
+      case Some(NETWORK_CONDITIONS_MEASURED) =>
         if (tester == null) stopSelf else if (tester.networkInfo.getType == ConnectivityManager.TYPE_WIFI) {
           tester.networkAvailable = true
           onNetworkAvailable(intent.getLongExtra("extra_response_timestamp_ms", 0) -
