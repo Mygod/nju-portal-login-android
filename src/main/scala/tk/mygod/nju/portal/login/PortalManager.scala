@@ -278,7 +278,7 @@ final class PortalManager extends Service {
       if (isStopped) taskEnded else if (!networkAvailable) login(networkInfo, onLoginResult _)
     }
 
-    def onLoginResult(result: Int, code: Int): Unit = if (result == 1 || code == 1 || code == 6 || isStopped) taskEnded
+    def onLoginResult(result: Int, code: Int): Unit = if (result == 2 || code == 1 || code == 6 || isStopped) taskEnded
     else {
       Thread.sleep(App.instance.pref.getInt("speed.retryDelay", 4000))
       login(networkInfo, onLoginResult _)
