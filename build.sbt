@@ -69,6 +69,8 @@ proguardConfig in Android := List("-dontobfuscate",
   // EditTextPreference
   "-keep class scala.collection.SeqLike { public java.lang.String toString(); }",
 
+  "-keep class android.support.design.widget.Snackbar$SnackbarLayout { <init>(...); }",
+
   "-keep class tk.mygod.nju.portal.login.App { <init>(...); }",
   "-keep class tk.mygod.nju.portal.login.MainActivity { <init>(...); }",
   "-keep class tk.mygod.nju.portal.login.NetworkConditionsReceiver { <init>(...); }",
