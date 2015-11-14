@@ -2,6 +2,7 @@ package tk.mygod.nju.portal.login
 
 import java.net.{UnknownHostException, HttpURLConnection, SocketTimeoutException, URL}
 
+import android.annotation.TargetApi
 import android.app.Service
 import android.content.Intent
 import android.net.ConnectivityManager.NetworkCallback
@@ -15,6 +16,7 @@ import tk.mygod.concurrent.StoppableFuture
 import tk.mygod.util.CloseUtils._
 import tk.mygod.util.IOUtils
 
+import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -67,28 +69,45 @@ object PortalManager {
     code
   }
 
-  private def networkTransportType(network: NetworkInfo) = network.getType match {
-    case ConnectivityManager.TYPE_WIFI | ConnectivityManager.TYPE_WIMAX => NetworkCapabilities.TRANSPORT_WIFI
-    case ConnectivityManager.TYPE_BLUETOOTH => NetworkCapabilities.TRANSPORT_BLUETOOTH
-    case ConnectivityManager.TYPE_ETHERNET => NetworkCapabilities.TRANSPORT_ETHERNET
-    case ConnectivityManager.TYPE_VPN => NetworkCapabilities.TRANSPORT_VPN
-    case _ => NetworkCapabilities.TRANSPORT_CELLULAR  // should probably never hit
+  @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+  private class NetworkAvailableCallback(private var callback: Network => Unit) extends NetworkCallback {
+    private var network: Network = _
+    def setCallback(c: Network => Unit) = if (network != null) c(network) else callback = c
+    
+    override def onAvailable(n: Network) = {
+      network = n
+      if (callback != null) { // prevent duplicate calls
+        callback(n)
+        callback = null
+      }
+    }
+    override def onLost(n: Network) = if (n == network) network = null
   }
+  @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+  private val callbacks = new mutable.HashMap[Int, NetworkAvailableCallback]
+
   //noinspection ScalaDeprecation
-  private def bindNetwork[T](network: NetworkInfo, callback: Network => T): Unit = if (network == null) {
+  private def bindNetwork(network: NetworkInfo, callback: Network => Unit): Unit = if (network == null) {
     App.instance.connectivityManager.setNetworkPreference(ConnectivityManager.TYPE_WIFI)  // a random guess
     callback(null)
   } else network.synchronized {
     if (App.instance.bindedConnectionsAvailable > 1) {
-      if (App.DEBUG) Log.d(TAG, "Binding to network with type: " + networkTransportType(network))
-      App.instance.connectivityManager.requestNetwork(
-        new NetworkRequest.Builder().addTransportType(networkTransportType(network)).build, new NetworkCallback {
-          var pending = true
-          override def onAvailable(network: Network) = if (pending) { // prevent duplicate calls
-            pending = false
-            callback(network)
-          }
-        })
+      val transport = network.getType match {
+        case ConnectivityManager.TYPE_WIFI | ConnectivityManager.TYPE_WIMAX => NetworkCapabilities.TRANSPORT_WIFI
+        case ConnectivityManager.TYPE_BLUETOOTH => NetworkCapabilities.TRANSPORT_BLUETOOTH
+        case ConnectivityManager.TYPE_ETHERNET => NetworkCapabilities.TRANSPORT_ETHERNET
+        case ConnectivityManager.TYPE_VPN => NetworkCapabilities.TRANSPORT_VPN
+        case _ => NetworkCapabilities.TRANSPORT_CELLULAR  // should probably never hit
+      }
+      if (App.DEBUG) Log.d(TAG, "Binding to network with type: " + transport)
+      callbacks.get(transport) match {
+        case Some(c) => c.setCallback(callback)
+        case None =>
+          val c = new NetworkAvailableCallback(callback)
+          callbacks += ((transport, c))
+          App.instance.connectivityManager.requestNetwork(new NetworkRequest.Builder().addTransportType(transport)
+            .build, c)
+      }
     } else {
       App.instance.connectivityManager.setNetworkPreference(network.getType)
       if (App.DEBUG) Log.d(TAG, "Setting network preference: " + network.getType)
@@ -118,6 +137,7 @@ object PortalManager {
   /**
     * Based on: https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/connectivity/NetworkMonitor.java#640
     */
+  @TargetApi(Build.VERSION_CODES.LOLLIPOP)
   def login(network: Network, onResult: Option[Int] => Unit) {
     if (App.DEBUG) Log.d(TAG, loggingIn)
     try autoDisconnect(network.openConnection(new URL(http, portalDomain, portalLogin))
@@ -234,9 +254,13 @@ final class PortalManager extends Service {
       login(networkInfo, onLoginResult _)
     }
 
-    def taskEnded = if (isTesting(networkInfo)) {
-      tester = null
-      stopSelf
+    def taskEnded {
+      if (App.DEBUG)
+        Log.d(TAG, "Ending session for %s[%s].".format(networkInfo.getTypeName, networkInfo.getSubtypeName))
+      if (isTesting(networkInfo)) {
+        tester = null
+        stopSelf
+      }
     }
   }
 
