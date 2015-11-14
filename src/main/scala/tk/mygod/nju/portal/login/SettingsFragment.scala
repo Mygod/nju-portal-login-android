@@ -60,7 +60,7 @@ final class SettingsFragment extends PreferenceFragmentPlus {
       true
     })
     findPreference("misc.support").setOnPreferenceClickListener((preference: Preference) => {
-      startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Mygod/nju-portal-login-android/wiki")))
+      startActivity(new Intent(Intent.ACTION_VIEW, R.string.settings_misc_support_url))
       true
     })
   }

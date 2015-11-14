@@ -33,12 +33,14 @@
 
     <string name="settings_notifications">通知</string>
     <string name="settings_notifications_connection">网络可用</string>
-    <string name="settings_notifications_connection_summary">当前连接有 Internet 连接时显示通知，并显示 HTTP ping 延迟。</string>
+    <string name="settings_notifications_connection_summary">当前连接有 Internet 连接时显示通知，并显示 HTTP ping 延迟。
+    </string>
     <string name="settings_notifications_login">登录/登出成功</string>
 
     <string name="settings_misc">其他</string>
     <string name="settings_misc_update">检查更新</string>
     <string name="settings_misc_support">常见问题与支持</string>
+    <string name="settings_misc_support_url">https://github.com/Mygod/nju-portal-login-android/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E6%94%AF%E6%8C%81</string>
 
     <!-- MainActivity/SettingsFragment -->
     <string name="su_success">操作成功，重启后生效。</string>
@@ -46,7 +48,8 @@
     <string name="su_fail_msg">操作失败：%s</string>
 
     <string name="networkmonitor_install_title">使用系统自带的网络监视？</string>
-    <string name="networkmonitor_install_message">使用系统自带的网络监视可减少耗电，但需要切换为系统特权应用。现在执行此操作吗？</string>
+    <string name="networkmonitor_install_message">使用系统自带的网络监视可减少耗电，但需要切换为系统特权应用。现在执行此操作吗？
+    </string>
     <string name="networkmonitor_uninstall_title">卸载本应用？</string>
     <string name="networkmonitor_uninstall_message">卸载完毕后你可能需要重启后再次用正常方式卸载。</string>
     <string name="networkmonitor_summary">使用系统自带的网络监视来减少耗电。\n</string>
