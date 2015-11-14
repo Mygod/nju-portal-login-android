@@ -51,6 +51,12 @@ object PortalManager {
     if (!info.isEmpty) listener(parse(info).asInstanceOf[JObject])
   }
 
+  //noinspection ScalaDeprecation
+  @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+  private def reportNetworkConnectivity(network: Network, hasConnectivity: Boolean) = if (Build.VERSION.SDK_INT >= 23)
+    App.instance.connectivityManager.reportNetworkConnectivity(network, hasConnectivity)
+  else App.instance.connectivityManager.reportBadNetwork(network)
+
   private implicit val formats = Serialization.formats(NoTypeHints)
   private def processResult(resultStr: String) = {
     if (App.DEBUG) Log.d(TAG, resultStr)
@@ -71,7 +77,8 @@ object PortalManager {
 
   @TargetApi(Build.VERSION_CODES.LOLLIPOP)
   private class NetworkAvailableCallback(private var callback: Network => Unit) extends NetworkCallback {
-    private var network: Network = _
+    // TODO: NET_CAPABILITY_INTERNET changed
+    var network: Network = _
     def setCallback(c: Network => Unit) = if (network != null) c(network) else callback = c
     
     override def onAvailable(n: Network) {
@@ -143,6 +150,7 @@ object PortalManager {
       .asInstanceOf[HttpURLConnection]) { conn =>
         setup(conn, App.instance.loginTimeout, 2)
         val result = processResult(IOUtils.readAllText(conn.getInputStream()))
+        if (result == 1 || result == 6) reportNetworkConnectivity(network, true)
         if (onResult != null) onResult(Some(result))
       } catch {
         case e: Exception =>
@@ -171,7 +179,11 @@ object PortalManager {
     autoDisconnect(new URL(http, portalDomain, "/portal_io/logout").openConnection.asInstanceOf[HttpURLConnection])
     { conn =>
       setup(conn, App.instance.loginTimeout, 1)
-      processResult(IOUtils.readAllText(conn.getInputStream()))
+      if (processResult(IOUtils.readAllText(conn.getInputStream())) == 101 &&
+        App.instance.bindedConnectionsAvailable > 1) callbacks.get(NetworkCapabilities.TRANSPORT_WIFI) match {
+        case Some(callback) => reportNetworkConnectivity(callback.network, false) // TODO: not wifi?
+        case _ =>
+      }
     } catch {
       case e: Exception =>
         App.instance.showToast(e.getMessage)
@@ -242,13 +254,7 @@ final class PortalManager extends Service {
       if (isStopped) taskEnded else if (!networkAvailable) login(networkInfo, onLoginResult _)
     }
 
-    def onLoginResult(code: Option[Int]): Unit = if (code.contains(1) || code.contains(6)) {
-      //noinspection ScalaDeprecation
-      if (Build.VERSION.SDK_INT >= 21 && network != null)
-        if (Build.VERSION.SDK_INT >= 23) App.instance.connectivityManager.reportNetworkConnectivity(network, true)
-        else App.instance.connectivityManager.reportBadNetwork(network) // re-evaluate to reduce mobile data usage
-      taskEnded
-    } else if (isStopped) taskEnded else {
+    def onLoginResult(code: Option[Int]): Unit = if (code.contains(1) || code.contains(6) || isStopped) taskEnded else {
       Thread.sleep(App.instance.pref.getInt("speed.retryDelay", 4000))
       login(networkInfo, onLoginResult _)
     }
