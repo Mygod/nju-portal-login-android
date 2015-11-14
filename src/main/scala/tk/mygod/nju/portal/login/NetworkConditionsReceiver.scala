@@ -31,8 +31,9 @@ final class NetworkConditionsReceiver extends BroadcastReceiver {
             if (PortalManager.running) context.startService(new Intent(context, classOf[PortalManager])
               .setAction(PortalManager.STOP).putExtra(ConnectivityManager.EXTRA_NETWORK_INFO, networkInfo))
           }
-      case "android.net.conn.NETWORK_CONDITIONS_MEASURED" => if (!intent.getBooleanExtra("extra_is_captive_portal",
-        false) && isNotMobile(intent.getIntExtra("extra_connectivity_type", ConnectivityManager.TYPE_MOBILE))) {
+      case "android.net.conn.NETWORK_CONDITIONS_MEASURED" => if (PortalManager.running &&
+        !intent.getBooleanExtra("extra_is_captive_portal", false) &&
+        isNotMobile(intent.getIntExtra("extra_connectivity_type", ConnectivityManager.TYPE_MOBILE))) {
         // drop all captive portal and mobile connections
         intent.setClass(context, classOf[PortalManager])
         context.startService(intent)  // redirect
