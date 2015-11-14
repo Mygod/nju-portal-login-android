@@ -36,7 +36,7 @@ final class MainActivity extends ToolbarActivity {
   private def su(command: String) {
     if (App.DEBUG) Log.d(TAG, "Executing su: " + command)
     val result = SU.run("mount -o rw,remount /system && " + command + " && echo 1").asScala
-    makeSnackbar(if (result.size == 1 && result.head == "1") R.string.su_success
+    makeSnackbar(if (result != null && result.size == 1 && result.head == "1") R.string.su_success
       else if (result.isEmpty) R.string.su_fail else getString(R.string.su_fail_msg, result.mkString("\n"))).show
   }
   def testNetworkMonitor(requested: Boolean = false) = App.instance.systemNetworkMonitorAvailable match {
