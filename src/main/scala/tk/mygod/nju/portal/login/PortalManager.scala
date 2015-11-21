@@ -87,12 +87,12 @@ object PortalManager {
       if (App.instance.autoConnectEnabled) callback(n)
       callback = null // release it for GC
     }
-    override def onLost(n: Network) = if (n == network) network = null
+    override def onLost(n: Network) = if (n.equals(network)) network = null
 
     override def onCapabilitiesChanged(n: Network, networkCapabilities: NetworkCapabilities) {
       if (App.DEBUG) Log.d(TAG, "onCapabilitiesChanged (%s): %s".format(n.toString, networkCapabilities.toString))
       if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL)) return
-      if (network != n) network = n
+      if (!n.equals(network)) network = n
       if (App.instance.autoConnectEnabled &&
         (!networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) || Build.VERSION.SDK_INT >= 23
           && !networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)))
@@ -100,7 +100,7 @@ object PortalManager {
     }
 
     private def onLoginResult(n: Network, result: Int, code: Int): Unit =
-      if (network == n && result != 2 && !(code == 1 || code == 6)) {
+      if (n.equals(network) && result != 2 && !(code == 1 || code == 6)) {
         Thread.sleep(App.instance.pref.getInt("speed.retryDelay", 4000))
         if (App.instance.autoConnectEnabled) login(n, (result: Int, code: Int) => onLoginResult(n, result, code))
       }

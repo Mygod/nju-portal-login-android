@@ -1,12 +1,14 @@
 package tk.mygod.nju.portal.login
 
+import java.util
+
 import android.content.{DialogInterface, Intent}
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.support.v7.app.AlertDialog
 import android.util.Log
-import eu.chainfire.libsuperuser.Shell.SU
+import eu.chainfire.libsuperuser.Shell.{Builder, OnCommandResultListener, SU}
 import tk.mygod.app.ToolbarActivity
 
 import scala.collection.JavaConverters._
@@ -33,17 +35,27 @@ final class MainActivity extends ToolbarActivity {
     testBindedConnections()
   }
 
-  private def su(command: String) {
-    if (App.DEBUG) Log.d(TAG, "Executing su: " + command)
-    val result = SU.run("mount -o rw,remount /system && " + command + " && echo 1").asScala
-    makeSnackbar(if (result != null && result.size == 1 && result.head == "1") R.string.su_success
-      else if (result.isEmpty) R.string.su_fail else getString(R.string.su_fail_msg, result.mkString("\n"))).show
+  private def su(commands: String*) {
+    if (App.DEBUG) Log.d(TAG, "Executing su: " + commands.mkString(" && "))
+    val shell = new Builder().setShell(SU.shell(0, "u:r:init_shell:s0")).setWantSTDERR(true).setWatchdogTimeout(10).open
+    var result = List[String]()
+    var code = 0
+    shell.addCommand((List("mount -o rw,remount /system") ++ commands).toArray, 0,
+      ((commandCode: Int, exitCode: Int, output: util.List[String]) => {
+        result ++= output.asScala
+        if (exitCode == 0) return
+        code = exitCode
+        shell.close
+      }): OnCommandResultListener)
+    makeSnackbar(if (result.isEmpty && code == 0) R.string.su_success else if (result.isEmpty)
+      getString(R.string.su_fail, code: Integer) else
+      getString(R.string.su_fail_msg, code: Integer, result.mkString("\n"))).show
   }
   def testNetworkMonitor(requested: Boolean = false) = App.instance.systemNetworkMonitorAvailable match {
     case 2 => if (requested || !App.instance.pref.getBoolean(askedNetworkMonitor, false)) {
       new AlertDialog.Builder(this).setTitle(R.string.networkmonitor_install_title)
-        .setPositiveButton(android.R.string.yes, ((dialog: DialogInterface, which: Int) => su(
-          "mkdir %1$s && chmod 755 %1$s && mv %2$s %3$s".format(systemDir, getApplicationInfo.sourceDir, systemPath)))
+        .setPositiveButton(android.R.string.yes, ((dialog: DialogInterface, which: Int) => su("mkdir " + systemDir,
+          "chmod 755 " + systemDir, "mv " + getApplicationInfo.sourceDir + ' ' + systemPath))
             : DialogInterface.OnClickListener).setMessage(R.string.networkmonitor_install_message)
         .setNegativeButton(android.R.string.no, null).create.show
       App.instance.editor.putBoolean(askedNetworkMonitor, true).apply

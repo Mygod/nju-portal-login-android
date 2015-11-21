@@ -45,8 +45,8 @@
 
     <!-- MainActivity/SettingsFragment -->
     <string name="su_success">Operation completed. Reboot your device to apply changes.</string>
-    <string name="su_fail">Operation failed.</string>
-    <string name="su_fail_msg">Operation failed: %s</string>
+    <string name="su_fail">Operation failed. (#%d)</string>
+    <string name="su_fail_msg">Operation failed: (#%1$d) %2$s</string>
 
     <string name="networkmonitor_install_title">Enable system NetworkMonitor?</string>
     <string name="networkmonitor_install_message">System NetworkMonitor can be enabled to save battery via changing this
