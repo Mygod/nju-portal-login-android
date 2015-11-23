@@ -79,7 +79,7 @@ object PortalManager {
   private class NetworkAvailableCallback extends NetworkCallback {
     private var callback: Network => Unit = _
     var network: Network = _
-    def setCallback(c: Network => Unit) = if (network != null) c(network) else callback = c
+    def setCallback(c: Network => Unit) = synchronized(if (network != null) c(network) else callback = c)
     
     override def onAvailable(n: Network) {
       network = n
@@ -110,26 +110,24 @@ object PortalManager {
   private var lastTransport: Int = _
 
   //noinspection ScalaDeprecation
-  private def bindNetwork(network: NetworkInfo, callback: Network => Unit): Unit = if (network == null) {
-    App.instance.connectivityManager.setNetworkPreference(ConnectivityManager.TYPE_WIFI)  // a random guess
-    callback(null)
-  } else network.synchronized {
+  private def bindNetwork(network: NetworkInfo, callback: Network => Unit) =
     if (App.instance.bindedConnectionsAvailable > 1) {
       lastTransport = network.getType match {
         case ConnectivityManager.TYPE_WIFI | ConnectivityManager.TYPE_WIMAX => NetworkCapabilities.TRANSPORT_WIFI
         case ConnectivityManager.TYPE_BLUETOOTH => NetworkCapabilities.TRANSPORT_BLUETOOTH
         case ConnectivityManager.TYPE_ETHERNET => NetworkCapabilities.TRANSPORT_ETHERNET
-        case ConnectivityManager.TYPE_VPN => NetworkCapabilities.TRANSPORT_VPN  // will crash if hit
-        case _ => NetworkCapabilities.TRANSPORT_CELLULAR                        // will crash if hit
+        // will crash if hit the following:
+        case ConnectivityManager.TYPE_VPN => NetworkCapabilities.TRANSPORT_VPN
+        case _ => NetworkCapabilities.TRANSPORT_CELLULAR
       }
       if (App.DEBUG) Log.d(TAG, "Binding to network with type: " + lastTransport)
       callbacks.get(lastTransport).get.setCallback(callback)
     } else {
-      App.instance.connectivityManager.setNetworkPreference(network.getType)
-      if (App.DEBUG) Log.d(TAG, "Setting network preference: " + network.getType)
+      val preference = if (network == null) ConnectivityManager.TYPE_WIFI else network.getType
+      App.instance.connectivityManager.setNetworkPreference(preference)
+      if (App.DEBUG) Log.d(TAG, "Setting network preference: " + preference)
       callback(null)
     }
-  }
 
   def startListenNetwork = for (transport <- Array(NetworkCapabilities.TRANSPORT_WIFI,
     NetworkCapabilities.TRANSPORT_BLUETOOTH, NetworkCapabilities.TRANSPORT_ETHERNET))
@@ -181,7 +179,7 @@ object PortalManager {
       }
   }
   def login(network: NetworkInfo = null, onResult: (Int, Int) => Unit = null): Unit =
-    if (Build.VERSION.SDK_INT >= 21 && network != null) bindNetwork(network, network => login(network, onResult)) else {
+    if (Build.VERSION.SDK_INT >= 21) bindNetwork(network, network => login(network, onResult)) else {
       if (App.DEBUG) Log.d(TAG, loggingIn)
       try autoDisconnect(new URL(http, portalDomain, portalLogin).openConnection.asInstanceOf[HttpURLConnection])
       { conn =>
@@ -221,12 +219,11 @@ object PortalManager {
 final class PortalManager extends Service {
   import PortalManager._
 
-  private def onNetworkAvailable(time: Long): Unit = if (App.instance.pref.getBoolean("notifications.connection", true))
+  private def onNetworkAvailable(time: Long) = if (App.instance.pref.getBoolean("notifications.connection", true))
     App.instance.showToast(getString(R.string.network_available).format(time))
 
   private final class NetworkTester(val networkInfo: NetworkInfo) extends StoppableFuture {
     @volatile var networkAvailable: Boolean = _
-    private var network: Network = _
 
     def work {  // TODO: custom domain
       val skip = App.instance.pref.getBoolean("speed.skipConnect", false)
@@ -234,7 +231,6 @@ final class PortalManager extends Service {
         App.instance.systemNetworkMonitorAvailable != 4) {
         if (App.DEBUG) Log.d(TAG, "Testing connection manually...")
         if (Build.VERSION.SDK_INT >= 21) bindNetwork(networkInfo, network => Future {
-          this.network = network
           try autoDisconnect(network.openConnection(new URL(http, "mygod.tk", testNetwork))
             .asInstanceOf[HttpURLConnection]) { conn =>
               setup(conn, App.instance.connectTimeout)
