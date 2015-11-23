@@ -7,7 +7,8 @@ import android.util.Log
 object NetworkConditionsReceiver {
   private val TAG = "NetworkConditionsReceiver"
 
-  private def isNotMobile(network: Int) = network > 5 || network == ConnectivityManager.TYPE_WIFI
+  private def needTesting(network: Int) =
+    network > 5 && network != ConnectivityManager.TYPE_VPN || network == ConnectivityManager.TYPE_WIFI
 }
 
 final class NetworkConditionsReceiver extends BroadcastReceiver {
@@ -19,7 +20,7 @@ final class NetworkConditionsReceiver extends BroadcastReceiver {
       //noinspection ScalaDeprecation
       case ConnectivityManager.CONNECTIVITY_ACTION =>
         val networkInfo = intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO).asInstanceOf[NetworkInfo]
-        if (isNotMobile(networkInfo.getType)) // TODO: disable tests for custom hotspots
+        if (needTesting(networkInfo.getType)) // TODO: disable tests for custom hotspots
           if (networkInfo.isConnected) {
             if (App.DEBUG)
               Log.d(TAG, "Network %s[%s] connected.".format(networkInfo.getTypeName, networkInfo.getSubtypeName))
@@ -33,7 +34,7 @@ final class NetworkConditionsReceiver extends BroadcastReceiver {
           }
       case "android.net.conn.NETWORK_CONDITIONS_MEASURED" => if (PortalManager.running &&
         !intent.getBooleanExtra("extra_is_captive_portal", false) &&
-        isNotMobile(intent.getIntExtra("extra_connectivity_type", ConnectivityManager.TYPE_MOBILE))) {
+        needTesting(intent.getIntExtra("extra_connectivity_type", ConnectivityManager.TYPE_MOBILE))) {
         // drop all captive portal and mobile connections
         intent.setClass(context, classOf[PortalManager])
         context.startService(intent)  // redirect

@@ -119,8 +119,8 @@ object PortalManager {
         case ConnectivityManager.TYPE_WIFI | ConnectivityManager.TYPE_WIMAX => NetworkCapabilities.TRANSPORT_WIFI
         case ConnectivityManager.TYPE_BLUETOOTH => NetworkCapabilities.TRANSPORT_BLUETOOTH
         case ConnectivityManager.TYPE_ETHERNET => NetworkCapabilities.TRANSPORT_ETHERNET
-        case ConnectivityManager.TYPE_VPN => NetworkCapabilities.TRANSPORT_VPN
-        case _ => NetworkCapabilities.TRANSPORT_CELLULAR  // will crash if hit
+        case ConnectivityManager.TYPE_VPN => NetworkCapabilities.TRANSPORT_VPN  // will crash if hit
+        case _ => NetworkCapabilities.TRANSPORT_CELLULAR                        // will crash if hit
       }
       if (App.DEBUG) Log.d(TAG, "Binding to network with type: " + lastTransport)
       callbacks.get(lastTransport).get.setCallback(callback)
@@ -132,7 +132,7 @@ object PortalManager {
   }
 
   def startListenNetwork = for (transport <- Array(NetworkCapabilities.TRANSPORT_WIFI,
-    NetworkCapabilities.TRANSPORT_BLUETOOTH, NetworkCapabilities.TRANSPORT_ETHERNET, NetworkCapabilities.TRANSPORT_VPN))
+    NetworkCapabilities.TRANSPORT_BLUETOOTH, NetworkCapabilities.TRANSPORT_ETHERNET))
     if (!callbacks.contains(transport)) {
       val c = new NetworkAvailableCallback
       callbacks += ((transport, c))
