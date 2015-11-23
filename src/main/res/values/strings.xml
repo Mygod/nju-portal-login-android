@@ -75,4 +75,5 @@
 
     <!-- PortalManager -->
     <string name="network_available">Network available. Time=%dms</string>
+    <string name="error_socket_timeout">Socket timeout.</string>
 </resources>

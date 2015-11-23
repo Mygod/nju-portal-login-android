@@ -192,6 +192,9 @@ object PortalManager {
         case e: SocketException =>
           e.printStackTrace
           onResult(2, 0)
+        case e: SocketTimeoutException =>
+          App.instance.showToast(App.instance.getString(R.string.error_socket_timeout))
+          if (onResult != null) onResult(1, 0)
         case e: Exception =>
           App.instance.showToast(e.getMessage)
           e.printStackTrace
