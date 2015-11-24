@@ -32,7 +32,6 @@ object PortalManager {
   private val http = "http"
   private val portalDomain = "p.nju.edu.cn"
   private val portalLogin = "/portal_io/login"
-  private val testNetwork = "/generate_204"
   private val post = "POST"
 
   private val replyCode = "reply_code"
@@ -112,7 +111,7 @@ object PortalManager {
   //noinspection ScalaDeprecation
   private def bindNetwork(network: NetworkInfo, callback: Network => Unit) =
     if (App.instance.bindedConnectionsAvailable > 1) {
-      lastTransport = network.getType match {
+      lastTransport = if (network == null) NetworkCapabilities.TRANSPORT_WIFI else network.getType match {
         case ConnectivityManager.TYPE_WIFI | ConnectivityManager.TYPE_WIMAX => NetworkCapabilities.TRANSPORT_WIFI
         case ConnectivityManager.TYPE_BLUETOOTH => NetworkCapabilities.TRANSPORT_BLUETOOTH
         case ConnectivityManager.TYPE_ETHERNET => NetworkCapabilities.TRANSPORT_ETHERNET
@@ -193,6 +192,9 @@ object PortalManager {
         case e: SocketTimeoutException =>
           App.instance.showToast(App.instance.getString(R.string.error_socket_timeout))
           if (onResult != null) onResult(1, 0)
+        case e: UnknownHostException =>
+          App.instance.showToast(e.getMessage)
+          if (onResult != null) onResult(1, 0)
         case e: Exception =>
           App.instance.showToast(e.getMessage)
           e.printStackTrace
@@ -225,43 +227,33 @@ final class PortalManager extends Service {
   private final class NetworkTester(val networkInfo: NetworkInfo) extends StoppableFuture {
     @volatile var networkAvailable: Boolean = _
 
-    def work {  // TODO: custom domain
+    private def manualTest(conn: HttpURLConnection) = {
+      setup(conn, App.instance.connectTimeout)
+      val time = SystemClock.elapsedRealtime
+      conn.getInputStream
+      val code = conn.getResponseCode
+      if (code == 204 || code == 200 && conn.getContentLength == 0)
+        onNetworkAvailable(SystemClock.elapsedRealtime - time)
+    }
+
+    def work {
       val skip = App.instance.pref.getBoolean("speed.skipConnect", false)
       if (!skip && networkInfo.getType != ConnectivityManager.TYPE_WIFI ||
         App.instance.systemNetworkMonitorAvailable != 4) {
         if (App.DEBUG) Log.d(TAG, "Testing connection manually...")
+        val url = new URL(http, "mygod.tk", "/generate_204")  // TODO: custom domain
         if (Build.VERSION.SDK_INT >= 21) bindNetwork(networkInfo, network => Future {
-          try autoDisconnect(network.openConnection(new URL(http, "mygod.tk", testNetwork))
-            .asInstanceOf[HttpURLConnection]) { conn =>
-              setup(conn, App.instance.connectTimeout)
-              val time = SystemClock.elapsedRealtime
-              conn.getInputStream
-              val code = conn.getResponseCode
-              if (code == 204 || code == 200 && conn.getContentLength == 0)
-                onNetworkAvailable(SystemClock.elapsedRealtime - time)
-            } catch {
-              case _: SocketTimeoutException | _: UnknownHostException =>
-                login(network, onLoginResult _)
-                return
-              case e: Exception =>
-                App.instance.showToast(e.getMessage)
-                e.printStackTrace
-            }
-            taskEnded
-          })
-        else {
-          try autoDisconnect(new URL(http, "mygod.tk", "/generate_204").openConnection.asInstanceOf[HttpURLConnection])
-          { conn =>
-            conn.setInstanceFollowRedirects(false)
-            conn.setConnectTimeout(App.instance.connectTimeout)
-            conn.setReadTimeout(App.instance.connectTimeout)
-            conn.setUseCaches(false)
-            val time = SystemClock.elapsedRealtime
-            conn.getInputStream
-            val code = conn.getResponseCode
-            if (code == 204 || code == 200 && conn.getContentLength == 0)
-              onNetworkAvailable(SystemClock.elapsedRealtime - time)
-          } catch {
+          try autoDisconnect(network.openConnection(url).asInstanceOf[HttpURLConnection])(manualTest) catch {
+            case _: SocketTimeoutException | _: UnknownHostException =>
+              login(network, onLoginResult _)
+              return
+            case e: Exception =>
+              App.instance.showToast(e.getMessage)
+              e.printStackTrace
+          }
+          taskEnded
+        }) else {
+          try autoDisconnect(url.openConnection.asInstanceOf[HttpURLConnection])(manualTest) catch {
             case _: SocketTimeoutException | _: UnknownHostException =>
               login(networkInfo, onLoginResult _)
               return
