@@ -20,7 +20,7 @@ object MainActivity {
   private val systemDir = "/system/priv-app/" + systemId
   private val systemPath = systemDir + "/" + systemId + ".apk"
 
-  private val askedBindedConnection = "askedBindedConnection"
+  private val askedBoundConnection = "askedBoundConnection"
   private val askedNetworkMonitor = "askedNetworkMonitor"
 }
 
@@ -32,7 +32,7 @@ final class MainActivity extends ToolbarActivity {
     setContentView(R.layout.activity_main)
     configureToolbar()
     testNetworkMonitor()
-    testBindedConnections()
+    testBoundConnections()
   }
 
   private def su(commands: String*) {
@@ -77,12 +77,12 @@ final class MainActivity extends ToolbarActivity {
 
   private def manageWriteSettings(dialog: DialogInterface = null, which: Int = 0) = startActivity(
     new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).setData(Uri.parse("package:" + getPackageName)))
-  def testBindedConnections(requested: Boolean = false) = App.instance.bindedConnectionsAvailable match {
-    case 1 => if (requested || !App.instance.pref.getBoolean(askedBindedConnection, false)) {
-      new AlertDialog.Builder(this).setTitle(R.string.binded_connections_title)
+  def testBoundConnections(requested: Boolean = false) = App.instance.boundConnectionsAvailable match {
+    case 1 => if (requested || !App.instance.pref.getBoolean(askedBoundConnection, false)) {
+      new AlertDialog.Builder(this).setTitle(R.string.bound_connections_title)
         .setPositiveButton(android.R.string.yes, manageWriteSettings: DialogInterface.OnClickListener)
-        .setMessage(R.string.binded_connections_message).setNegativeButton(android.R.string.no, null).create.show
-      App.instance.editor.putBoolean(askedBindedConnection, true)
+        .setMessage(R.string.bound_connections_message).setNegativeButton(android.R.string.no, null).create.show
+      App.instance.editor.putBoolean(askedBoundConnection, true)
       true
     } else false
     case 2 => if (requested) {

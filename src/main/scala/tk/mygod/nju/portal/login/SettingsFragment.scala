@@ -25,7 +25,7 @@ final class SettingsFragment extends PreferenceFragmentPlus {
 
   private lazy val activity = getActivity.asInstanceOf[MainActivity]
   private lazy val useSystemNetworkMonitor = findPreference("autoConnect.useSystemNetworkMonitor")
-  private lazy val useBindedConnections = findPreference("autoConnect.useBindedConnections")
+  private lazy val useBoundConnections = findPreference("autoConnect.useBoundConnections")
 
   def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
     getPreferenceManager.setSharedPreferencesName(App.prefName)
@@ -79,14 +79,14 @@ final class SettingsFragment extends PreferenceFragmentPlus {
       case 4 => R.string.networkmonitor_summary_enabled
     }))
 
-    available = App.instance.bindedConnectionsAvailable
-    useBindedConnections.setEnabled(available == 1 || available == 2)
-    useBindedConnections.setOnPreferenceClickListener((preference: Preference) => activity.testBindedConnections(true))
-    useBindedConnections.setSummary(getString(R.string.binded_connections_summary) + getString(available match {
-      case 0 => R.string.binded_connections_summary_na
-      case 1 => R.string.binded_connections_summary_permission_missing
-      case 2 => R.string.binded_connections_summary_enabled_revokable
-      case 3 => R.string.binded_connections_summary_enabled
+    available = App.instance.boundConnectionsAvailable
+    useBoundConnections.setEnabled(available == 1 || available == 2)
+    useBoundConnections.setOnPreferenceClickListener((preference: Preference) => activity.testBoundConnections(true))
+    useBoundConnections.setSummary(getString(R.string.bound_connections_summary) + getString(available match {
+      case 0 => R.string.bound_connections_summary_na
+      case 1 => R.string.bound_connections_summary_permission_missing
+      case 2 => R.string.bound_connections_summary_enabled_revokable
+      case 3 => R.string.bound_connections_summary_enabled
     }))
   }
 

@@ -110,7 +110,7 @@ object PortalManager {
 
   //noinspection ScalaDeprecation
   private def bindNetwork(network: NetworkInfo, callback: Network => Unit) =
-    if (App.instance.bindedConnectionsAvailable > 1) {
+    if (App.instance.boundConnectionsAvailable > 1) {
       lastTransport = if (network == null) NetworkCapabilities.TRANSPORT_WIFI else network.getType match {
         case ConnectivityManager.TYPE_WIFI | ConnectivityManager.TYPE_WIMAX => NetworkCapabilities.TRANSPORT_WIFI
         case ConnectivityManager.TYPE_BLUETOOTH => NetworkCapabilities.TRANSPORT_BLUETOOTH
@@ -207,7 +207,7 @@ object PortalManager {
     { conn =>
       setup(conn, App.instance.loginTimeout, 1)
       if (processResult(IOUtils.readAllText(conn.getInputStream())) == 101 &&
-        App.instance.bindedConnectionsAvailable > 1) callbacks.get(NetworkCapabilities.TRANSPORT_WIFI) match {
+        App.instance.boundConnectionsAvailable > 1) callbacks.get(NetworkCapabilities.TRANSPORT_WIFI) match {
         case Some(callback) => reportNetworkConnectivity(callback.network, false) // TODO: not wifi?
         case _ =>
       }

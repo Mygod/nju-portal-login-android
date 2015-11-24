@@ -41,7 +41,7 @@ class App extends Application {
   /**
     * 0-3: Not available, permission missing, yes (revoke available), yes.
     */
-  def bindedConnectionsAvailable = {
+  def boundConnectionsAvailable = {
     val result = if (Build.VERSION.SDK_INT >= 21) if (Build.VERSION.SDK_INT < 23) 3
       else if (Settings.System.canWrite(this)) 2 else 1 else 0
     if (result > 1) PortalManager.startListenNetwork

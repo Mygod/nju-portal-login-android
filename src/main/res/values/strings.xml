@@ -8,7 +8,7 @@
     <string name="settings_auto_connect">Auto connect</string>
     <string name="settings_auto_connect_enabled">Enabled</string>
     <string name="settings_auto_connect_networkmonitor">Use system NetworkMonitor</string>
-    <string name="settings_auto_connect_binded_connections">Use binded connections</string>
+    <string name="settings_auto_connect_bound_connections">Use bound connections</string>
 
     <string name="settings_status">Status</string>
     <string name="settings_status_login">Login</string>
@@ -62,14 +62,14 @@
         change.</string>
     <string name="networkmonitor_summary_enabled">Enabled. Click to uninstall.</string>
 
-    <string name="binded_connections_title">Enable binded connections?</string>
-    <string name="binded_connections_message">Binded connections will enforce the connections to go on a specific
+    <string name="bound_connections_title">Enable bound connections?</string>
+    <string name="bound_connections_message">Bound connections will enforce the connections to go on a specific
         network so that it wouldn\'t use any mobile data traffic.</string>
-    <string name="binded_connections_summary">Use binded connections to avoid mobile traffic.\n</string>
-    <string name="binded_connections_summary_na">Not available on Android 4.x.</string>
-    <string name="binded_connections_summary_permission_missing">Needs permission to modify system settings.</string>
-    <string name="binded_connections_summary_enabled_revokable">Enabled. Click to revoke the permission.</string>
-    <string name="binded_connections_summary_enabled">Enabled.</string>
+    <string name="bound_connections_summary">Use bound connections to avoid mobile traffic.\n</string>
+    <string name="bound_connections_summary_na">Not available on Android 4.x.</string>
+    <string name="bound_connections_summary_permission_missing">Needs permission to modify system settings.</string>
+    <string name="bound_connections_summary_enabled_revokable">Enabled. Click to revoke the permission.</string>
+    <string name="bound_connections_summary_enabled">Enabled.</string>
 
     <string name="coming_soon">Coming soon…</string>
 
