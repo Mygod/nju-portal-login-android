@@ -275,7 +275,6 @@ final class PortalManager extends Service {
       if (result != 2) if (code == 1 || code == 6) loginedNetwork = n else waitForNetwork(n)
     private def onAvailable(n: Network, unsure: Boolean) = testing.get(n) match {
       case Some(start) =>
-        if (App.DEBUG && Build.VERSION.SDK_INT >= 23 && unsure) Log.w(TAG, "onAvailable called twice! WTF?")
         onNetworkAvailable(start)
         testing.remove(n)
       case None => if (unsure) waitForNetwork(n)
@@ -283,8 +282,15 @@ final class PortalManager extends Service {
 
     override def onAvailable(n: Network) {
       if (App.DEBUG) Log.d(TAG, "onAvailable (%s)".format(n))
-      available.add(n)
-      onAvailable(n, true)
+      if (available.contains(n)) {
+        if (Build.VERSION.SDK_INT < 23) onAvailable(n, false)             // this is validated on 5.x
+        else if (App.DEBUG) Log.w(TAG, "onAvailable called twice! WTF?")  // this is unexpected on 6.0+
+      } else {
+        available.add(n)
+        if (Build.VERSION.SDK_INT < 23) onAvailable(n, true)
+        else if (!App.instance.cm.getNetworkCapabilities(n).hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
+          waitForNetwork(n)
+      }
     }
     override def onCapabilitiesChanged(n: Network, networkCapabilities: NetworkCapabilities) {
       if (App.DEBUG) Log.d(TAG, "onCapabilitiesChanged (%s): %s".format(n, networkCapabilities))
