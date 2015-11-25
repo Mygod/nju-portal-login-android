@@ -48,7 +48,7 @@
     <string name="bound_connections_title">使用绑定连接？</string>
     <string name="bound_connections_message">绑定连接通过强制流量通过某连接来实现打开移动数据时也能登陆。</string>
     <string name="bound_connections_summary">绑定连接来实现打开移动数据时也能登陆。\n</string>
-    <string name="bound_connections_summary_na">不支持 Android 4.x。</string>
+    <string name="bound_connections_summary_na">Android 4.x 无需使用。</string>
     <string name="bound_connections_summary_permission_missing">需要修改系统设置的权限。</string>
     <string name="bound_connections_summary_enabled_revokable">已启用。点击撤销权限。</string>
     <string name="bound_connections_summary_enabled">已启用。</string>

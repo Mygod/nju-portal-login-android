@@ -50,7 +50,7 @@
     <string name="bound_connections_message">Bound connections will enforce the connections to go on a specific
         network so that you can login with cellular data on.</string>
     <string name="bound_connections_summary">Use bound connections to login with cellular data on.\n</string>
-    <string name="bound_connections_summary_na">Not available on Android 4.x.</string>
+    <string name="bound_connections_summary_na">Not necessary on Android 4.x.</string>
     <string name="bound_connections_summary_permission_missing">Needs permission to modify system settings.</string>
     <string name="bound_connections_summary_enabled_revokable">Enabled. Click to revoke the permission.</string>
     <string name="bound_connections_summary_enabled">Enabled.</string>
