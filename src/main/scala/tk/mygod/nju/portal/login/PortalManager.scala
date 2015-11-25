@@ -93,7 +93,7 @@ object PortalManager {
   }
 
   //noinspection ScalaDeprecation
-  private class NetworkListenerLegacy {
+  class NetworkListenerLegacy {
     private val available = new mutable.TreeSet[NetworkInfo]
     private val testing = new mutable.TreeSet[NetworkInfo]
     var loginedNetwork: NetworkInfo = _
@@ -143,7 +143,7 @@ object PortalManager {
         case n: NetworkInfo if cares(n.getType) => n
       }.orNull
   }
-  private lazy val listenerLegacy = new NetworkListenerLegacy
+  lazy val listenerLegacy = new NetworkListenerLegacy
 
   /**
     * Setup HttpURLConnection.
@@ -312,16 +312,6 @@ final class PortalManager extends Service {
   }
   def onBind(intent: Intent) = new ServiceBinder
 
-  override def onStartCommand(intent: Intent, flags: Int, startId: Int): Int = {
-    if (intent != null && intent.getAction == ConnectivityManager.CONNECTIVITY_ACTION &&
-      App.instance.autoConnectEnabled) {
-      //noinspection ScalaDeprecation
-      val n = intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO).asInstanceOf[NetworkInfo]
-      if (n.isConnected) listenerLegacy.onAvailable(n) else listenerLegacy.onLost(n)
-    }
-    Service.START_STICKY
-  }
-
   def initBoundConnections = if (listener == null && App.instance.boundConnectionsAvailable > 1) {
     listener = new NetworkListener
     App.instance.cm.requestNetwork(new NetworkRequest.Builder()
@@ -330,14 +320,14 @@ final class PortalManager extends Service {
       .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET).build, listener)
   }
 
-  override def onCreate = {
+  override def onCreate {
     super.onCreate
     initBoundConnections
     instance = this
     if (App.DEBUG) Log.d(TAG, "Service created.")
   }
 
-  override def onDestroy = {
+  override def onDestroy {
     super.onDestroy
     if (listener != null) {
       App.instance.cm.unregisterNetworkCallback(listener)
