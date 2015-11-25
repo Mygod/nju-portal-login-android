@@ -1,8 +1,7 @@
 package tk.mygod.nju.portal.login
 
 import android.app.Application
-import android.content.pm.PackageManager
-import android.content.{ComponentName, Context, Intent}
+import android.content.Context
 import android.os.{Build, Handler}
 import android.provider.Settings
 import android.widget.Toast
@@ -35,17 +34,6 @@ class App extends Application {
   lazy val editor = pref.edit
 
   def autoConnectEnabled = pref.getBoolean(autoConnectEnabledKey, true)
-  def autoConnectEnabled(value: Boolean) = {
-    editor.putBoolean(autoConnectEnabledKey, value)
-    if (value)
-      getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[ServiceListener]),
-        PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
-    else {
-      getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[ServiceListener]),
-        PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
-      stopService(new Intent(this, classOf[PortalManager]))
-    }
-  }
 
   def skipConnect = pref.getBoolean("speed.skipConnect", false)
   def connectTimeout = pref.getInt("speed.connectTimeout", 4000)

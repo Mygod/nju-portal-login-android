@@ -30,12 +30,6 @@ final class SettingsFragment extends PreferenceFragmentPlus {
     getPreferenceManager.setSharedPreferencesName(App.prefName)
     addPreferencesFromResource(R.xml.settings)
 
-    findPreference(App.autoConnectEnabledKey)
-      .setOnPreferenceChangeListener((preference: Preference, newValue: Any) => {
-        App.instance.autoConnectEnabled(newValue.asInstanceOf[Boolean])
-        true
-      })
-
     findPreference("status.login").setOnPreferenceClickListener((preference: Preference) => {
       Future(activity.service.login)
       true

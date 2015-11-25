@@ -1,6 +1,8 @@
 package tk.mygod.nju.portal.login
 
-import android.content.{ComponentName, ServiceConnection, DialogInterface, Intent}
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import android.content._
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.{IBinder, Bundle}
 import android.provider.Settings
@@ -11,9 +13,10 @@ object MainActivity {
   private val askedBoundConnection = "askedBoundConnection"
 }
 
-final class MainActivity extends ToolbarActivity {
+final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeListener {
   import MainActivity._
 
+  private val serviceIntent = new Intent(this, classOf[PortalManager])
   private val connection = new ServiceConnection {
     def onServiceConnected(name: ComponentName, binder: IBinder) =
       service = binder.asInstanceOf[PortalManager#ServiceBinder].service
@@ -26,9 +29,8 @@ final class MainActivity extends ToolbarActivity {
     setContentView(R.layout.activity_main)
     configureToolbar()
     testBoundConnections()
-    val intent = new Intent(this, classOf[PortalManager])
-    startService(intent)
-    bindService(intent, connection, 0)
+    startPortalManager
+    App.instance.pref.registerOnSharedPreferenceChangeListener(this)
   }
 
   private def manageWriteSettings(dialog: DialogInterface = null, which: Int = 0) = startActivity(
@@ -46,6 +48,27 @@ final class MainActivity extends ToolbarActivity {
       true
     } else false
     case _ => false
+  }
+
+  override def onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) =
+    if (key == App.autoConnectEnabledKey) {
+      val value = App.instance.autoConnectEnabled
+      App.instance.editor.putBoolean(App.autoConnectEnabledKey, value)
+      if (value) {
+        getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[ServiceListener]),
+          PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
+        startPortalManager
+      } else {
+        getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[ServiceListener]),
+          PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
+        stopService(serviceIntent)
+      }
+      true
+    }
+
+  def startPortalManager = if (App.instance.autoConnectEnabled) {
+    startService(serviceIntent)
+    bindService(serviceIntent, connection, 0)
   }
 
   override protected def onDestroy = {
