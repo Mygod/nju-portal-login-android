@@ -18,7 +18,6 @@ resolvers += Resolver.sonatypeRepo("public")
 
 libraryDependencies ++= Seq(
   "tk.mygod" %% "mygod-lib-android" % "1.3.1",
-  "eu.chainfire" % "libsuperuser" % "1.0.0.201510071325",
   "org.json4s" %% "json4s-native" % "3.3.0"
 )
 

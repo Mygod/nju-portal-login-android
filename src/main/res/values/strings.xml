@@ -28,8 +28,6 @@
     <string name="settings_speed_connect_timeout">Connect timeout</string>
     <string name="settings_speed_login_timeout">Login timeout</string>
     <string name="settings_speed_timeout_summary">%dms (0ms = infinite)</string>
-    <string name="settings_speed_retry_delay">Retry delay</string>
-    <string name="settings_speed_retry_delay_summary">%dms</string>
 
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_connection">Connection available</string>
@@ -47,20 +45,6 @@
     <string name="su_success">Operation completed. Reboot your device to apply changes.</string>
     <string name="su_fail">Operation failed. (#%d)</string>
     <string name="su_fail_msg">Operation failed: (#%1$d) %2$s</string>
-
-    <string name="networkmonitor_install_title">Enable system NetworkMonitor?</string>
-    <string name="networkmonitor_install_message">System NetworkMonitor can be enabled to save battery via changing this
-        app to a system privileged app. Do you want to do this now?</string>
-    <string name="networkmonitor_uninstall_title">Uninstall this app?</string>
-    <string name="networkmonitor_uninstall_message">After doing this you might need to reboot then uninstall the app
-        normally.</string>
-    <string name="networkmonitor_summary">Use system NetworkMonitor to save battery.\n</string>
-    <string name="networkmonitor_summary_na">Not available on Android 4.x.</string>
-    <string name="networkmonitor_summary_no_root">Requires root.</string>
-    <string name="networkmonitor_summary_priv_app">Needs changing to a system privileged app.</string>
-    <string name="networkmonitor_summary_wifi_scanning_disabled">Wi-Fi scanning not always enabled. Click to
-        change.</string>
-    <string name="networkmonitor_summary_enabled">Enabled. Click to uninstall.</string>
 
     <string name="bound_connections_title">Enable bound connections?</string>
     <string name="bound_connections_message">Bound connections will enforce the connections to go on a specific

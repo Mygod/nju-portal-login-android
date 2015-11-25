@@ -11,8 +11,6 @@
         <android.support.v14.preference.SwitchPreference android:key="autoConnect.enabled"
                                                          android:title="@string/settings_auto_connect_enabled"
                                                          android:defaultValue="true"/>
-        <android.support.v7.preference.Preference android:key="autoConnect.useSystemNetworkMonitor"
-                                                  android:title="@string/settings_auto_connect_networkmonitor"/>
         <android.support.v7.preference.Preference android:key="autoConnect.useBoundConnections"
                                                   android:title="@string/settings_auto_connect_bound_connections"/>
     </android.support.v7.preference.PreferenceCategory>
@@ -50,10 +48,6 @@
                                                     android:defaultValue="4000" app:max="11111"
                                                     android:title="@string/settings_speed_login_timeout"
                                                     android:summary="@string/settings_speed_timeout_summary"/>
-        <tk.mygod.preference.NumberPickerPreference android:key="speed.retryDelay"
-                                                    android:defaultValue="4000" app:max="11111"
-                                                    android:title="@string/settings_speed_retry_delay"
-                                                    android:summary="@string/settings_speed_retry_delay_summary"/>
     </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory android:title="Notifications">
         <android.support.v14.preference.SwitchPreference

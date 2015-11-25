@@ -24,7 +24,6 @@ final class SettingsFragment extends PreferenceFragmentPlus {
   import SettingsFragment._
 
   private lazy val activity = getActivity.asInstanceOf[MainActivity]
-  private lazy val useSystemNetworkMonitor = findPreference("autoConnect.useSystemNetworkMonitor")
   private lazy val useBoundConnections = findPreference("autoConnect.useBoundConnections")
 
   def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
@@ -38,11 +37,11 @@ final class SettingsFragment extends PreferenceFragmentPlus {
       })
 
     findPreference("status.login").setOnPreferenceClickListener((preference: Preference) => {
-      Future(PortalManager.login())
+      Future(activity.service.login)
       true
     })
     findPreference("status.logout").setOnPreferenceClickListener((preference: Preference) => {
-      Future(PortalManager.logout)
+      Future(activity.service.logout)
       true
     })
     PortalManager.setUserInfoListener(userInfoUpdated)
@@ -68,18 +67,7 @@ final class SettingsFragment extends PreferenceFragmentPlus {
   override def onResume {
     super.onResume
 
-    var available = App.instance.systemNetworkMonitorAvailable
-    useSystemNetworkMonitor.setEnabled(available >= 2)
-    useSystemNetworkMonitor.setOnPreferenceClickListener((preference: Preference) => activity.testNetworkMonitor(true))
-    useSystemNetworkMonitor.setSummary(getString(R.string.networkmonitor_summary) + getString(available match {
-      case 0 => R.string.networkmonitor_summary_na
-      case 1 => R.string.networkmonitor_summary_no_root
-      case 2 => R.string.networkmonitor_summary_priv_app
-      case 3 => R.string.networkmonitor_summary_wifi_scanning_disabled
-      case 4 => R.string.networkmonitor_summary_enabled
-    }))
-
-    available = App.instance.boundConnectionsAvailable
+    val available = App.instance.boundConnectionsAvailable
     useBoundConnections.setEnabled(available == 1 || available == 2)
     useBoundConnections.setOnPreferenceClickListener((preference: Preference) => activity.testBoundConnections(true))
     useBoundConnections.setSummary(getString(R.string.bound_connections_summary) + getString(available match {
@@ -88,6 +76,7 @@ final class SettingsFragment extends PreferenceFragmentPlus {
       case 2 => R.string.bound_connections_summary_enabled_revokable
       case 3 => R.string.bound_connections_summary_enabled
     }))
+    if (available > 1 && activity.service != null) activity.service.initBoundConnections
   }
 
   override def onDisplayPreferenceDialog(preference: Preference) = preference match {
