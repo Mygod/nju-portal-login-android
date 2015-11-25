@@ -32,7 +32,7 @@ object PortalManager {
 
   private val status = "status"
 
-  private implicit val networkOrdering = Ordering.by[Network, Long](n => if (n == null) 0 else n.getNetworkHandle)
+  private implicit val networkOrdering = Ordering.by[Network, Int](n => if (n == null) 0 else n.hashCode)
   private implicit val networkInfoOrdering =
     Ordering.by[NetworkInfo, (Int, Int)](n => if (n == null) (0, 0) else (n.getType, n.getSubtype))
 
