@@ -36,7 +36,10 @@ final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeLi
   private def manageWriteSettings(dialog: DialogInterface = null, which: Int = 0) = startActivity(
     new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).setData(Uri.parse("package:" + getPackageName)))
   def testBoundConnections(requested: Boolean = false) = App.instance.boundConnectionsAvailable match {
-    case 1 => if (requested || !App.instance.pref.getBoolean(askedBoundConnection, false)) {
+    case 1 => if (requested) {
+      manageWriteSettings()
+      true
+    } else if (!App.instance.pref.getBoolean(askedBoundConnection, false)) {
       new AlertDialog.Builder(this).setTitle(R.string.bound_connections_title)
         .setPositiveButton(android.R.string.yes, manageWriteSettings: DialogInterface.OnClickListener)
         .setMessage(R.string.bound_connections_message).setNegativeButton(android.R.string.no, null).create.show
