@@ -243,8 +243,8 @@ object PortalManager {
       url.openConnection
     }).asInstanceOf[HttpURLConnection]) { conn =>
       setup(conn, App.instance.loginTimeout, 1)
-      if (processResult(IOUtils.readAllText(conn.getInputStream())) == 101 && network != null &&
-        App.instance.boundConnectionsAvailable > 1) reportNetworkConnectivity(network, false)
+      if (processResult(IOUtils.readAllText(conn.getInputStream())) == 101 &&
+        App.instance.boundConnectionsAvailable > 1 && network != null) reportNetworkConnectivity(network, false)
     }
     if (instance != null && instance.listener != null) instance.listener.loginedNetwork = null
     listenerLegacy.loginedNetwork = null
