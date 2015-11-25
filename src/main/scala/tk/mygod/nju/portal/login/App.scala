@@ -2,6 +2,7 @@ package tk.mygod.nju.portal.login
 
 import android.app.Application
 import android.content.Context
+import android.net.ConnectivityManager
 import android.os.{Build, Handler}
 import android.provider.Settings
 import android.widget.Toast
@@ -30,6 +31,7 @@ class App extends Application {
   def boundConnectionsAvailable = if (Build.VERSION.SDK_INT >= 21) if (Build.VERSION.SDK_INT < 23) 3
     else if (Settings.System.canWrite(this)) 2 else 1 else 0
 
+  lazy val cm = getSystemService(Context.CONNECTIVITY_SERVICE).asInstanceOf[ConnectivityManager]
   lazy val pref = getSharedPreferences(prefName, Context.MODE_PRIVATE)
   lazy val editor = pref.edit
 

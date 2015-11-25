@@ -4,7 +4,7 @@ import java.net._
 
 import android.annotation.TargetApi
 import android.app.Service
-import android.content.{Context, Intent}
+import android.content.Intent
 import android.net.ConnectivityManager.NetworkCallback
 import android.net._
 import android.os.{Binder, Build}
@@ -20,6 +20,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Random
 
+//noinspection JavaAccessorMethodCalledAsEmptyParen
 object PortalManager {
   private val TAG = "PortalManager"
 
@@ -34,7 +35,7 @@ object PortalManager {
   private implicit val networkOrdering = Ordering.by[Network, Long](_.getNetworkHandle)
   private implicit val networkInfoOrdering = Ordering.by[NetworkInfo, (Int, Int)](i => (i.getType, i.getSubtype))
 
-  var running: Boolean = _
+  private var instance: PortalManager = _
 
   def cares(network: Int) =
     network > 5 && network != ConnectivityManager.TYPE_VPN || network == ConnectivityManager.TYPE_WIFI
@@ -65,6 +66,84 @@ object PortalManager {
     code
   }
 
+  private var retryCount: Int = _
+  private def retryDelay = {
+    if (retryCount < 10) retryCount = retryCount + 1
+    2000 + Random.nextInt(1000 << retryCount) // prevent overwhelming failing notifications
+  }
+  private def onNetworkAvailable(start: Long) {
+    val now = System.currentTimeMillis
+    retryCount = 0
+    if (App.instance.pref.getBoolean("notifications.connection", true))
+      App.instance.showToast(App.instance.getString(R.string.network_available).format(now - start))
+  }
+
+  //noinspection ScalaDeprecation
+  @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+  private def reportNetworkConnectivity(network: Network, hasConnectivity: Boolean) = if (Build.VERSION.SDK_INT >= 23)
+    App.instance.cm.reportNetworkConnectivity(network, hasConnectivity) else App.instance.cm.reportBadNetwork(network)
+
+  //noinspection ScalaDeprecation
+  private def preferNetworkLegacy(n: NetworkInfo = null) {
+    val network = if (n == null) listenerLegacy.preferredNetwork else n
+    val preference = if (network == null) ConnectivityManager.TYPE_WIFI else network.getType
+    App.instance.cm.setNetworkPreference(preference)
+    if (App.DEBUG) Log.d(TAG, "Setting network preference: " + preference)
+  }
+
+  //noinspection ScalaDeprecation
+  private class NetworkListenerLegacy {
+    private val available = new mutable.TreeSet[NetworkInfo]
+    private val testing = new mutable.TreeSet[NetworkInfo]
+    var loginedNetwork: NetworkInfo = _
+
+    private def shouldLogin(n: NetworkInfo) =
+      instance != null && available.contains(n) && App.instance.autoConnectEnabled
+    private def onLoginResult(n: NetworkInfo, result: Int, code: Int): Unit = if (code == 1 || code == 6) {
+      loginedNetwork = n
+      testing.remove(n)
+    } else if (result == 2 || !shouldLogin(n)) testing.remove(n) else {
+      Thread.sleep(retryDelay)
+      loginLegacy(n, onLoginResult(n, _, _))
+    }
+
+    def onAvailable(n: NetworkInfo) {
+      available.add(n)
+      if (testing.contains(n)) return
+      testing.add(n)
+      Future(if (App.instance.skipConnect) loginLegacy(n, onLoginResult(n, _, _)) else {
+        if (App.DEBUG) Log.d(TAG, "Testing connection manually...")
+        val url = new URL(http, "mygod.tk", "/generate_204")  // TODO: custom domain
+        preferNetworkLegacy(n)
+        try autoDisconnect(url.openConnection.asInstanceOf[HttpURLConnection]) { conn =>
+          setup(conn, App.instance.connectTimeout)
+          val start = System.currentTimeMillis
+          conn.getInputStream
+          val code = conn.getResponseCode
+          if (code == 204 || code == 200 && conn.getContentLength == 0) onNetworkAvailable(start)
+        } catch {
+          case _: SocketTimeoutException | _: UnknownHostException =>
+            if (shouldLogin(n)) {
+              loginLegacy(n, onLoginResult(n, _, _))
+              return
+            }
+          case e: Exception =>
+            App.instance.showToast(e.getMessage)
+            e.printStackTrace
+        }
+        testing.remove(n)
+      })
+    }
+
+    def onLost(n: NetworkInfo) = available.remove(n)
+
+    def preferredNetwork = if (available.contains(loginedNetwork)) loginedNetwork else
+      App.instance.cm.getAllNetworkInfo.collectFirst {
+        case n: NetworkInfo if cares(n.getType) => n
+      }.orNull
+  }
+  private lazy val listenerLegacy = new NetworkListenerLegacy
+
   /**
     * Setup HttpURLConnection.
     * @param conn HttpURLConnection.
@@ -84,24 +163,93 @@ object PortalManager {
     autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, "username=%s&password=%s".format(
       App.instance.pref.getString("account.username", ""), App.instance.pref.getString("account.password", ""))))
   }
+
+  /**
+    * Based on: https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/connectivity/NetworkMonitor.java#640
+    */
+  @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+  def login(network: Network, onResult: (Int, Int) => Unit = null) {
+    if (App.DEBUG) Log.d(TAG, loggingIn)
+    try autoDisconnect(network.openConnection(new URL(http, portalDomain, portalLogin))
+      .asInstanceOf[HttpURLConnection]) { conn =>
+      setup(conn, App.instance.loginTimeout, 2)
+      val result = processResult(IOUtils.readAllText(conn.getInputStream()))
+      if (result == 1 || result == 6) reportNetworkConnectivity(network, true)
+      if (onResult != null) onResult(if (result == 3 || result == 8) 2 else 0, result)
+    } catch {
+      case e: SocketException =>
+        App.instance.showToast(e.getMessage)
+        e.printStackTrace
+        if (onResult != null) onResult(2, 0)
+      case e: Exception =>
+        App.instance.showToast(e.getMessage)
+        e.printStackTrace
+        if (onResult != null) onResult(1, 0)
+    }
+  }
+  def loginLegacy(network: NetworkInfo = null, onResult: (Int, Int) => Unit = null) {
+    if (App.DEBUG) Log.d(TAG, loggingIn)
+    preferNetworkLegacy(network)
+    try autoDisconnect(new URL(http, portalDomain, portalLogin).openConnection.asInstanceOf[HttpURLConnection])
+    { conn =>
+      setup(conn, App.instance.loginTimeout, 2)
+      val result = processResult(IOUtils.readAllText(conn.getInputStream()))
+      if (onResult != null) onResult(if (result == 3 || result == 8) 2 else 0, result)
+    } catch {
+      case e: SocketException =>
+        e.printStackTrace
+        onResult(2, 0)
+      case e: SocketTimeoutException =>
+        App.instance.showToast(App.instance.getString(R.string.error_socket_timeout))
+        if (onResult != null) onResult(1, 0)
+      case e: UnknownHostException =>
+        App.instance.showToast(e.getMessage)
+        if (onResult != null) onResult(1, 0)
+      case e: Exception =>
+        App.instance.showToast(e.getMessage)
+        e.printStackTrace
+        if (onResult != null) onResult(1, 0)
+    }
+  }
+  def login {
+    if (instance != null && App.instance.boundConnectionsAvailable > 1) {
+      val network = instance.listener.preferredNetwork
+      if (network != null) {
+        login(network)
+        return
+      }
+    }
+    loginLegacy()
+  }
+
+  def logout = try {
+    val url = new URL(http, portalDomain, "/portal_io/logout")
+    var network: Network = null
+    autoDisconnect((if (instance != null && App.instance.boundConnectionsAvailable > 1) {
+      network = instance.listener.preferredNetwork
+      if (network != null) network.openConnection(url) else {
+        preferNetworkLegacy()
+        url.openConnection
+      }
+    } else {
+      preferNetworkLegacy()
+      url.openConnection
+    }).asInstanceOf[HttpURLConnection]) { conn =>
+      setup(conn, App.instance.loginTimeout, 1)
+      if (processResult(IOUtils.readAllText(conn.getInputStream())) == 101 && network != null &&
+        App.instance.boundConnectionsAvailable > 1) reportNetworkConnectivity(network, false)
+    }
+    if (instance != null && instance.listener != null) instance.listener.loginedNetwork = null
+    listenerLegacy.loginedNetwork = null
+  } catch {
+    case e: Exception =>
+      App.instance.showToast(e.getMessage)
+      e.printStackTrace
+  }
 }
 
-//noinspection JavaAccessorMethodCalledAsEmptyParen
 final class PortalManager extends Service {
   import PortalManager._
-
-  private lazy val cm = getSystemService(Context.CONNECTIVITY_SERVICE).asInstanceOf[ConnectivityManager]
-
-  private var retryCount: Int = _
-  private def retryDelay = {
-    if (retryCount < 10) retryCount = retryCount + 1
-    2000 + Random.nextInt(1000 << retryCount) // prevent overwhelming failing notifications
-  }
-  private def onNetworkAvailable(start: Long) {
-    retryCount = 0
-    if (App.instance.pref.getBoolean("notifications.connection", true))
-      App.instance.showToast(getString(R.string.network_available).format(System.currentTimeMillis - start))
-  }
 
   @TargetApi(Build.VERSION_CODES.LOLLIPOP)
   private class NetworkListener extends NetworkCallback {
@@ -158,154 +306,6 @@ final class PortalManager extends Service {
   @TargetApi(Build.VERSION_CODES.LOLLIPOP)
   private var listener: NetworkListener = _
 
-  //noinspection ScalaDeprecation
-  private class NetworkListenerLegacy {
-    private val available = new mutable.TreeSet[NetworkInfo]
-    private val testing = new mutable.TreeSet[NetworkInfo]
-    var loginedNetwork: NetworkInfo = _
-
-    private def shouldLogin(n: NetworkInfo) = running && available.contains(n) && App.instance.autoConnectEnabled
-    private def onLoginResult(n: NetworkInfo, result: Int, code: Int): Unit = if (code == 1 || code == 6) {
-      loginedNetwork = n
-      testing.remove(n)
-    } else if (result == 2 || !shouldLogin(n)) testing.remove(n) else {
-      Thread.sleep(retryDelay)
-      loginLegacy(n, onLoginResult(n, _, _))
-    }
-
-    def onAvailable(n: NetworkInfo) {
-      available.add(n)
-      if (testing.contains(n)) return
-      testing.add(n)
-      Future(if (App.instance.skipConnect) loginLegacy(n, onLoginResult(n, _, _)) else {
-        if (App.DEBUG) Log.d(TAG, "Testing connection manually...")
-        val url = new URL(http, "mygod.tk", "/generate_204")  // TODO: custom domain
-        preferNetworkLegacy(n)
-        try autoDisconnect(url.openConnection.asInstanceOf[HttpURLConnection]) { conn =>
-          setup(conn, App.instance.connectTimeout)
-          val start = System.currentTimeMillis
-          conn.getInputStream
-          val code = conn.getResponseCode
-          if (code == 204 || code == 200 && conn.getContentLength == 0) onNetworkAvailable(start)
-        } catch {
-          case _: SocketTimeoutException | _: UnknownHostException =>
-            if (shouldLogin(n)) {
-              loginLegacy(n, onLoginResult(n, _, _))
-              return
-            }
-          case e: Exception =>
-            App.instance.showToast(e.getMessage)
-            e.printStackTrace
-        }
-        testing.remove(n)
-      })
-    }
-
-    def onLost(n: NetworkInfo) = available.remove(n)
-
-    def preferredNetwork = if (available.contains(loginedNetwork)) loginedNetwork else
-      cm.getAllNetworkInfo.collectFirst {
-        case n: NetworkInfo if cares(n.getType) => n
-      }.orNull
-  }
-  private lazy val listenerLegacy = new NetworkListenerLegacy
-
-  //noinspection ScalaDeprecation
-  @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-  private def reportNetworkConnectivity(network: Network, hasConnectivity: Boolean) = if (Build.VERSION.SDK_INT >= 23)
-    cm.reportNetworkConnectivity(network, hasConnectivity) else cm.reportBadNetwork(network)
-
-  //noinspection ScalaDeprecation
-  private def preferNetworkLegacy(n: NetworkInfo = null) {
-    val network = if (n == null) listenerLegacy.preferredNetwork else n
-    val preference = if (network == null) ConnectivityManager.TYPE_WIFI else network.getType
-    cm.setNetworkPreference(preference)
-    if (App.DEBUG) Log.d(TAG, "Setting network preference: " + preference)
-  }
-
-  /**
-    * Based on: https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/connectivity/NetworkMonitor.java#640
-    */
-  @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-  def login(network: Network, onResult: (Int, Int) => Unit = null) {
-    if (App.DEBUG) Log.d(TAG, loggingIn)
-    try autoDisconnect(network.openConnection(new URL(http, portalDomain, portalLogin))
-      .asInstanceOf[HttpURLConnection]) { conn =>
-      setup(conn, App.instance.loginTimeout, 2)
-      val result = processResult(IOUtils.readAllText(conn.getInputStream()))
-      if (result == 1 || result == 6) reportNetworkConnectivity(network, true)
-      if (onResult != null) onResult(if (result == 3 || result == 8) 2 else 0, result)
-    } catch {
-      case e: SocketException =>
-        App.instance.showToast(e.getMessage)
-        e.printStackTrace
-        if (onResult != null) onResult(2, 0)
-      case e: Exception =>
-        App.instance.showToast(e.getMessage)
-        e.printStackTrace
-        if (onResult != null) onResult(1, 0)
-    }
-  }
-  def loginLegacy(network: NetworkInfo = null, onResult: (Int, Int) => Unit = null) {
-    if (App.DEBUG) Log.d(TAG, loggingIn)
-    preferNetworkLegacy(network)
-    try autoDisconnect(new URL(http, portalDomain, portalLogin).openConnection.asInstanceOf[HttpURLConnection])
-    { conn =>
-      setup(conn, App.instance.loginTimeout, 2)
-      val result = processResult(IOUtils.readAllText(conn.getInputStream()))
-      if (onResult != null) onResult(if (result == 3 || result == 8) 2 else 0, result)
-    } catch {
-      case e: SocketException =>
-        e.printStackTrace
-        onResult(2, 0)
-      case e: SocketTimeoutException =>
-        App.instance.showToast(App.instance.getString(R.string.error_socket_timeout))
-        if (onResult != null) onResult(1, 0)
-      case e: UnknownHostException =>
-        App.instance.showToast(e.getMessage)
-        if (onResult != null) onResult(1, 0)
-      case e: Exception =>
-        App.instance.showToast(e.getMessage)
-        e.printStackTrace
-        if (onResult != null) onResult(1, 0)
-    }
-  }
-  def login {
-    if (App.instance.boundConnectionsAvailable > 1) {
-      val network = listener.preferredNetwork
-      if (network != null) {
-        login(network)
-        return
-      }
-    }
-    loginLegacy()
-  }
-
-  def logout = try {
-    val url = new URL(http, portalDomain, "/portal_io/logout")
-    var network: Network = null
-    autoDisconnect((if (App.instance.boundConnectionsAvailable > 1 && listener.preferredNetwork != null) {
-      network = listener.preferredNetwork
-      if (network != null) network.openConnection(url) else {
-        preferNetworkLegacy()
-        url.openConnection
-      }
-    } else {
-      preferNetworkLegacy()
-      url.openConnection
-    }).asInstanceOf[HttpURLConnection]) { conn =>
-      setup(conn, App.instance.loginTimeout, 1)
-      if (processResult(IOUtils.readAllText(conn.getInputStream())) == 101 && network != null &&
-        App.instance.boundConnectionsAvailable > 1) reportNetworkConnectivity(network, false)
-    }
-    if (listener != null) listener.loginedNetwork = null
-    listenerLegacy.loginedNetwork = null
-  } catch {
-    case e: Exception =>
-      App.instance.showToast(e.getMessage)
-      e.printStackTrace
-  }
-
   class ServiceBinder extends Binder {
     def service = PortalManager.this
   }
@@ -323,7 +323,7 @@ final class PortalManager extends Service {
 
   def initBoundConnections = if (listener == null && App.instance.boundConnectionsAvailable > 1) {
     listener = new NetworkListener
-    cm.requestNetwork(new NetworkRequest.Builder()
+    App.instance.cm.requestNetwork(new NetworkRequest.Builder()
       .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
       .addTransportType(NetworkCapabilities.TRANSPORT_BLUETOOTH)
       .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET).build, listener)
@@ -332,17 +332,17 @@ final class PortalManager extends Service {
   override def onCreate = {
     super.onCreate
     initBoundConnections
-    running = true
+    instance = this
     if (App.DEBUG) Log.d(TAG, "Service created.")
   }
 
   override def onDestroy = {
     super.onDestroy
     if (listener != null) {
-      cm.unregisterNetworkCallback(listener)
+      App.instance.cm.unregisterNetworkCallback(listener)
       listener = null
     }
-    running = false
+    instance = null
     if (App.DEBUG) Log.d(TAG, "Service destroyed.")
   }
 }

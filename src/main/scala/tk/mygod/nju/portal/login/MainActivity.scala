@@ -1,7 +1,7 @@
 package tk.mygod.nju.portal.login
 
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.content._
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.{IBinder, Bundle}
@@ -63,7 +63,6 @@ final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeLi
           PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
         stopService(serviceIntent)
       }
-      true
     }
 
   def startPortalManager = if (App.instance.autoConnectEnabled) {

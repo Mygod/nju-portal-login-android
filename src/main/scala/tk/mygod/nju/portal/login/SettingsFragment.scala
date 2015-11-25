@@ -31,11 +31,11 @@ final class SettingsFragment extends PreferenceFragmentPlus {
     addPreferencesFromResource(R.xml.settings)
 
     findPreference("status.login").setOnPreferenceClickListener((preference: Preference) => {
-      Future(activity.service.login)
+      Future(PortalManager.login)
       true
     })
     findPreference("status.logout").setOnPreferenceClickListener((preference: Preference) => {
-      Future(activity.service.logout)
+      Future(PortalManager.logout)
       true
     })
     PortalManager.setUserInfoListener(userInfoUpdated)
