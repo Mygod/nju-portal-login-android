@@ -32,8 +32,9 @@ object PortalManager {
 
   private val status = "status"
 
-  private implicit val networkOrdering = Ordering.by[Network, Long](_.getNetworkHandle)
-  private implicit val networkInfoOrdering = Ordering.by[NetworkInfo, (Int, Int)](i => (i.getType, i.getSubtype))
+  private implicit val networkOrdering = Ordering.by[Network, Long](n => if (n == null) 0 else n.getNetworkHandle)
+  private implicit val networkInfoOrdering =
+    Ordering.by[NetworkInfo, (Int, Int)](n => if (n == null) (0, 0) else (n.getType, n.getSubtype))
 
   private var instance: PortalManager = _
 

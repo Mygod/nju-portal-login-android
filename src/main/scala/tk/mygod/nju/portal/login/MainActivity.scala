@@ -16,7 +16,7 @@ object MainActivity {
 final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeListener {
   import MainActivity._
 
-  private val serviceIntent = new Intent(this, classOf[PortalManager])
+  private lazy val serviceIntent = new Intent(this, classOf[PortalManager])
   private val connection = new ServiceConnection {
     def onServiceConnected(name: ComponentName, binder: IBinder) =
       service = binder.asInstanceOf[PortalManager#ServiceBinder].service
