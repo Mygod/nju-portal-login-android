@@ -237,8 +237,9 @@ final class PortalManager extends Service {
       if (onResult != null) onResult(if (result == 3 || result == 8) 2 else 0, result)
     } catch {
       case e: SocketException =>
+        App.instance.showToast(e.getMessage)
         e.printStackTrace
-        onResult(2, 0)
+        if (onResult != null) onResult(2, 0)
       case e: Exception =>
         App.instance.showToast(e.getMessage)
         e.printStackTrace
