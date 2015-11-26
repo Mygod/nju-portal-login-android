@@ -264,7 +264,7 @@ final class PortalManager extends Service {
     private val testing = new mutable.HashMap[Network, Long]
     var loginedNetwork: Network = _
 
-    private def waitForNetwork(n: Network) = if (!testing.contains(n))
+    private def waitForNetwork(n: Network, retry: Boolean = false) = if (!testing.contains(n))
       if (App.instance.skipConnect) {
         if (App.instance.autoConnectEnabled) login(n, onLoginResult(n, _, _))
       } else {
@@ -273,13 +273,13 @@ final class PortalManager extends Service {
           Thread.sleep(App.instance.connectTimeout)
           if (testing.contains(n) && available.contains(n)) {
             testing.remove(n)
-            Thread.sleep(retryDelay)
+            if (retry) Thread.sleep(retryDelay)
             if (App.instance.autoConnectEnabled && available.contains(n)) login(n, onLoginResult(n, _, _))
           }
         }
       }
     private def onLoginResult(n: Network, result: Int, code: Int): Unit =
-      if (result != 2) if (code == 1 || code == 6) loginedNetwork = n else waitForNetwork(n)
+      if (result != 2) if (code == 1 || code == 6) loginedNetwork = n else waitForNetwork(n, true)
     private def onAvailable(n: Network, unsure: Boolean) = testing.get(n) match {
       case Some(start) =>
         onNetworkAvailable(start)
