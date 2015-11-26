@@ -114,7 +114,7 @@ object PortalManager {
       testing.add(n)
       Future(if (App.instance.skipConnect) loginLegacy(n, onLoginResult(n, _, _)) else {
         if (App.DEBUG) Log.d(TAG, "Testing connection manually...")
-        val url = new URL(http, "mygod.tk", "/generate_204")  // TODO: custom domain
+        val url = new URL(http, "mygod.tk", "/generate_204")
         preferNetworkLegacy(n)
         try autoDisconnect(url.openConnection.asInstanceOf[HttpURLConnection]) { conn =>
           setup(conn, App.instance.connectTimeout)
