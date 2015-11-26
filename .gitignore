@@ -1,5 +1,4 @@
 .idea
 target
-*.aar
 proguard-sbt.txt
 local.properties
