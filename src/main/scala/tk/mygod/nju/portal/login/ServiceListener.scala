@@ -8,7 +8,6 @@ object ServiceListener {
   private val TAG = "NetworkConditionsReceiver"
 }
 
-// TODO: disable tests for custom hotspots
 final class ServiceListener extends BroadcastReceiver {
   import ServiceListener._
 
