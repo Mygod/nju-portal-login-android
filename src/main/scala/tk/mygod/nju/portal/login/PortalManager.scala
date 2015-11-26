@@ -269,13 +269,14 @@ final class PortalManager extends Service {
         if (App.instance.autoConnectEnabled) login(n, onLoginResult(n, _, _))
       } else {
         testing += ((n, System.currentTimeMillis))
-        App.handler.postDelayed(() => if (testing.contains(n) && available.contains(n)) {
-          testing.remove(n)
-          Future {
+        Future {
+          Thread.sleep(App.instance.connectTimeout)
+          if (testing.contains(n) && available.contains(n)) {
+            testing.remove(n)
             Thread.sleep(retryDelay)
             if (App.instance.autoConnectEnabled && available.contains(n)) login(n, onLoginResult(n, _, _))
           }
-        }, App.instance.connectTimeout)
+        }
       }
     private def onLoginResult(n: Network, result: Int, code: Int): Unit =
       if (result != 2) if (code == 1 || code == 6) loginedNetwork = n else waitForNetwork(n)
