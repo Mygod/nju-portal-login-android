@@ -4,10 +4,10 @@ import java.net.InetAddress
 import java.text.{DateFormat, DecimalFormat}
 import java.util.Date
 
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.support.customtabs.CustomTabsIntent
+import android.support.v4.content.ContextCompat
 import android.support.v7.preference.Preference
 import android.util.Log
 import org.json4s.JObject
@@ -28,6 +28,10 @@ final class SettingsFragment extends PreferenceFragmentPlus {
   private lazy val activity = getActivity.asInstanceOf[MainActivity]
   private lazy val useBoundConnections = findPreference("autoConnect.useBoundConnections")
 
+  private lazy val customTabsIntent = new CustomTabsIntent.Builder()
+    .setToolbarColor(ContextCompat.getColor(activity, R.color.material_accent_500)).build
+  private def launchUrl(url: String) = customTabsIntent.launchUrl(activity, Uri.parse(url))
+
   def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
     getPreferenceManager.setSharedPreferencesName(App.prefName)
     addPreferencesFromResource(R.xml.settings)
@@ -42,8 +46,7 @@ final class SettingsFragment extends PreferenceFragmentPlus {
     })
     PortalManager.setUserInfoListener(userInfoUpdated)
     findPreference("status.username").setOnPreferenceClickListener((preference: Preference) => {
-      new CustomTabsIntent.Builder().setToolbarColor(activity.getColor(R.color.material_accent_500)).build
-        .launchUrl(activity, Uri.parse("http://p.nju.edu.cn"))
+      launchUrl("http://p.nju.edu.cn")
       true
     })
     findPreference("status.fullname").setOnPreferenceClickListener(humorous)
@@ -56,7 +59,7 @@ final class SettingsFragment extends PreferenceFragmentPlus {
       true
     })
     findPreference("misc.support").setOnPreferenceClickListener((preference: Preference) => {
-      startActivity(new Intent(Intent.ACTION_VIEW, R.string.settings_misc_support_url))
+      launchUrl(R.string.settings_misc_support_url)
       true
     })
     findPreference("misc.logcat")  .setOnPreferenceClickListener((preference: Preference) => {
