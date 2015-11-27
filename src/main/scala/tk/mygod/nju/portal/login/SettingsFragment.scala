@@ -7,6 +7,7 @@ import java.util.Date
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.support.customtabs.CustomTabsIntent
 import android.support.v7.preference.Preference
 import android.util.Log
 import org.json4s.JObject
@@ -41,7 +42,8 @@ final class SettingsFragment extends PreferenceFragmentPlus {
     })
     PortalManager.setUserInfoListener(userInfoUpdated)
     findPreference("status.username").setOnPreferenceClickListener((preference: Preference) => {
-      startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://p.nju.edu.cn")))
+      new CustomTabsIntent.Builder().setToolbarColor(activity.getColor(R.color.material_accent_500)).build
+        .launchUrl(activity, Uri.parse("http://p.nju.edu.cn"))
       true
     })
     findPreference("status.fullname").setOnPreferenceClickListener(humorous)
