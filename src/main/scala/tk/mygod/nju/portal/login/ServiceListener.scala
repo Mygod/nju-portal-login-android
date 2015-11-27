@@ -5,7 +5,7 @@ import android.net.{ConnectivityManager, NetworkInfo}
 import android.util.Log
 
 object ServiceListener {
-  private val TAG = "NetworkConditionsReceiver"
+  private val TAG = "ServiceListener"
 }
 
 final class ServiceListener extends BroadcastReceiver {
