@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="tk.mygod.nju.portal.login"
-          android:versionCode="369" android:versionName="1.1.1.369">
+          android:versionCode="370" android:versionName="1.1.2.370">
     <uses-sdk android:minSdkVersion="16" android:targetSdkVersion="23" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
