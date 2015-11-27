@@ -40,7 +40,7 @@ object PortalManager {
   private var instance: PortalManager = _
 
   def cares(network: Int) =
-    network > 5 && network != ConnectivityManager.TYPE_VPN || network == ConnectivityManager.TYPE_WIFI
+    network > 6 && network != ConnectivityManager.TYPE_VPN || network == ConnectivityManager.TYPE_WIFI
 
   private var userInfoListener: JObject => Any = _
   def setUserInfoListener(listener: JObject => Any) {
