@@ -62,7 +62,7 @@ final class SettingsFragment extends PreferenceFragmentPlus {
       launchUrl(R.string.settings_misc_support_url)
       true
     })
-    findPreference("misc.logcat")  .setOnPreferenceClickListener((preference: Preference) => {
+    findPreference("misc.logcat").setOnPreferenceClickListener((preference: Preference) => {
       activity.share(Logcat.fetch)
       true
     })

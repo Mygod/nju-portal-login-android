@@ -3,9 +3,11 @@ package tk.mygod.nju.portal.login
 import android.app.Application
 import android.content.Context
 import android.net.ConnectivityManager
-import android.os.{Build, Handler}
+import android.os.Handler
 import android.provider.Settings
 import android.widget.Toast
+import tk.mygod.content.ContextPlus
+import tk.mygod.os.Build
 
 object App {
   var instance: App = _
@@ -16,7 +18,7 @@ object App {
   val autoConnectEnabledKey = "autoConnect.enabled"
 }
 
-class App extends Application {
+class App extends Application with ContextPlus {
   import App._
 
   override def onCreate {
@@ -28,10 +30,10 @@ class App extends Application {
   /**
     * 0-3: Not available, permission missing, yes (revoke available), yes.
     */
-  def boundConnectionsAvailable = if (Build.VERSION.SDK_INT >= 21) if (Build.VERSION.SDK_INT < 23) 3
+  def boundConnectionsAvailable = if (Build.version >= 21) if (Build.version < 23) 3
     else if (Settings.System.canWrite(this)) 2 else 1 else 0
 
-  lazy val cm = getSystemService(Context.CONNECTIVITY_SERVICE).asInstanceOf[ConnectivityManager]
+  lazy val cm = systemService[ConnectivityManager]
   lazy val pref = getSharedPreferences(prefName, Context.MODE_PRIVATE)
   lazy val editor = pref.edit
 

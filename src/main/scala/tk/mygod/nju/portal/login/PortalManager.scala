@@ -7,11 +7,12 @@ import android.app.Service
 import android.content.Intent
 import android.net.ConnectivityManager.NetworkCallback
 import android.net._
-import android.os.{Binder, Build}
+import android.os.Binder
 import android.util.Log
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.native.Serialization
 import org.json4s.{JInt, JObject, JString, NoTypeHints}
+import tk.mygod.os.Build
 import tk.mygod.util.CloseUtils._
 import tk.mygod.util.IOUtils
 
@@ -81,8 +82,8 @@ object PortalManager {
   }
 
   //noinspection ScalaDeprecation
-  @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-  private def reportNetworkConnectivity(network: Network, hasConnectivity: Boolean) = if (Build.VERSION.SDK_INT >= 23)
+  @TargetApi(21)
+  private def reportNetworkConnectivity(network: Network, hasConnectivity: Boolean) = if (Build.version >= 23)
     App.instance.cm.reportNetworkConnectivity(network, hasConnectivity) else App.instance.cm.reportBadNetwork(network)
 
   //noinspection ScalaDeprecation
@@ -172,7 +173,7 @@ object PortalManager {
   /**
     * Based on: https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/connectivity/NetworkMonitor.java#640
     */
-  @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+  @TargetApi(21)
   def login(network: Network, onResult: (Int, Int) => Unit = null) {
     if (App.DEBUG) Log.d(TAG, loggingIn)
     try autoDisconnect(network.openConnection(new URL(http, portalDomain, portalLogin))
@@ -262,7 +263,7 @@ object PortalManager {
 final class PortalManager extends Service {
   import PortalManager._
 
-  @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+  @TargetApi(21)
   private class NetworkListener extends NetworkCallback {
     private val available = new mutable.TreeSet[Network]
     private val testing = new mutable.HashMap[Network, Long]
@@ -292,11 +293,11 @@ final class PortalManager extends Service {
     override def onAvailable(n: Network) {
       if (App.DEBUG) Log.d(TAG, "onAvailable (%s)".format(n))
       if (available.contains(n)) {
-        if (Build.VERSION.SDK_INT < 23) onAvailable(n, false)             // this is validated on 5.x
+        if (Build.version < 23) onAvailable(n, false)                     // this is validated on 5.x
         else if (App.DEBUG) Log.w(TAG, "onAvailable called twice! WTF?")  // this is unexpected on 6.0+
       } else {
         available.add(n)
-        if (Build.VERSION.SDK_INT < 23) onAvailable(n, true)
+        if (Build.version < 23) onAvailable(n, true)
         else if (!App.instance.cm.getNetworkCapabilities(n).hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
           Future(waitForNetwork(n))
       }
@@ -305,7 +306,7 @@ final class PortalManager extends Service {
       if (App.DEBUG) Log.d(TAG, "onCapabilitiesChanged (%s): %s".format(n, networkCapabilities))
       if (!networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL))
         if (!networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) Future(waitForNetwork(n))
-        else if (Build.VERSION.SDK_INT >= 23)
+        else if (Build.version >= 23)
           if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) onAvailable(n, false)
           else Future(waitForNetwork(n))
     }
@@ -319,7 +320,7 @@ final class PortalManager extends Service {
       case n: Network => n
     }.orNull
   }
-  @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+  @TargetApi(21)
   private var listener: NetworkListener = _
 
   class ServiceBinder extends Binder {
