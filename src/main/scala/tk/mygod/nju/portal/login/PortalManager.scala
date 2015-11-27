@@ -32,8 +32,9 @@ object PortalManager {
 
   private val status = "status"
 
-  private implicit val networkOrdering = Ordering.by[Network, Int](n => if (n == null) 0 else n.hashCode)
-  private implicit val networkInfoOrdering =
+  private implicit val networkOrdering: Ordering[Network] =
+    Ordering.by[Network, Int](n => if (n == null) 0 else n.hashCode)
+  private implicit val networkInfoOrdering: Ordering[NetworkInfo] =
     Ordering.by[NetworkInfo, (Int, Int)](n => if (n == null) (0, 0) else (n.getType, n.getSubtype))
 
   private var instance: PortalManager = _
@@ -94,25 +95,24 @@ object PortalManager {
 
   //noinspection ScalaDeprecation
   class NetworkListenerLegacy {
+    import networkInfoOrdering._
+
     private val available = new mutable.TreeSet[NetworkInfo]
     private val testing = new mutable.TreeSet[NetworkInfo]
     var loginedNetwork: NetworkInfo = _
 
     private def shouldLogin(n: NetworkInfo) =
-      instance != null && available.contains(n) && App.instance.autoConnectEnabled
-    private def onLoginResult(n: NetworkInfo, result: Int, code: Int): Unit = if (code == 1 || code == 6) {
-      loginedNetwork = n
-      testing.remove(n)
-    } else if (result == 2 || !shouldLogin(n)) testing.remove(n) else {
-      Thread.sleep(retryDelay)
-      loginLegacy(n, onLoginResult(n, _, _))
-    }
+      instance != null && loginedNetwork == null && available.contains(n) && App.instance.autoConnectEnabled
+    private def onLoginResult(n: NetworkInfo, result: Int, code: Int): Unit = if (result != 2)
+      if (code == 1 || code == 6) loginedNetwork = n else {
+        Thread.sleep(retryDelay)
+        if (shouldLogin(n)) loginLegacy(n, onLoginResult(n, _, _))
+      }
 
     def onAvailable(n: NetworkInfo) {
       available.add(n)
-      if (testing.contains(n)) return
-      testing.add(n)
-      Future(if (App.instance.skipConnect) loginLegacy(n, onLoginResult(n, _, _)) else {
+      if (App.instance.skipConnect) Future(loginLegacy(n, onLoginResult(n, _, _)))
+      else if (testing.synchronized(testing.add(n))) Future {
         if (App.DEBUG) Log.d(TAG, "Testing connection manually...")
         val url = new URL(http, "mygod.tk", "/generate_204")
         preferNetworkLegacy(n)
@@ -125,6 +125,7 @@ object PortalManager {
         } catch {
           case _: SocketTimeoutException | _: UnknownHostException =>
             if (shouldLogin(n)) {
+              testing.synchronized(testing.remove(n))
               loginLegacy(n, onLoginResult(n, _, _))
               return
             }
@@ -132,11 +133,14 @@ object PortalManager {
             App.instance.showToast(e.getMessage)
             e.printStackTrace
         }
-        testing.remove(n)
-      })
+        testing.synchronized(testing.remove(n))
+      }
     }
 
-    def onLost(n: NetworkInfo) = available.remove(n)
+    def onLost(n: NetworkInfo) {
+      available.remove(n)
+      if (n.equiv(loginedNetwork)) loginedNetwork = null
+    }
 
     def preferredNetwork = if (available.contains(loginedNetwork)) loginedNetwork else
       App.instance.cm.getAllNetworkInfo.collectFirst {
@@ -264,27 +268,25 @@ final class PortalManager extends Service {
     private val testing = new mutable.HashMap[Network, Long]
     var loginedNetwork: Network = _
 
-    private def waitForNetwork(n: Network, retry: Boolean = false) = if (!testing.contains(n))
-      if (App.instance.skipConnect) {
-        if (App.instance.autoConnectEnabled) login(n, onLoginResult(n, _, _))
-      } else {
-        testing += ((n, System.currentTimeMillis))
-        Future {
-          Thread.sleep(App.instance.connectTimeout)
-          if (testing.contains(n) && available.contains(n)) {
-            testing.remove(n)
-            if (retry) Thread.sleep(retryDelay)
-            if (App.instance.autoConnectEnabled && available.contains(n)) login(n, onLoginResult(n, _, _))
-          }
-        }
+    private def shouldLogin(n: Network) =
+      available.contains(n) && loginedNetwork == null && App.instance.autoConnectEnabled
+    private def waitForNetwork(n: Network, retry: Boolean = false) = if (App.instance.skipConnect) {
+      if (shouldLogin(n)) login(n, onLoginResult(n, _, _))
+    } else if (!testing.contains(n)) {
+      testing.synchronized(testing(n) = System.currentTimeMillis)
+      Thread.sleep(App.instance.connectTimeout)
+      if (testing.synchronized(testing.remove(n)).nonEmpty && available.contains(n)) {
+        if (retry) Thread.sleep(retryDelay)
+        if (shouldLogin(n)) login(n, onLoginResult(n, _, _))
       }
+    }
     private def onLoginResult(n: Network, result: Int, code: Int): Unit =
       if (result != 2) if (code == 1 || code == 6) loginedNetwork = n else waitForNetwork(n, true)
     private def onAvailable(n: Network, unsure: Boolean) = testing.get(n) match {
       case Some(start) =>
         onNetworkAvailable(start)
-        testing.remove(n)
-      case None => if (unsure) waitForNetwork(n)
+        testing.synchronized(testing.remove(n))
+      case None => if (unsure) Future(waitForNetwork(n))
     }
 
     override def onAvailable(n: Network) {
@@ -296,21 +298,21 @@ final class PortalManager extends Service {
         available.add(n)
         if (Build.VERSION.SDK_INT < 23) onAvailable(n, true)
         else if (!App.instance.cm.getNetworkCapabilities(n).hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
-          waitForNetwork(n)
+          Future(waitForNetwork(n))
       }
     }
     override def onCapabilitiesChanged(n: Network, networkCapabilities: NetworkCapabilities) {
       if (App.DEBUG) Log.d(TAG, "onCapabilitiesChanged (%s): %s".format(n, networkCapabilities))
-      if (App.instance.autoConnectEnabled &&
-        !networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL))
-        if (!networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) waitForNetwork(n)
+      if (!networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL))
+        if (!networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) Future(waitForNetwork(n))
         else if (Build.VERSION.SDK_INT >= 23)
           if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) onAvailable(n, false)
-          else waitForNetwork(n)
+          else Future(waitForNetwork(n))
     }
     override def onLost(n: Network) {
       if (App.DEBUG) Log.d(TAG, "onLost (%s)".format(n))
       available.remove(n)
+      if (n.equals(loginedNetwork)) loginedNetwork = null
     }
 
     def preferredNetwork = if (available.contains(loginedNetwork)) loginedNetwork else available.collectFirst {
