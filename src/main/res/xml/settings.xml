@@ -62,5 +62,7 @@
                                                   android:title="@string/settings_misc_update"/>
         <android.support.v7.preference.Preference android:key="misc.support"
                                                   android:title="@string/settings_misc_support"/>
+        <android.support.v7.preference.Preference android:key="misc.logcat"
+                                                  android:title="@string/settings_misc_logcat"/>
     </android.support.v7.preference.PreferenceCategory>
 </android.support.v7.preference.PreferenceScreen>

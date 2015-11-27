@@ -12,6 +12,7 @@ import android.util.Log
 import org.json4s.JObject
 import tk.mygod.net.UpdateManager
 import tk.mygod.preference._
+import tk.mygod.util.Logcat
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -54,6 +55,10 @@ final class SettingsFragment extends PreferenceFragmentPlus {
     })
     findPreference("misc.support").setOnPreferenceClickListener((preference: Preference) => {
       startActivity(new Intent(Intent.ACTION_VIEW, R.string.settings_misc_support_url))
+      true
+    })
+    findPreference("misc.logcat")  .setOnPreferenceClickListener((preference: Preference) => {
+      activity.share(Logcat.fetch)
       true
     })
   }

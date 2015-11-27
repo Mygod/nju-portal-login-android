@@ -39,6 +39,7 @@
     <string name="settings_misc_update">检查更新</string>
     <string name="settings_misc_support">常见问题与支持</string>
     <string name="settings_misc_support_url" formatted="false">https://github.com/Mygod/nju-portal-login-android/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E6%94%AF%E6%8C%81</string>
+    <string name="settings_misc_logcat">导出日志</string>
 
     <!-- MainActivity/SettingsFragment -->
     <string name="su_success">操作成功，重启后生效。</string>

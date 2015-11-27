@@ -40,6 +40,7 @@
     <string name="settings_misc_support">FAQ &amp; Support</string>
     <string name="settings_misc_support_url">
         https://github.com/Mygod/nju-portal-login-android/wiki/FAQ-&amp;-Support</string>
+    <string name="settings_misc_logcat">Export logcat</string>
 
     <!-- MainActivity/SettingsFragment -->
     <string name="su_success">Operation completed. Reboot your device to apply changes.</string>
