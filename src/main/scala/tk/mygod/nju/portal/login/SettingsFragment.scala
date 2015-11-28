@@ -4,16 +4,14 @@ import java.net.InetAddress
 import java.text.{DateFormat, DecimalFormat}
 import java.util.Date
 
-import android.net.Uri
 import android.os.Bundle
-import android.support.customtabs.CustomTabsIntent
-import android.support.v4.content.ContextCompat
 import android.support.v7.preference.Preference
 import android.util.Log
 import org.json4s.JObject
 import tk.mygod.net.UpdateManager
 import tk.mygod.preference._
 import tk.mygod.util.Logcat
+import tk.mygod.util.UriUtils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -27,10 +25,6 @@ final class SettingsFragment extends PreferenceFragmentPlus {
 
   private lazy val activity = getActivity.asInstanceOf[MainActivity]
   private lazy val useBoundConnections = findPreference("autoConnect.useBoundConnections")
-
-  private lazy val customTabsIntent = new CustomTabsIntent.Builder()
-    .setToolbarColor(ContextCompat.getColor(activity, R.color.material_accent_500)).build
-  private def launchUrl(url: String) = customTabsIntent.launchUrl(activity, Uri.parse(url))
 
   def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
     getPreferenceManager.setSharedPreferencesName(App.prefName)
@@ -46,7 +40,7 @@ final class SettingsFragment extends PreferenceFragmentPlus {
     })
     PortalManager.setUserInfoListener(userInfoUpdated)
     findPreference("status.username").setOnPreferenceClickListener((preference: Preference) => {
-      launchUrl("http://p.nju.edu.cn")
+      activity.launchUrl("http://p.nju.edu.cn")
       true
     })
     findPreference("status.fullname").setOnPreferenceClickListener(humorous)
@@ -59,7 +53,7 @@ final class SettingsFragment extends PreferenceFragmentPlus {
       true
     })
     findPreference("misc.support").setOnPreferenceClickListener((preference: Preference) => {
-      launchUrl(R.string.settings_misc_support_url)
+      activity.launchUrl(R.string.settings_misc_support_url)
       true
     })
     findPreference("misc.logcat").setOnPreferenceClickListener((preference: Preference) => {
