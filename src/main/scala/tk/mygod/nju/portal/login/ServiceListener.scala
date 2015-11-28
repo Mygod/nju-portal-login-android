@@ -15,12 +15,10 @@ final class ServiceListener extends BroadcastReceiver {
     if (App.DEBUG) Log.d(TAG, intent.getAction)
     intent.getAction match {
       //noinspection ScalaDeprecation
-      case ConnectivityManager.CONNECTIVITY_ACTION => if (App.instance.autoConnectEnabled &&
-        App.instance.boundConnectionsAvailable < 2 && PortalManager.cares(intent.getParcelableExtra(
-          ConnectivityManager.EXTRA_NETWORK_INFO).asInstanceOf[NetworkInfo].getType)) {
+      case ConnectivityManager.CONNECTIVITY_ACTION =>
         val n = intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO).asInstanceOf[NetworkInfo]
-        if (n.isConnected) PortalManager.listenerLegacy.onAvailable(n) else PortalManager.listenerLegacy.onLost(n)
-      }
+        if (PortalManager.cares(n.getType))
+          if (n.isConnected) PortalManager.listenerLegacy.onAvailable(n) else PortalManager.listenerLegacy.onLost(n)
       case Intent.ACTION_BOOT_COMPLETED =>
         if (App.instance.autoConnectEnabled) context.startService(new Intent(context, classOf[PortalManager]))
     }

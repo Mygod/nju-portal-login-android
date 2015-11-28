@@ -109,6 +109,7 @@ object PortalManager {
 
     def onAvailable(n: NetworkInfo) {
       available.add(n)
+      if (!App.instance.autoConnectEnabled || App.instance.boundConnectionsAvailable > 1) return
       if (App.instance.skipConnect) Future(loginLegacy(n, onLoginResult(n, _, _)))
       else if (testing.synchronized(testing.add(n))) Future {
         if (App.DEBUG) Log.d(TAG, "Testing connection manually...")
