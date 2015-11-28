@@ -11,7 +11,7 @@ import android.os.Binder
 import android.util.Log
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.native.Serialization
-import org.json4s.{JInt, JObject, JString, NoTypeHints}
+import org.json4s._
 import tk.mygod.os.Build
 import tk.mygod.util.CloseUtils._
 import tk.mygod.util.IOUtils
@@ -168,16 +168,26 @@ object PortalManager {
       App.instance.pref.getString("account.username", ""), App.instance.pref.getString("account.password", ""))))
   }
 
+  private case class CaptivePortalException() extends Exception
   /**
     * Based on: https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/connectivity/NetworkMonitor.java#640
     */
   private def loginCore(conn: URL => URLConnection, onResult: (Int, Int) => Unit = null) {
     if (App.DEBUG) Log.d(TAG, "Logging in...")
+    var code: Option[Int] = None
     try autoDisconnect(conn(new URL(http, portalDomain, "/portal_io/login")).asInstanceOf[HttpURLConnection]) { conn =>
       setup(conn, App.instance.loginTimeout, 2)
+      code = Some(conn.getResponseCode)
+      if (!code.contains(200)) throw new CaptivePortalException
       val result = processResult(IOUtils.readAllText(conn.getInputStream()))
       if (onResult != null) onResult(if (result == 3 || result == 8) 2 else 0, result)
     } catch {
+      case e: CaptivePortalException =>
+        if (App.DEBUG) Log.w(TAG, "Unknown response code: " + code)
+        if (onResult != null) onResult(2, 0)
+      case e: ParserUtil.ParseException =>
+        if (App.DEBUG) Log.w(TAG, "Parse failed: " + e.getMessage)
+        if (onResult != null) onResult(2, 0)
       case e: SocketException =>
         App.instance.showToast(e.getMessage)
         e.printStackTrace
@@ -195,12 +205,12 @@ object PortalManager {
     }
   }
   @TargetApi(21)
-  def login(network: Network, onResult: (Int, Int) => Unit = null) =
+  private def login(network: Network, onResult: (Int, Int) => Unit = null) =
     loginCore(network.openConnection, (code, result) => {
       if (result == 1 || result == 6) reportNetworkConnectivity(network, true)
       if (onResult != null) onResult(code, result)
     })
-  def loginLegacy(network: NetworkInfo = null, onResult: (Int, Int) => Unit = null) = loginCore({
+  private def loginLegacy(network: NetworkInfo = null, onResult: (Int, Int) => Unit = null) = loginCore({
     preferNetworkLegacy(network)
     _.openConnection
   }, onResult)
