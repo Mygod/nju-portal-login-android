@@ -25,11 +25,8 @@ import scala.util.Random
 object PortalManager {
   private val TAG = "PortalManager"
 
-  private val loggingIn = "Logging in..."
-
   private val http = "http"
   private val portalDomain = "p.nju.edu.cn"
-  private val portalLogin = "/portal_io/login"
 
   private val status = "status"
 
@@ -173,14 +170,11 @@ object PortalManager {
   /**
     * Based on: https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/connectivity/NetworkMonitor.java#640
     */
-  @TargetApi(21)
-  def login(network: Network, onResult: (Int, Int) => Unit = null) {
-    if (App.DEBUG) Log.d(TAG, loggingIn)
-    try autoDisconnect(network.openConnection(new URL(http, portalDomain, portalLogin))
-      .asInstanceOf[HttpURLConnection]) { conn =>
+  private def loginCore(conn: URL => URLConnection, onResult: (Int, Int) => Unit = null) {
+    if (App.DEBUG) Log.d(TAG, "Logging in...")
+    try autoDisconnect(conn(new URL(http, portalDomain, "/portal_io/login")).asInstanceOf[HttpURLConnection]) { conn =>
       setup(conn, App.instance.loginTimeout, 2)
       val result = processResult(IOUtils.readAllText(conn.getInputStream()))
-      if (result == 1 || result == 6) reportNetworkConnectivity(network, true)
       if (onResult != null) onResult(if (result == 3 || result == 8) 2 else 0, result)
     } catch {
       case e: SocketException =>
@@ -199,30 +193,16 @@ object PortalManager {
         if (onResult != null) onResult(1, 0)
     }
   }
-  def loginLegacy(network: NetworkInfo = null, onResult: (Int, Int) => Unit = null) {
-    if (App.DEBUG) Log.d(TAG, loggingIn)
+  @TargetApi(21)
+  def login(network: Network, onResult: (Int, Int) => Unit = null) =
+    loginCore(network.openConnection, (code, result) => {
+      if (result == 1 || result == 6) reportNetworkConnectivity(network, true)
+      if (onResult != null) onResult(code, result)
+    })
+  def loginLegacy(network: NetworkInfo = null, onResult: (Int, Int) => Unit = null) = loginCore({
     preferNetworkLegacy(network)
-    try autoDisconnect(new URL(http, portalDomain, portalLogin).openConnection.asInstanceOf[HttpURLConnection])
-    { conn =>
-      setup(conn, App.instance.loginTimeout, 2)
-      val result = processResult(IOUtils.readAllText(conn.getInputStream()))
-      if (onResult != null) onResult(if (result == 3 || result == 8) 2 else 0, result)
-    } catch {
-      case e: SocketException =>
-        e.printStackTrace
-        onResult(2, 0)
-      case e: SocketTimeoutException =>
-        App.instance.showToast(App.instance.getString(R.string.error_socket_timeout))
-        if (onResult != null) onResult(1, 0)
-      case e: UnknownHostException =>
-        App.instance.showToast(e.getMessage)
-        if (onResult != null) onResult(1, 0)
-      case e: Exception =>
-        App.instance.showToast(e.getMessage)
-        e.printStackTrace
-        if (onResult != null) onResult(1, 0)
-    }
-  }
+    _.openConnection
+  }, onResult)
   def login {
     if (instance != null && App.instance.boundConnectionsAvailable > 1) {
       val network = instance.listener.preferredNetwork
