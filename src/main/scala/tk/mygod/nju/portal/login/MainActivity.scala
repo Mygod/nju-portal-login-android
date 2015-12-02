@@ -16,20 +16,20 @@ object MainActivity {
 final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeListener {
   import MainActivity._
 
-  private lazy val serviceIntent = intentService[PortalManager]
+  private lazy val serviceIntent = intentService[NetworkMonitor]
   private val connection = new ServiceConnection {
     def onServiceConnected(name: ComponentName, binder: IBinder) =
-      service = binder.asInstanceOf[PortalManager#ServiceBinder].service
+      service = binder.asInstanceOf[NetworkMonitor#ServiceBinder].service
     def onServiceDisconnected(name: ComponentName) = service = null
   }
-  var service: PortalManager = _
+  var service: NetworkMonitor = _
 
   override protected def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
     configureToolbar()
     testBoundConnections()
-    startPortalManager
+    startNetworkMonitor
     App.instance.pref.registerOnSharedPreferenceChangeListener(this)
   }
 
@@ -58,17 +58,17 @@ final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeLi
       val value = App.instance.autoConnectEnabled
       App.instance.editor.putBoolean(App.autoConnectEnabledKey, value)
       if (value) {
-        getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[ServiceListener]),
+        getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[NetworkMonitorListener]),
           PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
-        startPortalManager
+        startNetworkMonitor
       } else {
-        getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[ServiceListener]),
+        getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[NetworkMonitorListener]),
           PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
         stopService(serviceIntent)
       }
     }
 
-  def startPortalManager = if (App.instance.autoConnectEnabled) {
+  def startNetworkMonitor = if (App.instance.autoConnectEnabled) {
     startService(serviceIntent)
     bindService(serviceIntent, connection, 0)
   }

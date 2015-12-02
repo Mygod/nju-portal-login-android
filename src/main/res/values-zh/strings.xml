@@ -56,7 +56,7 @@
 
     <string name="coming_soon">即将推出……</string>
 
-    <!-- PortalManager -->
+    <!-- NetworkMonitor -->
     <string name="network_available">网络可用。延迟 = %d 毫秒</string>
     <string name="error_socket_timeout">套接字超时。</string>
 </resources>

@@ -14,6 +14,7 @@ object App {
   var handler: Handler = _
   val DEBUG = true
 
+  val http = "http"
   val prefName = "pref"
   val autoConnectEnabledKey = "auth.autoConnect"
 }

@@ -14,8 +14,8 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <service android:name=".PortalManager"/>
-        <receiver android:name=".ServiceListener">
+        <service android:name=".NetworkMonitor"/>
+        <receiver android:name=".NetworkMonitorListener">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
