@@ -32,11 +32,10 @@ object PortalManager {
 
   private implicit val formats = Serialization.formats(NoTypeHints)
   private def processResult(resultStr: String) = {
-    if (App.DEBUG) Log.d(TAG, resultStr)
+    if (App.DEBUG) Log.v(TAG, resultStr)
     val json = parse(resultStr)
     val code = (json \ "reply_code").asInstanceOf[JInt].values.toInt
     val info = json \ "userinfo"
-    if (App.DEBUG) Log.d(TAG, info.getClass.getName + " - " + info.toString)
     info match {
       case obj: JObject =>
         App.instance.editor.putString(status, compact(render(info))).apply

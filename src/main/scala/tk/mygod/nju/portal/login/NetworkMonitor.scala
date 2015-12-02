@@ -52,7 +52,7 @@ object NetworkMonitor {
     val network = if (n == null) listenerLegacy.preferredNetwork else n
     val preference = if (network == null) ConnectivityManager.TYPE_WIFI else network.getType
     App.instance.cm.setNetworkPreference(preference)
-    if (App.DEBUG) Log.d(TAG, "Setting network preference: " + preference)
+    if (App.DEBUG) Log.v(TAG, "Setting network preference: " + preference)
   }
 
   //noinspection ScalaDeprecation
@@ -146,8 +146,8 @@ final class NetworkMonitor extends Service {
     override def onAvailable(n: Network) {
       if (App.DEBUG) Log.d(TAG, "onAvailable (%s)".format(n))
       if (available.contains(n)) {
-        if (Build.version < 23) onAvailable(n, false)                     // this is validated on 5.x
-        else if (App.DEBUG) Log.w(TAG, "onAvailable called twice! WTF?")  // this is unexpected on 6.0+
+        if (Build.version < 23) onAvailable(n, false)     // this is validated on 5.x
+        else Log.e(TAG, "onAvailable called twice! WTF?") // this is unexpected on 6.0+
       } else {
         available.add(n)
         if (Build.version < 23) onAvailable(n, true)
