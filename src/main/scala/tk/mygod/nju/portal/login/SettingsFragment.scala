@@ -10,8 +10,8 @@ import android.util.Log
 import org.json4s.JObject
 import tk.mygod.net.UpdateManager
 import tk.mygod.preference._
+import tk.mygod.util.Conversions._
 import tk.mygod.util.Logcat
-import tk.mygod.util.UriUtils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

@@ -3,13 +3,12 @@ package tk.mygod.nju.portal.login
 import android.content.{BroadcastReceiver, Context, Intent}
 import android.net.{ConnectivityManager, NetworkInfo}
 import android.util.Log
-import tk.mygod.content.ContextPlus
 
 object ServiceListener {
   private val TAG = "ServiceListener"
 }
 
-final class ServiceListener extends BroadcastReceiver with ContextPlus {
+final class ServiceListener extends BroadcastReceiver {
   import ServiceListener._
 
   override def onReceive(context: Context, intent: Intent) {
@@ -21,7 +20,7 @@ final class ServiceListener extends BroadcastReceiver with ContextPlus {
         if (PortalManager.cares(n.getType))
           if (n.isConnected) PortalManager.listenerLegacy.onAvailable(n) else PortalManager.listenerLegacy.onLost(n)
       case Intent.ACTION_BOOT_COMPLETED =>
-        if (App.instance.autoConnectEnabled) context.startService(intentService[PortalManager])
+        if (App.instance.autoConnectEnabled) context.startService(new Intent(context, classOf[PortalManager]))
     }
   }
 }
