@@ -7,18 +7,18 @@
         <tk.mygod.preference.EditTextPreference android:key="account.password" android:title="Password"
                                                 android:inputType="textPassword" android:summary="%s"/>
     </android.support.v7.preference.PreferenceCategory>
-    <android.support.v7.preference.PreferenceCategory android:title="@string/settings_auto_connect">
-        <android.support.v14.preference.SwitchPreference android:key="autoConnect.enabled"
-                                                         android:title="@string/settings_auto_connect_enabled"
+    <android.support.v7.preference.PreferenceCategory android:title="@string/settings_auth">
+        <android.support.v14.preference.SwitchPreference android:key="auth.autoConnect"
+                                                         android:title="@string/settings_auth_auto_connect"
                                                          android:defaultValue="true"/>
-        <android.support.v7.preference.Preference android:key="autoConnect.useBoundConnections"
-                                                  android:title="@string/settings_auto_connect_bound_connections"/>
+        <android.support.v7.preference.Preference android:key="auth.portalWeb"
+                                                  android:title="@string/settings_auth_portal_web"/>
+        <android.support.v7.preference.Preference android:key="auth.login"
+                                                  android:title="@string/settings_auth_login"/>
+        <android.support.v7.preference.Preference android:key="auth.logout"
+                                                  android:title="@string/settings_auth_logout"/>
     </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory android:title="@string/settings_status">
-        <android.support.v7.preference.Preference android:key="status.login"
-                                                  android:title="@string/settings_status_login"/>
-        <android.support.v7.preference.Preference android:key="status.logout"
-                                                  android:title="@string/settings_status_logout"/>
         <android.support.v7.preference.Preference android:key="status.username"
                                                   android:title="@string/settings_status_username"/>
         <android.support.v7.preference.Preference android:key="status.fullname"
@@ -58,6 +58,8 @@
                                                          android:defaultValue="true"/>
     </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory android:title="@string/settings_misc">
+        <android.support.v7.preference.Preference android:key="misc.useBoundConnections"
+                                                  android:title="@string/bound_connections"/>
         <android.support.v7.preference.Preference android:key="misc.update"
                                                   android:title="@string/settings_misc_update"/>
         <android.support.v7.preference.Preference android:key="misc.support"

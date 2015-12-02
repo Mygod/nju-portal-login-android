@@ -5,14 +5,13 @@
     <!-- Settings -->
     <string name="settings_account">Account</string>
 
-    <string name="settings_auto_connect">Auto connect</string>
-    <string name="settings_auto_connect_enabled">Enabled</string>
-    <string name="settings_auto_connect_networkmonitor">Use system NetworkMonitor</string>
-    <string name="settings_auto_connect_bound_connections">Use bound connections</string>
+    <string name="settings_auth">Authorization</string>
+    <string name="settings_auth_auto_connect">Auto connect enabled</string>
+    <string name="settings_auth_portal_web">Open portal webpage</string>
+    <string name="settings_auth_login">Login</string>
+    <string name="settings_auth_logout">Logout</string>
 
     <string name="settings_status">Status</string>
-    <string name="settings_status_login">Login</string>
-    <string name="settings_status_logout">Logout</string>
     <string name="settings_status_username">Username</string>
     <string name="settings_status_fullname">Full name</string>
     <string name="settings_status_service_name">Service name</string>
@@ -47,6 +46,7 @@
     <string name="su_fail">Operation failed. (#%d)</string>
     <string name="su_fail_msg">Operation failed: (#%1$d) %2$s</string>
 
+    <string name="bound_connections">Use bound connections</string>
     <string name="bound_connections_title">Enable bound connections?</string>
     <string name="bound_connections_message">Bound connections will enforce the connections to go on a specific
         network so that you can login with cellular data on.</string>

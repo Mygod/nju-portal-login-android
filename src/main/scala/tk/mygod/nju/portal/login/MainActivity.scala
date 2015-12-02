@@ -10,7 +10,7 @@ import android.support.v7.app.AlertDialog
 import tk.mygod.app.ToolbarActivity
 
 object MainActivity {
-  private val askedBoundConnection = "askedBoundConnection"
+  private val askedBoundConnection = "misc.askedBoundConnection"
 }
 
 final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeListener {

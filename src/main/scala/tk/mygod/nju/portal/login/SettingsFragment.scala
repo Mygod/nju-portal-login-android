@@ -24,25 +24,25 @@ final class SettingsFragment extends PreferenceFragmentPlus {
   import SettingsFragment._
 
   private lazy val activity = getActivity.asInstanceOf[MainActivity]
-  private lazy val useBoundConnections = findPreference("autoConnect.useBoundConnections")
+  private lazy val useBoundConnections = findPreference("misc.useBoundConnections")
 
   def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
     getPreferenceManager.setSharedPreferencesName(App.prefName)
     addPreferencesFromResource(R.xml.settings)
 
-    findPreference("status.login").setOnPreferenceClickListener((preference: Preference) => {
+    findPreference("auth.portalWeb").setOnPreferenceClickListener((preference: Preference) => {
+      activity.launchUrl("http://p.nju.edu.cn")
+      true
+    })
+    findPreference("auth.login").setOnPreferenceClickListener((preference: Preference) => {
       Future(PortalManager.login)
       true
     })
-    findPreference("status.logout").setOnPreferenceClickListener((preference: Preference) => {
+    findPreference("auth.logout").setOnPreferenceClickListener((preference: Preference) => {
       Future(PortalManager.logout)
       true
     })
     PortalManager.setUserInfoListener(userInfoUpdated)
-    findPreference("status.username").setOnPreferenceClickListener((preference: Preference) => {
-      activity.launchUrl("http://p.nju.edu.cn")
-      true
-    })
     findPreference("status.fullname").setOnPreferenceClickListener(humorous)
     findPreference("status.service_name").setOnPreferenceClickListener(humorous)
     findPreference("status.area_name").setOnPreferenceClickListener(humorous)

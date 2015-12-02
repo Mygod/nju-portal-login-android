@@ -15,7 +15,7 @@ object App {
   val DEBUG = true
 
   val prefName = "pref"
-  val autoConnectEnabledKey = "autoConnect.enabled"
+  val autoConnectEnabledKey = "auth.autoConnect"
 }
 
 class App extends Application with ContextPlus {
