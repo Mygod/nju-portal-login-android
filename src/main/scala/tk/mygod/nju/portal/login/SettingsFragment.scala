@@ -4,6 +4,7 @@ import java.net.InetAddress
 import java.text.{DateFormat, DecimalFormat}
 import java.util.Date
 
+import android.net.Uri.Builder
 import android.os.Bundle
 import android.support.v7.preference.Preference
 import android.util.Log
@@ -12,9 +13,6 @@ import tk.mygod.net.UpdateManager
 import tk.mygod.preference._
 import tk.mygod.util.Conversions._
 import tk.mygod.util.Logcat
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 object SettingsFragment {
   private val TAG = "SettingsFragment"
@@ -27,19 +25,19 @@ final class SettingsFragment extends PreferenceFragmentPlus {
   private lazy val useBoundConnections = findPreference("misc.useBoundConnections")
 
   def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
-    getPreferenceManager.setSharedPreferencesName(App.prefName)
+    getPreferenceManager.setSharedPreferencesName(PREF_NAME)
     addPreferencesFromResource(R.xml.settings)
 
     findPreference("auth.portalWeb").setOnPreferenceClickListener((preference: Preference) => {
-      activity.launchUrl("http://p.nju.edu.cn")
+      activity.launchUrl(new Builder().scheme(HTTP).authority(PortalManager.PORTAL_DOMAIN).build)
       true
     })
     findPreference("auth.login").setOnPreferenceClickListener((preference: Preference) => {
-      Future(PortalManager.login)
+      ThrowableFuture(PortalManager.login)
       true
     })
     findPreference("auth.logout").setOnPreferenceClickListener((preference: Preference) => {
-      Future(PortalManager.logout)
+      ThrowableFuture(PortalManager.logout)
       true
     })
     PortalManager.setUserInfoListener(userInfoUpdated)
@@ -49,7 +47,7 @@ final class SettingsFragment extends PreferenceFragmentPlus {
     findPreference("status.balance").setOnPreferenceClickListener(humorous)
 
     findPreference("misc.update").setOnPreferenceClickListener((preference: Preference) => {
-      UpdateManager.check(activity, "https://github.com/Mygod/nju-portal-login-android/releases", App.handler)
+      UpdateManager.check(activity, "https://github.com/Mygod/nju-portal-login-android/releases", app.handler)
       true
     })
     findPreference("misc.support").setOnPreferenceClickListener((preference: Preference) => {
@@ -65,7 +63,7 @@ final class SettingsFragment extends PreferenceFragmentPlus {
   override def onResume {
     super.onResume
 
-    val available = App.instance.boundConnectionsAvailable
+    val available = app.boundConnectionsAvailable
     useBoundConnections.setEnabled(available == 1 || available == 2)
     useBoundConnections.setOnPreferenceClickListener((preference: Preference) => activity.testBoundConnections(true))
     useBoundConnections.setSummary(getString(R.string.bound_connections_summary) + getString(available match {

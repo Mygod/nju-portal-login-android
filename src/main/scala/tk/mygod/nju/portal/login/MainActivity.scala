@@ -30,20 +30,20 @@ final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeLi
     configureToolbar()
     testBoundConnections()
     startNetworkMonitor
-    App.instance.pref.registerOnSharedPreferenceChangeListener(this)
+    app.pref.registerOnSharedPreferenceChangeListener(this)
   }
 
   private def manageWriteSettings(dialog: DialogInterface = null, which: Int = 0) = startActivity(
     new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).setData(Uri.parse("package:" + getPackageName)))
-  def testBoundConnections(requested: Boolean = false) = App.instance.boundConnectionsAvailable match {
+  def testBoundConnections(requested: Boolean = false) = app.boundConnectionsAvailable match {
     case 1 => if (requested) {
       manageWriteSettings()
       true
-    } else if (!App.instance.pref.getBoolean(askedBoundConnection, false)) {
+    } else if (!app.pref.getBoolean(askedBoundConnection, false)) {
       new AlertDialog.Builder(this).setTitle(R.string.bound_connections_title)
         .setPositiveButton(android.R.string.yes, manageWriteSettings: DialogInterface.OnClickListener)
         .setMessage(R.string.bound_connections_message).setNegativeButton(android.R.string.no, null).create.show
-      App.instance.editor.putBoolean(askedBoundConnection, true)
+      app.editor.putBoolean(askedBoundConnection, true)
       true
     } else false
     case 2 => if (requested) {
@@ -53,10 +53,10 @@ final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeLi
     case _ => false
   }
 
-  override def onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) =
-    if (key == App.autoConnectEnabledKey) {
-      val value = App.instance.autoConnectEnabled
-      App.instance.editor.putBoolean(App.autoConnectEnabledKey, value)
+  override def onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) = key match {
+    case AUTO_CONNECT_ENABLED =>
+      val value = app.autoConnectEnabled
+      app.editor.putBoolean(AUTO_CONNECT_ENABLED, value)
       if (value) {
         getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[NetworkMonitorListener]),
           PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
@@ -66,9 +66,11 @@ final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeLi
           PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
         stopService(serviceIntent)
       }
-    }
+    case RELOGIN_DELAY => if (NetworkMonitor.instance != null) NetworkMonitor.instance.reloginThread.interrupt
+    case _ => // ignore
+  }
 
-  def startNetworkMonitor = if (App.instance.autoConnectEnabled) {
+  def startNetworkMonitor = if (app.autoConnectEnabled) {
     startService(serviceIntent)
     bindService(serviceIntent, connection, 0)
   }

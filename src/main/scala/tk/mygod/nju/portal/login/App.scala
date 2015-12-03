@@ -9,23 +9,12 @@ import android.widget.Toast
 import tk.mygod.content.ContextPlus
 import tk.mygod.os.Build
 
-object App {
-  var instance: App = _
-  var handler: Handler = _
-  val DEBUG = true
-
-  val http = "http"
-  val prefName = "pref"
-  val autoConnectEnabledKey = "auth.autoConnect"
-}
-
 class App extends Application with ContextPlus {
-  import App._
+  val handler = new Handler
 
   override def onCreate {
-    instance = this
+    app = this
     super.onCreate
-    handler = new Handler
   }
 
   /**
@@ -35,10 +24,11 @@ class App extends Application with ContextPlus {
     else if (Settings.System.canWrite(this)) 2 else 1 else 0
 
   lazy val cm = systemService[ConnectivityManager]
-  lazy val pref = getSharedPreferences(prefName, Context.MODE_PRIVATE)
+  lazy val pref = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
   lazy val editor = pref.edit
 
-  def autoConnectEnabled = pref.getBoolean(autoConnectEnabledKey, true)
+  def autoConnectEnabled = pref.getBoolean(AUTO_CONNECT_ENABLED, true)
+  def reloginDelay = pref.getInt(RELOGIN_DELAY, 0)
 
   def skipConnect = pref.getBoolean("speed.skipConnect", false)
   def connectTimeout = pref.getInt("speed.connectTimeout", 4000)
