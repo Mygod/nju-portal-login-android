@@ -12,6 +12,7 @@ import tk.mygod.util.CloseUtils._
 import tk.mygod.util.IOUtils
 
 /**
+  * Portal manager. Supports v=201510210840.
   * @author Mygod
   */
 //noinspection JavaAccessorMethodCalledAsEmptyParen
