@@ -65,16 +65,18 @@ object NetworkMonitor {
 
     private def shouldLogin(n: NetworkInfo) =
       instance != null && loginedNetwork == null && available.contains(n) && App.instance.autoConnectEnabled
-    private def onLoginResult(n: NetworkInfo, result: Int, code: Int): Unit = if (result != 2)
-      if (code == 1 || code == 6) loginedNetwork = n else {
+    private def login(n: NetworkInfo): Unit = if (shouldLogin(n)) {
+      val (result, code) = PortalManager.loginLegacy(n)
+      if (result != 2) if (code == 1 || code == 6) loginedNetwork = n else {
         Thread.sleep(retryDelay)
-        if (shouldLogin(n)) PortalManager.loginLegacy(n, onLoginResult(n, _, _))
+        login(n)
       }
+    }
 
     def onAvailable(n: NetworkInfo) {
       available.add(n)
       if (!App.instance.autoConnectEnabled || App.instance.boundConnectionsAvailable > 1) return
-      if (App.instance.skipConnect) Future(PortalManager.loginLegacy(n, onLoginResult(n, _, _)))
+      if (App.instance.skipConnect) Future(login(n))
       else if (testing.synchronized(testing.add(n))) Future {
         if (App.DEBUG) Log.d(TAG, "Testing connection manually...")
         val url = new URL(App.http, "mygod.tk", "/generate_204")
@@ -85,18 +87,16 @@ object NetworkMonitor {
           conn.getInputStream
           val code = conn.getResponseCode
           if (code == 204 || code == 200 && conn.getContentLength == 0) onNetworkAvailable(start)
+          testing.synchronized(testing.remove(n))
         } catch {
           case _: SocketTimeoutException | _: UnknownHostException =>
-            if (shouldLogin(n)) {
-              testing.synchronized(testing.remove(n))
-              PortalManager.loginLegacy(n, onLoginResult(n, _, _))
-              return
-            }
+            testing.synchronized(testing.remove(n))
+            login(n)
           case e: Exception =>
+            testing.synchronized(testing.remove(n))
             App.instance.showToast(e.getMessage)
             e.printStackTrace
         }
-        testing.synchronized(testing.remove(n))
       }
     }
 
@@ -124,18 +124,19 @@ final class NetworkMonitor extends Service {
 
     private def shouldLogin(n: Network) =
       available.contains(n) && loginedNetwork == null && App.instance.autoConnectEnabled
-    private def waitForNetwork(n: Network, retry: Boolean = false) = if (App.instance.skipConnect) {
-      if (shouldLogin(n)) PortalManager.login(n, onLoginResult(n, _, _))
-    } else if (!testing.contains(n)) {
+    private def waitForNetwork(n: Network, retry: Boolean = false) =
+      if (App.instance.skipConnect) login(n) else if (!testing.contains(n)) {
       testing.synchronized(testing(n) = System.currentTimeMillis)
       Thread.sleep(App.instance.connectTimeout)
       if (testing.synchronized(testing.remove(n)).nonEmpty && available.contains(n)) {
         if (retry) Thread.sleep(retryDelay)
-        if (shouldLogin(n)) PortalManager.login(n, onLoginResult(n, _, _))
+        login(n)
       }
     }
-    private def onLoginResult(n: Network, result: Int, code: Int): Unit =
+    private def login(n: Network): Unit = if (shouldLogin(n)) {
+      val (code, result) = PortalManager.login(n)
       if (result != 2) if (code == 1 || code == 6) loginedNetwork = n else waitForNetwork(n, true)
+    }
     private def onAvailable(n: Network, unsure: Boolean) = testing.get(n) match {
       case Some(start) =>
         onNetworkAvailable(start)

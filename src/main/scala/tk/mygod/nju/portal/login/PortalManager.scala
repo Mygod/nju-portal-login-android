@@ -73,7 +73,7 @@ object PortalManager {
   /**
     * Based on: https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/connectivity/NetworkMonitor.java#640
     */
-  private def loginCore(conn: URL => URLConnection, onResult: (Int, Int) => Unit = null) {
+  private def loginCore(conn: URL => URLConnection) = {
     if (App.DEBUG) Log.d(TAG, "Logging in...")
     var code: Option[Int] = None
     try autoDisconnect(conn(new URL(App.http, portalDomain, "/portal_io/login")).asInstanceOf[HttpURLConnection])
@@ -82,47 +82,44 @@ object PortalManager {
       code = Some(conn.getResponseCode)
       if (!code.contains(200)) throw new CaptivePortalException
       val result = processResult(IOUtils.readAllText(conn.getInputStream()))
-      if (onResult != null) onResult(if (result == 3 || result == 8) 2 else 0, result)
+      (if (result == 3 || result == 8) 2 else 0, result)
     } catch {
       case e: CaptivePortalException =>
         if (App.DEBUG) Log.w(TAG, "Unknown response code: " + code)
-        if (onResult != null) onResult(2, 0)
+        (2, 0)
       case e: ParserUtil.ParseException =>
         if (App.DEBUG) Log.w(TAG, "Parse failed: " + e.getMessage)
-        if (onResult != null) onResult(2, 0)
+        (2, 0)
       case e: SocketException =>
         App.instance.showToast(e.getMessage)
         e.printStackTrace
-        if (onResult != null) onResult(2, 0)
+        (2, 0)
       case e: SocketTimeoutException =>
         App.instance.showToast(App.instance.getString(R.string.error_socket_timeout))
-        if (onResult != null) onResult(1, 0)
+        (1, 0)
       case e: UnknownHostException =>
         App.instance.showToast(e.getMessage)
-        if (onResult != null) onResult(1, 0)
+        (1, 0)
       case e: Exception =>
         App.instance.showToast(e.getMessage)
         e.printStackTrace
-        if (onResult != null) onResult(1, 0)
+        (1, 0)
     }
   }
   @TargetApi(21)
-  def login(network: Network, onResult: (Int, Int) => Unit = null) =
-    loginCore(network.openConnection, (code, result) => {
-      if (result == 1 || result == 6) NetworkMonitor.reportNetworkConnectivity(network, true)
-      if (onResult != null) onResult(code, result)
-    })
-  def loginLegacy(network: NetworkInfo = null, onResult: (Int, Int) => Unit = null) = loginCore({
+  def login(network: Network) = {
+    val (code, result) = loginCore(network.openConnection)
+    if (result == 1 || result == 6) NetworkMonitor.reportNetworkConnectivity(network, true)
+    (code, result)
+  }
+  def loginLegacy(network: NetworkInfo = null) = loginCore({
     NetworkMonitor.preferNetworkLegacy(network)
     _.openConnection
-  }, onResult)
-  def login {
+  })
+  def login: (Int, Int) = {
     if (NetworkMonitor.instance != null && App.instance.boundConnectionsAvailable > 1) {
       val network = NetworkMonitor.instance.listener.preferredNetwork
-      if (network != null) {
-        login(network)
-        return
-      }
+      if (network != null) return login(network)
     }
     loginLegacy()
   }
