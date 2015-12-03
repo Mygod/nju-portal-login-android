@@ -8,11 +8,13 @@ import android.util.Log
 import org.json4s._
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization
+import tk.mygod.os.Build
 import tk.mygod.util.CloseUtils._
 import tk.mygod.util.IOUtils
 
 /**
   * Portal manager. Supports v=201510210840.
+  *
   * @author Mygod
   */
 //noinspection JavaAccessorMethodCalledAsEmptyParen
@@ -47,6 +49,11 @@ object PortalManager {
       App.instance.showToast("#%d: %s".format(code, (json \ "reply_msg").asInstanceOf[JString].values))
     code
   }
+
+  //noinspection ScalaDeprecation
+  @TargetApi(21)
+  def reportNetworkConnectivity(network: Network, hasConnectivity: Boolean) = if (Build.version >= 23)
+    App.instance.cm.reportNetworkConnectivity(network, hasConnectivity) else App.instance.cm.reportBadNetwork(network)
 
   /**
     * Setup HttpURLConnection.
@@ -109,7 +116,7 @@ object PortalManager {
   @TargetApi(21)
   def login(network: Network) = {
     val (code, result) = loginCore(network.openConnection)
-    if (result == 1 || result == 6) NetworkMonitor.reportNetworkConnectivity(network, true)
+    if (result == 1 || result == 6) reportNetworkConnectivity(network, true)
     (code, result)
   }
   def loginLegacy(network: NetworkInfo = null) = loginCore({
@@ -140,7 +147,7 @@ object PortalManager {
       setup(conn, App.instance.loginTimeout, 1)
       if (processResult(IOUtils.readAllText(conn.getInputStream())) == 101 &&
         App.instance.boundConnectionsAvailable > 1 && network != null)
-        NetworkMonitor.reportNetworkConnectivity(network, false)
+        reportNetworkConnectivity(network, false)
     }
     if (NetworkMonitor.instance != null && NetworkMonitor.instance.listener != null)
       NetworkMonitor.instance.listener.loginedNetwork = null

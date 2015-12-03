@@ -43,11 +43,6 @@ object NetworkMonitor {
   }
 
   //noinspection ScalaDeprecation
-  @TargetApi(21)
-  def reportNetworkConnectivity(network: Network, hasConnectivity: Boolean) = if (Build.version >= 23)
-    App.instance.cm.reportNetworkConnectivity(network, hasConnectivity) else App.instance.cm.reportBadNetwork(network)
-
-  //noinspection ScalaDeprecation
   def preferNetworkLegacy(n: NetworkInfo = null) {
     val network = if (n == null) listenerLegacy.preferredNetwork else n
     val preference = if (network == null) ConnectivityManager.TYPE_WIFI else network.getType
