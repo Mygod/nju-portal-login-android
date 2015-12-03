@@ -11,12 +11,12 @@
         <android.support.v14.preference.SwitchPreference android:key="auth.autoConnect"
                                                          android:title="@string/settings_auth_auto_connect"
                                                          android:defaultValue="true"/>
-        <android.support.v7.preference.Preference android:key="auth.portalWeb"
-                                                  android:title="@string/settings_auth_portal_web"/>
         <android.support.v7.preference.Preference android:key="auth.login"
                                                   android:title="@string/settings_auth_login"/>
         <android.support.v7.preference.Preference android:key="auth.logout"
                                                   android:title="@string/settings_auth_logout"/>
+        <android.support.v7.preference.Preference android:key="auth.portalWeb"
+                                                  android:title="@string/settings_auth_portal_web"/>
     </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory android:title="@string/settings_status">
         <android.support.v7.preference.Preference android:key="status.username"
