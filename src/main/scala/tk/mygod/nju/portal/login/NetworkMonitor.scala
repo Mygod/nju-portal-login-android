@@ -6,12 +6,15 @@ import android.annotation.TargetApi
 import android.app.Service
 import android.content.Intent
 import android.net.ConnectivityManager.NetworkCallback
-import android.net.NetworkRequest.Builder
-import android.net.{ConnectivityManager, Network, NetworkCapabilities, NetworkInfo}
+import android.net._
 import android.os.Binder
+import android.support.v4.app.NotificationCompat
+import android.support.v4.content.ContextCompat
 import android.util.Log
+import tk.mygod.content.ContextPlus
 import tk.mygod.os.Build
 import tk.mygod.util.CloseUtils._
+import tk.mygod.util.Conversions._
 
 import scala.collection.mutable
 import scala.util.Random
@@ -107,7 +110,7 @@ object NetworkMonitor {
   lazy val listenerLegacy = new NetworkListenerLegacy
 }
 
-final class NetworkMonitor extends Service {
+final class NetworkMonitor extends Service with ContextPlus {
   import NetworkMonitor._
 
   /**
@@ -119,6 +122,9 @@ final class NetworkMonitor extends Service {
     if (listener != null && app.boundConnectionsAvailable > 1 && listener.loginedNetwork != null) 1
     else if (listenerLegacy.loginedNetwork != null) 2 else 0
 
+  private lazy val notificationBuilder = new NotificationCompat.Builder(this)
+    .setColor(ContextCompat.getColor(this, R.color.material_primary_500)).setContentIntent(pendingIntent[MainActivity])
+    .setSmallIcon(R.drawable.ic_av_timer)
   class ReloginThread extends Thread {
     @volatile private var running = true
 
@@ -126,19 +132,27 @@ final class NetworkMonitor extends Service {
       running = false
       interrupt
     }
-
     def synchronizedNotify = synchronized(notify)
 
-    override def run = while (running) try if (loginStatus == 0) synchronized(wait) else {
+    private def inactive {
+      app.handler.post(stopForeground(true))
+      synchronized(wait)
+    }
+    override def run = while (running) try if (loginStatus == 0) inactive else {
       app.reloginDelay match {
-        case 0 => synchronized(wait)
+        case 0 => inactive
         case delay =>
+          notificationBuilder.setWhen(System.currentTimeMillis)
+            .setContentTitle(getString(R.string.auto_relogin_active, delay: Integer))
+            .setPriority(if (app.pref.getBoolean("notifications.reloginIcon", true))
+              NotificationCompat.PRIORITY_DEFAULT else NotificationCompat.PRIORITY_LOW)
+          app.handler.post(startForeground(1, notificationBuilder.build))
           if (DEBUG) Log.v(THREAD_TAG, "Waiting %dms...".format(delay))
           synchronized(wait(delay))
       }
       if (DEBUG) Log.v(THREAD_TAG, "Timed out or notified.")
       loginStatus match {
-        case 0 => synchronized(wait)
+        case 0 => inactive
         case 1 =>
           val network = listener.loginedNetwork
           PortalManager.logout
@@ -229,7 +243,7 @@ final class NetworkMonitor extends Service {
 
   def initBoundConnections = if (listener == null && app.boundConnectionsAvailable > 1) {
     listener = new NetworkListener
-    app.cm.requestNetwork(new Builder()
+    app.cm.requestNetwork(new NetworkRequest.Builder()
       .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
       .addTransportType(NetworkCapabilities.TRANSPORT_BLUETOOTH)
       .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET).build, listener)

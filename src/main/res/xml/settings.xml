@@ -59,6 +59,9 @@
         <android.support.v14.preference.SwitchPreference android:key="notifications.login"
                                                          android:title="@string/settings_notifications_login"
                                                          android:defaultValue="true"/>
+        <android.support.v14.preference.SwitchPreference android:key="notifications.reloginIcon"
+                                                         android:title="@string/settings_notifications_relogin_icon"
+                                                         android:defaultValue="true"/>
     </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory android:title="@string/settings_misc">
         <android.support.v7.preference.Preference android:key="misc.useBoundConnections"

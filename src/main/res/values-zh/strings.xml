@@ -35,6 +35,7 @@
     <string name="settings_notifications_connection_summary">当前连接有 Internet 连接时显示通知，并显示 HTTP ping 延迟。
     </string>
     <string name="settings_notifications_login">登录/登出成功</string>
+    <string name="settings_notifications_relogin_icon">自动重新登录通知图标</string>
 
     <string name="settings_misc">其他</string>
     <string name="settings_misc_update">检查更新</string>
@@ -59,6 +60,7 @@
     <string name="coming_soon">即将推出……</string>
 
     <!-- NetworkMonitor -->
+    <string name="auto_relogin_active">将于 %d 毫秒后自动重新登录</string>
     <string name="network_available">网络可用。延迟 = %d 毫秒</string>
     <string name="error_socket_timeout">套接字超时。</string>
 </resources>
