@@ -24,6 +24,9 @@ object PortalManager {
   private val TAG = "PortalManager"
   private val STATUS = "status"
 
+  var currentUsername: String = _
+  def username = app.pref.getString("account.username", "")
+
   private var userInfoListener: JObject => Any = _
   def setUserInfoListener(listener: JObject => Any) {
     userInfoListener = listener
@@ -41,7 +44,10 @@ object PortalManager {
     info match {
       case obj: JObject =>
         app.editor.putString(STATUS, compact(render(info))).apply
-        if (userInfoListener != null) app.handler.post(() => userInfoListener(obj))
+        if (userInfoListener != null) {
+          currentUsername = (obj \ "username").asInstanceOf[JString].values
+          app.handler.post(() => userInfoListener(obj))
+        }
       case _ =>
     }
     if (app.pref.getBoolean("notifications.login", true))
@@ -71,8 +77,8 @@ object PortalManager {
     if (output == 1) return
     conn.setDoOutput(true)
     //noinspection JavaAccessorMethodCalledAsEmptyParen
-    autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, "username=%s&password=%s".format(
-      app.pref.getString("account.username", ""), app.pref.getString("account.password", ""))))
+    autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, "username=%s&password=%s".format(username,
+      app.pref.getString("account.password", ""))))
   }
 
   private case class CaptivePortalException() extends Exception
@@ -154,7 +160,7 @@ object PortalManager {
         NetworkMonitor.listenerLegacy.loginedNetwork = null
         if (NetworkMonitor.instance != null) {
           if (NetworkMonitor.instance.listener != null) NetworkMonitor.instance.listener.loginedNetwork = null
-          NetworkMonitor.instance.reloginThread.synchronizedNotify
+          NetworkMonitor.instance.reloginThread.synchronizedNotify()
         }
         true
       } else false

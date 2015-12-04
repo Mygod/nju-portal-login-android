@@ -64,7 +64,7 @@ object NetworkMonitor {
       app.autoConnectEnabled && PortalManager.loginLegacy(n) == 1) Thread.sleep(retryDelay)
     def onLogin(n: NetworkInfo, code: Int) {
       loginedNetwork = n
-      if (code == 1 && instance != null) instance.reloginThread.synchronizedNotify
+      if (instance != null) instance.reloginThread.synchronizedNotify(code)
     }
 
     def onAvailable(n: NetworkInfo) {
@@ -98,7 +98,7 @@ object NetworkMonitor {
       available.remove(n)
       if (n.equiv(loginedNetwork)) {
         loginedNetwork = null
-        if (instance != null) instance.reloginThread.synchronizedNotify
+        if (instance != null) instance.reloginThread.synchronizedNotify()
       }
     }
 
@@ -127,21 +127,28 @@ final class NetworkMonitor extends Service with ContextPlus {
     .setSmallIcon(R.drawable.ic_av_timer)
   class ReloginThread extends Thread {
     @volatile private var running = true
+    @volatile private var isInactive = true
 
     def stopRunning {
       running = false
       interrupt
     }
-    def synchronizedNotify = synchronized(notify)
+    def synchronizedNotify(code: Int = 1) = code match {
+      case 1 => synchronized(notify)  // login / logout / connection lost
+      case 6 => if (isInactive && PortalManager.username == PortalManager.currentUsername) synchronized(notify)
+      case _ =>                       // ignore
+    }
 
     private def inactive {
       app.handler.post(stopForeground(true))
+      isInactive = true
       synchronized(wait)
     }
     override def run = while (running) try if (loginStatus == 0) inactive else {
       app.reloginDelay match {
         case 0 => inactive
         case delay =>
+          isInactive = false
           notificationBuilder.setWhen(System.currentTimeMillis)
             .setContentTitle(getString(R.string.auto_relogin_active, delay: Integer))
             .setPriority(if (app.pref.getBoolean("notifications.reloginIcon", true))
@@ -196,7 +203,7 @@ final class NetworkMonitor extends Service with ContextPlus {
       PortalManager.login(n) == 1) waitForNetwork(n, true)
     def onLogin(n: Network, code: Int) {
       loginedNetwork = n
-      if (code == 1) reloginThread.synchronizedNotify
+      reloginThread.synchronizedNotify(code)
     }
 
     override def onAvailable(n: Network) {
@@ -225,7 +232,7 @@ final class NetworkMonitor extends Service with ContextPlus {
       available.remove(n)
       if (n.equals(loginedNetwork)) {
         loginedNetwork = null
-        reloginThread.synchronizedNotify
+        reloginThread.synchronizedNotify()
       }
     }
 
