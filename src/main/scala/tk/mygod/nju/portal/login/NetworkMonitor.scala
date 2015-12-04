@@ -61,7 +61,7 @@ object NetworkMonitor {
       app.autoConnectEnabled && PortalManager.loginLegacy(n) == 1) Thread.sleep(retryDelay)
     def onLogin(n: NetworkInfo, code: Int) {
       loginedNetwork = n
-      if (code == 1 && instance != null) instance.reloginThreadNotify
+      if (code == 1 && instance != null) instance.reloginThread.synchronizedNotify
     }
 
     def onAvailable(n: NetworkInfo) {
@@ -95,7 +95,7 @@ object NetworkMonitor {
       available.remove(n)
       if (n.equiv(loginedNetwork)) {
         loginedNetwork = null
-        if (instance != null) instance.reloginThreadNotify
+        if (instance != null) instance.reloginThread.synchronizedNotify
       }
     }
 
@@ -119,13 +119,15 @@ final class NetworkMonitor extends Service {
     if (listener != null && app.boundConnectionsAvailable > 1 && listener.loginedNetwork != null) 1
     else if (listenerLegacy.loginedNetwork != null) 2 else 0
 
-  val reloginThread = new Thread {
+  class ReloginThread extends Thread {
     @volatile private var running = true
 
     def stopRunning {
       running = false
       interrupt
     }
+
+    def synchronizedNotify = synchronized(notify)
 
     override def run = while (running) try if (loginStatus == 0) synchronized(wait) else {
       app.reloginDelay match {
@@ -152,7 +154,7 @@ final class NetworkMonitor extends Service {
       case ignore: InterruptedException => if (DEBUG) Log.v(THREAD_TAG, "Interrupted.")
     }
   }
-  def reloginThreadNotify: Unit = reloginThread.synchronized(reloginThread.notify)
+  val reloginThread = new ReloginThread
 
   @TargetApi(21)
   class NetworkListener extends NetworkCallback {
@@ -180,7 +182,7 @@ final class NetworkMonitor extends Service {
       PortalManager.login(n) == 1) waitForNetwork(n, true)
     def onLogin(n: Network, code: Int) {
       loginedNetwork = n
-      if (code == 1) reloginThreadNotify
+      if (code == 1) reloginThread.synchronizedNotify
     }
 
     override def onAvailable(n: Network) {
@@ -209,7 +211,7 @@ final class NetworkMonitor extends Service {
       available.remove(n)
       if (n.equals(loginedNetwork)) {
         loginedNetwork = null
-        reloginThreadNotify
+        reloginThread.synchronizedNotify
       }
     }
 

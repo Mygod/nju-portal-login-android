@@ -154,7 +154,7 @@ object PortalManager {
         NetworkMonitor.listenerLegacy.loginedNetwork = null
         if (NetworkMonitor.instance != null) {
           if (NetworkMonitor.instance.listener != null) NetworkMonitor.instance.listener.loginedNetwork = null
-          NetworkMonitor.instance.reloginThreadNotify
+          NetworkMonitor.instance.reloginThread.synchronizedNotify
         }
         true
       } else false
