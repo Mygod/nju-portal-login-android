@@ -10,7 +10,7 @@ import android.support.v7.app.AlertDialog
 import tk.mygod.app.ToolbarActivity
 
 object MainActivity {
-  private val askedBoundConnection = "misc.askedBoundConnection"
+  private val ASKED_BOUND_CONNECTION = "misc.useBoundConnections.asked"
 }
 
 final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeListener {
@@ -39,11 +39,11 @@ final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeLi
     case 1 => if (requested) {
       manageWriteSettings()
       true
-    } else if (!app.pref.getBoolean(askedBoundConnection, false)) {
+    } else if (!app.pref.getBoolean(ASKED_BOUND_CONNECTION, false)) {
       new AlertDialog.Builder(this).setTitle(R.string.bound_connections_title)
         .setPositiveButton(android.R.string.yes, manageWriteSettings: DialogInterface.OnClickListener)
         .setMessage(R.string.bound_connections_message).setNegativeButton(android.R.string.no, null).create.show
-      app.editor.putBoolean(askedBoundConnection, true)
+      app.editor.putBoolean(ASKED_BOUND_CONNECTION, true)
       true
     } else false
     case 2 => if (requested) {

@@ -16,6 +16,7 @@ import tk.mygod.util.Logcat
 
 object SettingsFragment {
   private val TAG = "SettingsFragment"
+  private val SUPPORT_TIP = "misc.support.tip"
 }
 
 final class SettingsFragment extends PreferenceFragmentPlus {
@@ -40,6 +41,14 @@ final class SettingsFragment extends PreferenceFragmentPlus {
       ThrowableFuture(PortalManager.logout)
       true
     })
+    findPreference("auth.reloginDelay").setOnPreferenceClickListener(_ => {
+      if (app.pref.getBoolean(SUPPORT_TIP, true)) {
+        showToast(R.string.settings_misc_support_tip)
+        app.editor.putBoolean(SUPPORT_TIP, false).commit
+      }
+      false
+    })
+
     PortalManager.setUserInfoListener(userInfoUpdated)
     findPreference("status.fullname").setOnPreferenceClickListener(humorous)
     findPreference("status.service_name").setOnPreferenceClickListener(humorous)
