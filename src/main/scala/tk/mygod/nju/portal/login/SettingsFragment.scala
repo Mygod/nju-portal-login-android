@@ -29,15 +29,15 @@ final class SettingsFragment extends PreferenceFragmentPlus {
     getPreferenceManager.setSharedPreferencesName(PREF_NAME)
     addPreferencesFromResource(R.xml.settings)
 
-    findPreference("auth.portalWeb").setOnPreferenceClickListener((preference: Preference) => {
+    findPreference("auth.portalWeb").setOnPreferenceClickListener(_ => {
       activity.launchUrl(new Builder().scheme(HTTP).authority(PortalManager.PORTAL_DOMAIN).build)
       true
     })
-    findPreference("auth.login").setOnPreferenceClickListener((preference: Preference) => {
+    findPreference("auth.login").setOnPreferenceClickListener(_ => {
       ThrowableFuture(PortalManager.login)
       true
     })
-    findPreference("auth.logout").setOnPreferenceClickListener((preference: Preference) => {
+    findPreference("auth.logout").setOnPreferenceClickListener(_ => {
       ThrowableFuture(PortalManager.logout)
       true
     })
@@ -55,15 +55,15 @@ final class SettingsFragment extends PreferenceFragmentPlus {
     findPreference("status.area_name").setOnPreferenceClickListener(humorous)
     findPreference("status.balance").setOnPreferenceClickListener(humorous)
 
-    findPreference("misc.update").setOnPreferenceClickListener((preference: Preference) => {
+    findPreference("misc.update").setOnPreferenceClickListener(_ => {
       UpdateManager.check(activity, "https://github.com/Mygod/nju-portal-login-android/releases", app.handler)
       true
     })
-    findPreference("misc.support").setOnPreferenceClickListener((preference: Preference) => {
+    findPreference("misc.support").setOnPreferenceClickListener(_ => {
       activity.launchUrl(R.string.settings_misc_support_url)
       true
     })
-    findPreference("misc.logcat").setOnPreferenceClickListener((preference: Preference) => {
+    findPreference("misc.logcat").setOnPreferenceClickListener(_ => {
       activity.share(Logcat.fetch)
       true
     })
@@ -74,14 +74,14 @@ final class SettingsFragment extends PreferenceFragmentPlus {
 
     val available = app.boundConnectionsAvailable
     useBoundConnections.setEnabled(available == 1 || available == 2)
-    useBoundConnections.setOnPreferenceClickListener((preference: Preference) => activity.testBoundConnections(true))
+    useBoundConnections.setOnPreferenceClickListener(_ => activity.testBoundConnections(true))
     useBoundConnections.setSummary(getString(R.string.bound_connections_summary) + getString(available match {
       case 0 => R.string.bound_connections_summary_na
       case 1 => R.string.bound_connections_summary_permission_missing
       case 2 => R.string.bound_connections_summary_enabled_revokable
       case 3 => R.string.bound_connections_summary_enabled
     }))
-    if (available > 1 && activity.service != null) activity.service.initBoundConnections
+    if (available > 1 && NetworkMonitor.instance != null) NetworkMonitor.instance.initBoundConnections
   }
 
   override def onDisplayPreferenceDialog(preference: Preference) = preference match {

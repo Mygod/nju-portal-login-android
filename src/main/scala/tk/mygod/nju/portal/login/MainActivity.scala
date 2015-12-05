@@ -1,10 +1,10 @@
 package tk.mygod.nju.portal.login
 
-import android.content._
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import android.content._
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.{IBinder, Bundle}
+import android.os.Bundle
 import android.provider.Settings
 import android.support.v7.app.AlertDialog
 import tk.mygod.app.ToolbarActivity
@@ -16,13 +16,7 @@ object MainActivity {
 final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeListener {
   import MainActivity._
 
-  private lazy val serviceIntent = intentService[NetworkMonitor]
-  private val connection = new ServiceConnection {
-    def onServiceConnected(name: ComponentName, binder: IBinder) =
-      service = binder.asInstanceOf[NetworkMonitor#ServiceBinder].service
-    def onServiceDisconnected(name: ComponentName) = service = null
-  }
-  var service: NetworkMonitor = _
+  private lazy val serviceIntent = intent[NetworkMonitor]
 
   override protected def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
@@ -72,11 +66,5 @@ final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeLi
 
   def startNetworkMonitor = if (app.autoConnectEnabled) {
     startService(serviceIntent)
-    bindService(serviceIntent, connection, 0)
-  }
-
-  override protected def onDestroy = {
-    super.onDestroy
-    unbindService(connection)
   }
 }

@@ -11,6 +11,7 @@ import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization
 import tk.mygod.os.Build
 import tk.mygod.util.CloseUtils._
+import tk.mygod.util.Conversions._
 import tk.mygod.util.IOUtils
 
 /**
@@ -46,7 +47,7 @@ object PortalManager {
         app.editor.putString(STATUS, compact(render(info))).apply
         if (userInfoListener != null) {
           currentUsername = (obj \ "username").asInstanceOf[JString].values
-          app.handler.post(() => userInfoListener(obj))
+          app.handler.post(userInfoListener(obj))
         }
       case _ =>
     }

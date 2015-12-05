@@ -34,5 +34,5 @@ class App extends Application with ContextPlus {
   def connectTimeout = pref.getInt("speed.connectTimeout", 4000)
   def loginTimeout = pref.getInt("speed.loginTimeout", 4000)
 
-  def showToast(msg: String) = handler.post(() => Toast.makeText(this, msg, Toast.LENGTH_SHORT).show)
+  def showToast(msg: String) = handler.post(Toast.makeText(this, msg, Toast.LENGTH_SHORT).show)
 }

@@ -3,15 +3,12 @@ package tk.mygod.nju.portal.login
 import java.net.{HttpURLConnection, SocketTimeoutException, URL, UnknownHostException}
 
 import android.annotation.TargetApi
-import android.app.Service
-import android.content.Intent
 import android.net.ConnectivityManager.NetworkCallback
 import android.net._
-import android.os.Binder
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
 import android.util.Log
-import tk.mygod.content.ContextPlus
+import tk.mygod.app.ServicePlus
 import tk.mygod.os.Build
 import tk.mygod.util.CloseUtils._
 import tk.mygod.util.Conversions._
@@ -110,7 +107,7 @@ object NetworkMonitor {
   lazy val listenerLegacy = new NetworkListenerLegacy
 }
 
-final class NetworkMonitor extends Service with ContextPlus {
+final class NetworkMonitor extends ServicePlus {
   import NetworkMonitor._
 
   /**
@@ -242,11 +239,6 @@ final class NetworkMonitor extends Service with ContextPlus {
   }
   @TargetApi(21)
   var listener: NetworkListener = _
-
-  class ServiceBinder extends Binder {
-    def service = NetworkMonitor.this
-  }
-  def onBind(intent: Intent) = new ServiceBinder
 
   def initBoundConnections = if (listener == null && app.boundConnectionsAvailable > 1) {
     listener = new NetworkListener
