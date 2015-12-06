@@ -3,7 +3,7 @@ package tk.mygod.nju.portal.login
 import java.net._
 
 import android.annotation.TargetApi
-import android.net.{NetworkInfo, Network}
+import android.net.{Network, NetworkInfo}
 import android.text.TextUtils
 import android.util.Log
 import org.json4s._
@@ -15,18 +15,21 @@ import tk.mygod.util.Conversions._
 import tk.mygod.util.IOUtils
 
 /**
-  * Portal manager. Supports v=201510210840.
+  * Portal manager. Supports:
+  *   Desktop v = 201510210840
+  *   Mobile v = 201509101358
   *
   * @author Mygod
   */
 //noinspection JavaAccessorMethodCalledAsEmptyParen
 object PortalManager {
-  val PORTAL_DOMAIN = "p.nju.edu.cn"
-  private val TAG = "PortalManager"
-  private val STATUS = "status"
+  final val DOMAIN = "p.nju.edu.cn"
+  private final val TAG = "PortalManager"
+  private final val STATUS = "status"
 
   var currentUsername: String = _
   def username = app.pref.getString("account.username", "")
+  def password = app.pref.getString("account.password", "")
 
   private var userInfoListener: JObject => Any = _
   def setUserInfoListener(listener: JObject => Any) {
@@ -78,8 +81,8 @@ object PortalManager {
     if (output == 1) return
     conn.setDoOutput(true)
     //noinspection JavaAccessorMethodCalledAsEmptyParen
-    autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, "username=%s&password=%s".format(username,
-      app.pref.getString("account.password", ""))))
+    autoClose(conn.getOutputStream())(os =>
+      IOUtils.writeAllText(os, "username=%s&password=%s".format(username, password)))
   }
 
   private case class CaptivePortalException() extends Exception
@@ -89,7 +92,7 @@ object PortalManager {
   private def loginCore(conn: URL => URLConnection) = {
     if (DEBUG) Log.d(TAG, "Logging in...")
     var code: Option[Int] = None
-    try autoDisconnect(conn(new URL(HTTP, PORTAL_DOMAIN, "/portal_io/login")).asInstanceOf[HttpURLConnection])
+    try autoDisconnect(conn(new URL(HTTP, DOMAIN, "/portal_io/login")).asInstanceOf[HttpURLConnection])
     { conn =>
       setup(conn, app.loginTimeout, 2)
       code = Some(conn.getResponseCode)
@@ -142,7 +145,7 @@ object PortalManager {
     if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) login(null) else loginLegacy()
 
   def logout = try {
-    val url = new URL(HTTP, PORTAL_DOMAIN, "/portal_io/logout")
+    val url = new URL(HTTP, DOMAIN, "/portal_io/logout")
     var network: Network = null
     autoDisconnect((if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) {
       network = NetworkMonitor.instance.listener.preferredNetwork

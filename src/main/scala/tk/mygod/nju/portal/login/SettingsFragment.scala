@@ -4,7 +4,6 @@ import java.net.InetAddress
 import java.text.{DateFormat, DecimalFormat}
 import java.util.Date
 
-import android.net.Uri.Builder
 import android.os.Bundle
 import android.support.v7.preference.Preference
 import android.util.Log
@@ -30,7 +29,7 @@ final class SettingsFragment extends PreferenceFragmentPlus {
     addPreferencesFromResource(R.xml.settings)
 
     findPreference("auth.portalWeb").setOnPreferenceClickListener(_ => {
-      activity.launchUrl(new Builder().scheme(HTTP).authority(PortalManager.PORTAL_DOMAIN).build)
+      startActivity(activity.intent[PortalActivity])
       true
     })
     findPreference("auth.login").setOnPreferenceClickListener(_ => {
