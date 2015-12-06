@@ -10,6 +10,8 @@ import android.view.MenuItem
 import android.webkit.{CookieManager, WebView, WebViewClient}
 import tk.mygod.app.ToolbarActivity
 import tk.mygod.os.Build
+import tk.mygod.util.Conversions._
+import tk.mygod.util.MetricsUtils
 
 /**
   * Use built-in WebViews to bypass Chrome Custom Tab's Data Saver feature.
@@ -27,6 +29,7 @@ class PortalActivity extends ToolbarActivity with TypedFindView with OnRefreshLi
   private lazy val webViewSettings = webView.getSettings
   private var mobileUA: String = _
   private lazy val desktopUA = mobileUA.replaceAll("; Android .+?(?=[;)])", "").replaceAll(" Mobile", "")
+  private lazy val desktopSiteMenu = toolbar.getMenu.findItem(R.id.action_desktop_site)
 
   override protected def onCreate(savedInstanceState: Bundle) {
     val manager = CookieManager.getInstance
@@ -59,15 +62,21 @@ class PortalActivity extends ToolbarActivity with TypedFindView with OnRefreshLi
     manager.setCookie(COOKIE_URL, "username=" + Base64.encodeToString(PortalManager.username.getBytes, Base64.DEFAULT))
     manager.setCookie(COOKIE_URL, "password=" + Base64.encodeToString(PortalManager.password.getBytes, Base64.DEFAULT))
     manager.setCookie(COOKIE_URL, "rmbUser=true")
+    webView.post(setDesktopSite(webView.getWidth >= MetricsUtils.dp2px(this, 875)))
+  }
+
+  def setDesktopSite(enabled: Boolean) {
+    if (desktopSiteMenu.isChecked != enabled) {
+      desktopSiteMenu.setChecked(enabled)
+      webViewSettings.setUserAgentString(if (enabled) desktopUA else mobileUA)
+    }
     onRefresh
   }
 
   override def onBackPressed = if (webView.canGoBack) webView.goBack else super.onBackPressed
   def onMenuItemClick(menuItem: MenuItem) = menuItem.getItemId match {
     case R.id.action_desktop_site =>
-      menuItem.setChecked(!menuItem.isChecked)
-      webViewSettings.setUserAgentString(if (menuItem.isChecked) desktopUA else mobileUA)
-      onRefresh
+      setDesktopSite(!menuItem.isChecked)
       true
     case R.id.`action_browser` =>
       launchUrl(Uri.parse(PortalManager.ROOT_URL))
