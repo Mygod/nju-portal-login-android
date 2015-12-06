@@ -16,8 +16,10 @@ package object login {
   val RELOGIN_DELAY = "auth.reloginDelay"
 
   def ThrowableFuture[T](f: => T) = Future(f) onFailure {
-    case exc: Exception =>
-      exc.printStackTrace
-      app.showToast(exc.getMessage)
+    case e: PortalManager.NetworkUnavailableException =>
+      app.showToast(app.getString(R.string.error_network_unavailable))
+    case e: Exception =>
+      e.printStackTrace
+      app.showToast(e.getMessage)
   }
 }

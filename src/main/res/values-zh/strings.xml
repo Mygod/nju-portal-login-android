@@ -61,10 +61,11 @@
 
     <string name="coming_soon">即将推出……</string>
 
-    <!-- NetworkMonitor -->
+    <!-- NetworkMonitor & PortalManager -->
     <string name="auto_relogin_active">将于 %d 毫秒后自动重新登录</string>
     <string name="network_available">网络可用。延迟 = %d 毫秒</string>
     <string name="error_socket_timeout">套接字超时。</string>
+    <string name="error_network_unavailable">没有可用的连接。</string>
 
     <!-- PortalActivity -->
     <string name="webview_desktop_site">请求桌面版网站</string>

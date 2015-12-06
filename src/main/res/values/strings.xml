@@ -64,9 +64,10 @@
 
     <string name="coming_soon">Coming soon…</string>
 
-    <!-- NetworkMonitor -->
+    <!-- NetworkMonitor & PortalManager -->
     <string name="auto_relogin_active">Auto relogin pending in %dms</string>
     <string name="network_available">Network available. Time=%dms</string>
+    <string name="error_network_unavailable">No available network.</string>
     <string name="error_socket_timeout">Socket timeout.</string>
 
     <!-- PortalActivity -->

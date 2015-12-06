@@ -17,8 +17,8 @@ import scala.collection.mutable
 import scala.util.Random
 
 object NetworkMonitor {
-  private val TAG = "NetworkMonitor"
-  private val THREAD_TAG = TAG + "#reloginThread"
+  private final val TAG = "NetworkMonitor"
+  private final val THREAD_TAG = TAG + "#reloginThread"
   var instance: NetworkMonitor = _
 
   private implicit val networkOrdering: Ordering[Network] =

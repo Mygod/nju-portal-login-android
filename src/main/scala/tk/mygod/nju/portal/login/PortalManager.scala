@@ -1,5 +1,6 @@
 package tk.mygod.nju.portal.login
 
+import java.io.IOException
 import java.net._
 
 import android.annotation.TargetApi
@@ -27,6 +28,7 @@ object PortalManager {
   final val ROOT_URL = HTTP + "://" + DOMAIN
   private final val TAG = "PortalManager"
   private final val STATUS = "status"
+  case class NetworkUnavailableException() extends IOException { }
 
   var currentUsername: String = _
   def username = app.pref.getString("account.username", "")
@@ -127,6 +129,7 @@ object PortalManager {
   @TargetApi(21)
   def login(n: Network) = {
     val network = if (n == null) NetworkMonitor.instance.listener.preferredNetwork else n
+    if (network == null) throw new NetworkUnavailableException
     val (result, code) = loginCore(network.openConnection)
     if (code == 1 || code == 6) {
       reportNetworkConnectivity(network, true)
@@ -150,10 +153,8 @@ object PortalManager {
     var network: Network = null
     autoDisconnect((if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) {
       network = NetworkMonitor.instance.listener.preferredNetwork
-      if (network != null) network.openConnection(url) else {
-        NetworkMonitor.preferNetworkLegacy()
-        url.openConnection
-      }
+      if (network == null) throw new NetworkUnavailableException
+      network.openConnection(url)
     } else {
       NetworkMonitor.preferNetworkLegacy()
       url.openConnection
