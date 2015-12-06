@@ -8,6 +8,8 @@
     <string name="settings_auth">Authorization</string>
     <string name="settings_auth_auto_connect">Auto connect enabled</string>
     <string name="settings_auth_portal_web">Open portal webpage</string>
+    <string name="settings_auth_portal_web_summary">Bound connections not supported. The system may choose to use mobile
+        network.</string>
     <string name="settings_auth_login">Login</string>
     <string name="settings_auth_logout">Logout</string>
     <string name="settings_auth_relogin_delay">Relogin delay (experimental)</string>
