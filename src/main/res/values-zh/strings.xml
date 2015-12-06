@@ -64,4 +64,8 @@
     <string name="auto_relogin_active">将于 %d 毫秒后自动重新登录</string>
     <string name="network_available">网络可用。延迟 = %d 毫秒</string>
     <string name="error_socket_timeout">套接字超时。</string>
+
+    <!-- PortalActivity -->
+    <string name="webview_desktop_site">请求桌面版网站</string>
+    <string name="webview_browser">在其他浏览器中打开…</string>
 </resources>

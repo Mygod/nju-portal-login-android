@@ -66,4 +66,8 @@
     <string name="auto_relogin_active">Auto relogin pending in %dms</string>
     <string name="network_available">Network available. Time=%dms</string>
     <string name="error_socket_timeout">Socket timeout.</string>
+
+    <!-- PortalActivity -->
+    <string name="webview_desktop_site">Request desktop site</string>
+    <string name="webview_browser">Open in other browser…</string>
 </resources>

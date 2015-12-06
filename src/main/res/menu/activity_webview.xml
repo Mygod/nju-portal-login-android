@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/action_desktop_site" android:title="@string/webview_desktop_site" android:checkable="true"
+          android:showAsAction="never" android:numericShortcut="1" android:alphabeticShortcut="r"/>
+    <item android:id="@+id/action_browser" android:title="@string/webview_browser"
+          android:showAsAction="never" android:numericShortcut="2" android:alphabeticShortcut="o"/>
+</menu>

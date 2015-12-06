@@ -4,7 +4,9 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
+import android.support.v7.widget.Toolbar.OnMenuItemClickListener
 import android.util.Base64
+import android.view.MenuItem
 import android.webkit.{CookieManager, WebView, WebViewClient}
 import tk.mygod.app.ToolbarActivity
 import tk.mygod.os.Build
@@ -15,13 +17,16 @@ import tk.mygod.os.Build
   * @author Mygod
   */
 object PortalActivity {
-  final val COOKIE_URL = "http://p.nju.edu.cn/portal"
+  private final val COOKIE_URL = PortalManager.ROOT_URL + "/portal"
 }
 
-class PortalActivity extends ToolbarActivity with TypedFindView with OnRefreshListener {
+class PortalActivity extends ToolbarActivity with TypedFindView with OnRefreshListener with OnMenuItemClickListener {
   import PortalActivity._
 
   private lazy val webView = findView(TR.webView)
+  private lazy val webViewSettings = webView.getSettings
+  private var mobileUA: String = _
+  private lazy val desktopUA = mobileUA.replaceAll("; Android .+?(?=[;)])", "").replaceAll(" Mobile", "")
 
   override protected def onCreate(savedInstanceState: Bundle) {
     val manager = CookieManager.getInstance
@@ -30,11 +35,14 @@ class PortalActivity extends ToolbarActivity with TypedFindView with OnRefreshLi
     setContentView(R.layout.activity_webview)
     configureToolbar(0)
     toolbar.setTitle(PortalManager.DOMAIN)
+    toolbar.inflateMenu(R.menu.activity_webview)
+    toolbar.setOnMenuItemClickListener(this)
     val swiper = findView(TR.swiper)
     swiper.setOnRefreshListener(this)
     swiper.setColorSchemeResources(R.color.material_accent_500, R.color.material_primary_500)
     webView.setBackgroundColor(0xfff4f4f4)
-    webView.getSettings.setJavaScriptEnabled(true)
+    mobileUA = webViewSettings.getUserAgentString
+    webViewSettings.setJavaScriptEnabled(true)
     webView.setWebViewClient(new WebViewClient {
       override def onPageFinished(view: WebView, url: String) = swiper.setRefreshing(false)
       override def onPageStarted(view: WebView, url: String, favicon: Bitmap) = swiper.setRefreshing(true)
@@ -55,5 +63,17 @@ class PortalActivity extends ToolbarActivity with TypedFindView with OnRefreshLi
   }
 
   override def onBackPressed = if (webView.canGoBack) webView.goBack else super.onBackPressed
-  def onRefresh = webView.loadUrl("http://p.nju.edu.cn")
+  def onMenuItemClick(menuItem: MenuItem) = menuItem.getItemId match {
+    case R.id.action_desktop_site =>
+      menuItem.setChecked(!menuItem.isChecked)
+      webViewSettings.setUserAgentString(if (menuItem.isChecked) desktopUA else mobileUA)
+      onRefresh
+      true
+    case R.id.`action_browser` =>
+      launchUrl(Uri.parse(PortalManager.ROOT_URL))
+      finish
+      true
+    case _ => false
+  }
+  def onRefresh = webView.loadUrl(PortalManager.ROOT_URL)
 }

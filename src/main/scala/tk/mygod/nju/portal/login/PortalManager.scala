@@ -24,6 +24,7 @@ import tk.mygod.util.IOUtils
 //noinspection JavaAccessorMethodCalledAsEmptyParen
 object PortalManager {
   final val DOMAIN = "p.nju.edu.cn"
+  final val ROOT_URL = HTTP + "://" + DOMAIN
   private final val TAG = "PortalManager"
   private final val STATUS = "status"
 
