@@ -59,7 +59,7 @@ object NetworkMonitor {
     var loginedNetwork: NetworkInfo = _
 
     def login(n: NetworkInfo) = while (instance != null && loginedNetwork == null && available.contains(n) &&
-      app.autoConnectEnabled && PortalManager.loginLegacy(n) == 1) Thread.sleep(retryDelay)
+      app.autoLoginEnabled && PortalManager.loginLegacy(n) == 1) Thread.sleep(retryDelay)
     def onLogin(n: NetworkInfo, code: Int) {
       loginedNetwork = n
       if (instance != null && n != null) instance.reloginThread.synchronizedNotify(code)
@@ -67,7 +67,7 @@ object NetworkMonitor {
 
     def onAvailable(n: NetworkInfo) {
       available.add(n)
-      if (!app.autoConnectEnabled || app.boundConnectionsAvailable > 1) return
+      if (!app.autoLoginEnabled || app.boundConnectionsAvailable > 1) return
       if (app.skipConnect) ThrowableFuture(login(n))
       else if (testing.synchronized(testing.add(n))) ThrowableFuture {
         if (DEBUG) Log.d(TAG, "Testing connection manually...")
@@ -195,7 +195,7 @@ final class NetworkMonitor extends ServicePlus {
       case None => if (unsure) ThrowableFuture(waitForNetwork(n))
     }
 
-    def login(n: Network): Unit = if (available.contains(n) && loginedNetwork == null && app.autoConnectEnabled &&
+    def login(n: Network): Unit = if (available.contains(n) && loginedNetwork == null && app.autoLoginEnabled &&
       PortalManager.login(n) == 1) waitForNetwork(n, true)
     def onLogin(n: Network, code: Int) {
       loginedNetwork = n

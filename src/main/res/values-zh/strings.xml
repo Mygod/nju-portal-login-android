@@ -6,7 +6,7 @@
     <string name="settings_account">帐号</string>
 
     <string name="settings_auth">认证</string>
-    <string name="settings_auth_auto_connect">启用自动连接</string>
+    <string name="settings_auth_auto_login">启用自动登录</string>
     <string name="settings_auth_portal_web">打开认证界面</string>
     <string name="settings_auth_portal_web_summary">此功能不支持绑定连接，系统可能会使用手机网络。</string>
     <string name="settings_auth_login">登录</string>

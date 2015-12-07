@@ -12,7 +12,7 @@ package object login {
 
   val HTTP = "http"
   val PREF_NAME = "pref"
-  val AUTO_CONNECT_ENABLED = "auth.autoConnect"
+  val AUTO_LOGIN_ENABLED = "auth.autoLogin"
   val RELOGIN_DELAY = "auth.reloginDelay"
 
   def ThrowableFuture[T](f: => T) = Future(f) onFailure {

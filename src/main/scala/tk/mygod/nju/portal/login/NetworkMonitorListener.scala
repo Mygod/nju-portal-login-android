@@ -20,7 +20,7 @@ final class NetworkMonitorListener extends BroadcastReceiver {
         if (NetworkMonitor.cares(n.getType))
           if (n.isConnected) NetworkMonitor.listenerLegacy.onAvailable(n) else NetworkMonitor.listenerLegacy.onLost(n)
       case Intent.ACTION_BOOT_COMPLETED =>
-        if (app.autoConnectEnabled) context.startService(new Intent(context, classOf[NetworkMonitor]))
+        if (app.autoLoginEnabled) context.startService(new Intent(context, classOf[NetworkMonitor]))
     }
   }
 }

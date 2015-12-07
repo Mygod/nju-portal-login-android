@@ -48,9 +48,9 @@ final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeLi
   }
 
   override def onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) = key match {
-    case AUTO_CONNECT_ENABLED =>
-      val value = app.autoConnectEnabled
-      app.editor.putBoolean(AUTO_CONNECT_ENABLED, value)
+    case AUTO_LOGIN_ENABLED =>
+      val value = app.autoLoginEnabled
+      app.editor.putBoolean(AUTO_LOGIN_ENABLED, value)
       if (value) {
         getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[NetworkMonitorListener]),
           PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
@@ -64,7 +64,7 @@ final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeLi
     case _ => // ignore
   }
 
-  def startNetworkMonitor = if (app.autoConnectEnabled) {
+  def startNetworkMonitor = if (app.autoLoginEnabled) {
     startService(serviceIntent)
   }
 }

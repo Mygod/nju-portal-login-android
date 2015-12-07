@@ -27,7 +27,7 @@ class App extends Application with ContextPlus {
   lazy val pref = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
   lazy val editor = pref.edit
 
-  def autoConnectEnabled = pref.getBoolean(AUTO_CONNECT_ENABLED, true)
+  def autoLoginEnabled = pref.getBoolean(AUTO_LOGIN_ENABLED, true)
   def reloginDelay = pref.getInt(RELOGIN_DELAY, 0)
 
   def skipConnect = pref.getBoolean("speed.skipConnect", false)
