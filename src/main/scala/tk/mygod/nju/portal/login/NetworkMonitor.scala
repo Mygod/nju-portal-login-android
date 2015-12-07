@@ -142,33 +142,31 @@ final class NetworkMonitor extends ServicePlus {
       isInactive = true
       synchronized(wait)
     }
-    override def run = while (running) try if (loginStatus == 0) inactive else {
-      app.reloginDelay match {
-        case 0 => inactive
-        case delay =>
-          isInactive = false
-          notificationBuilder.setWhen(System.currentTimeMillis)
-            .setContentTitle(getString(R.string.auto_relogin_active, delay: Integer))
-            .setPriority(if (app.pref.getBoolean("notifications.reloginIcon", true))
-              NotificationCompat.PRIORITY_DEFAULT else NotificationCompat.PRIORITY_MIN)
-          app.handler.post(startForeground(1, notificationBuilder.build))
-          if (DEBUG) Log.v(THREAD_TAG, "Waiting %dms...".format(delay))
-          synchronized(wait(delay))
-      }
-      if (DEBUG) Log.v(THREAD_TAG, "Timed out or notified.")
-      loginStatus match {
-        case 0 => inactive
-        case 1 =>
-          val network = listener.loginedNetwork
-          PortalManager.logout
-          Thread.sleep(2000)
-          listener.login(network)
-        case 2 =>
-          val network = listenerLegacy.loginedNetwork
-          PortalManager.logout
-          Thread.sleep(2000)
-          listenerLegacy.login(network)
-      }
+    override def run = while (running) try if (loginStatus == 0) inactive else app.reloginDelay match {
+      case 0 => inactive
+      case delay =>
+        isInactive = false
+        notificationBuilder.setWhen(System.currentTimeMillis)
+          .setContentTitle(getString(R.string.auto_relogin_active, delay: Integer))
+          .setPriority(if (app.pref.getBoolean("notifications.reloginIcon", true))
+            NotificationCompat.PRIORITY_DEFAULT else NotificationCompat.PRIORITY_MIN)
+        app.handler.post(startForeground(1, notificationBuilder.build))
+        if (DEBUG) Log.v(THREAD_TAG, "Waiting %dms...".format(delay))
+        synchronized(wait(delay))
+        if (DEBUG) Log.v(THREAD_TAG, "Timed out or notified.")
+        loginStatus match {
+          case 0 => inactive
+          case 1 =>
+            val network = listener.loginedNetwork
+            PortalManager.logout
+            Thread.sleep(2000)
+            listener.login(network)
+          case 2 =>
+            val network = listenerLegacy.loginedNetwork
+            PortalManager.logout
+            Thread.sleep(2000)
+            listenerLegacy.login(network)
+        }
     } catch {
       case ignore: InterruptedException => if (DEBUG) Log.v(THREAD_TAG, "Interrupted.")
     }
