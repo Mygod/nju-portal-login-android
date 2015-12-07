@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.support.v7.app.AlertDialog
+import android.text.TextUtils
 import tk.mygod.app.ToolbarActivity
 
 object MainActivity {
@@ -25,6 +26,8 @@ final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeLi
     testBoundConnections()
     startNetworkMonitor
     app.pref.registerOnSharedPreferenceChangeListener(this)
+    if (TextUtils.isEmpty(PortalManager.username) || TextUtils.isEmpty(PortalManager.password))
+      makeSnackbar(R.string.settings_account_missing).show
   }
 
   private def manageWriteSettings(dialog: DialogInterface = null, which: Int = 0) = startActivity(

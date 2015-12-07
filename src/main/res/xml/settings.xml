@@ -9,7 +9,7 @@
     </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory android:title="@string/settings_auth">
         <android.support.v14.preference.SwitchPreference android:key="auth.autoLogin"
-                                                         android:title="@string/settings_auth_auto_connect"
+                                                         android:title="@string/settings_auth_auto_login"
                                                          android:defaultValue="true"/>
         <android.support.v7.preference.Preference android:key="auth.login"
                                                   android:title="@string/settings_auth_login"/>

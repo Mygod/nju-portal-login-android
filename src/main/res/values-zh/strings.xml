@@ -4,6 +4,7 @@
 
     <!-- Settings -->
     <string name="settings_account">帐号</string>
+    <string name="settings_account_missing">Username/Password 未填写，此应用将无法正常使用。</string>
 
     <string name="settings_auth">认证</string>
     <string name="settings_auth_auto_login">启用自动登录</string>
