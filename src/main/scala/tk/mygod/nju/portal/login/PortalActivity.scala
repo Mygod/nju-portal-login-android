@@ -78,7 +78,7 @@ class PortalActivity extends ToolbarActivity with TypedFindView with OnRefreshLi
     case R.id.action_desktop_site =>
       setDesktopSite(!menuItem.isChecked)
       true
-    case R.id.`action_browser` =>
+    case R.id.action_browser =>
       launchUrl(Uri.parse(PortalManager.ROOT_URL))
       finish
       true
