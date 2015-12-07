@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">南大校园网登陆助手（非官方）</string>
+    <string name="app_name">南大校园网登陆助手</string>
 
     <!-- Settings -->
     <string name="settings_account">帐号</string>
