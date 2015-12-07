@@ -42,11 +42,12 @@ object NetworkMonitor {
   }
 
   //noinspection ScalaDeprecation
-  def preferNetworkLegacy(n: NetworkInfo = null) {
+  def preferNetworkLegacy(n: NetworkInfo = null) = {
     val network = if (n == null) listenerLegacy.preferredNetwork else n
     val preference = if (network == null) ConnectivityManager.TYPE_WIFI else network.getType
     app.cm.setNetworkPreference(preference)
     if (DEBUG) Log.v(TAG, "Setting network preference: " + preference)
+    network
   }
 
   //noinspection ScalaDeprecation
@@ -61,7 +62,7 @@ object NetworkMonitor {
       app.autoConnectEnabled && PortalManager.loginLegacy(n) == 1) Thread.sleep(retryDelay)
     def onLogin(n: NetworkInfo, code: Int) {
       loginedNetwork = n
-      if (instance != null) instance.reloginThread.synchronizedNotify(code)
+      if (instance != null && n != null) instance.reloginThread.synchronizedNotify(code)
     }
 
     def onAvailable(n: NetworkInfo) {

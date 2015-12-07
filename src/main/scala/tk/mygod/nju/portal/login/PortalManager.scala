@@ -137,9 +137,10 @@ object PortalManager {
     }
     result
   }
-  def loginLegacy(network: NetworkInfo = null) = {
+  def loginLegacy(n: NetworkInfo = null) = {
+    var network = n
     val (result, code) = loginCore({
-      NetworkMonitor.preferNetworkLegacy(network)
+      network = NetworkMonitor.preferNetworkLegacy(n)
       _.openConnection
     })
     if (code == 1 || code == 6) NetworkMonitor.listenerLegacy.onLogin(network, code)
@@ -161,8 +162,7 @@ object PortalManager {
     }).asInstanceOf[HttpURLConnection]) { conn =>
       setup(conn, 0, 1)
       if (processResult(IOUtils.readAllText(conn.getInputStream())) == 101) {
-        if (network != null && app.boundConnectionsAvailable > 1)
-          reportNetworkConnectivity(network, false)
+        if (app.boundConnectionsAvailable > 1 && network != null) reportNetworkConnectivity(network, false)
         NetworkMonitor.listenerLegacy.loginedNetwork = null
         if (NetworkMonitor.instance != null) {
           if (NetworkMonitor.instance.listener != null) NetworkMonitor.instance.listener.loginedNetwork = null
