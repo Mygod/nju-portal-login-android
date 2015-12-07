@@ -43,7 +43,7 @@ final class SettingsFragment extends PreferenceFragmentPlus {
     })
     findPreference("auth.reloginDelay").setOnPreferenceClickListener(_ => {
       if (app.pref.getBoolean(SUPPORT_TIP, true)) {
-        showToast(R.string.settings_misc_support_tip)
+        makeToast(R.string.settings_misc_support_tip).show
         app.editor.putBoolean(SUPPORT_TIP, false).commit
       }
       false
@@ -112,7 +112,7 @@ final class SettingsFragment extends PreferenceFragmentPlus {
   }
 
   private def humorous(preference: Preference) = {
-    showToast(R.string.coming_soon)
+    makeToast(R.string.coming_soon).show
     true
   }
 }

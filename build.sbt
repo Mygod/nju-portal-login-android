@@ -17,7 +17,7 @@ shrinkResources in Android := true
 resolvers += Resolver.sonatypeRepo("public")
 
 libraryDependencies ++= Seq(
-  "tk.mygod" %% "mygod-lib-android" % "1.3.6-SNAPSHOT",
+  "tk.mygod" %% "mygod-lib-android" % "1.3.6",
   "org.json4s" %% "json4s-native" % "3.3.0"
 )
 
