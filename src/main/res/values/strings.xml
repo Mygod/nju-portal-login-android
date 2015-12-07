@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">NJU Portal Login</string>
+    <string name="app_name">NJU Portal Login Helper (unofficial)</string>
 
     <!-- Settings -->
     <string name="settings_account">Account</string>
