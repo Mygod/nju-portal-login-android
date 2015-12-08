@@ -73,4 +73,8 @@
         <android.support.v7.preference.Preference android:key="misc.logcat"
                                                   android:title="@string/settings_misc_logcat"/>
     </android.support.v7.preference.PreferenceCategory>
+    <android.support.v7.preference.PreferenceCategory android:title="@string/settings_notices">
+        <android.support.v7.preference.Preference android:summary="@string/settings_notices_1"/>
+        <android.support.v7.preference.Preference android:summary="@string/settings_notices_2"/>
+    </android.support.v7.preference.PreferenceCategory>
 </android.support.v7.preference.PreferenceScreen>
