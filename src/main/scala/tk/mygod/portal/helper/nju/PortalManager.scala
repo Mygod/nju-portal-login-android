@@ -1,4 +1,4 @@
-package tk.mygod.nju.portal.login
+package tk.mygod.portal.helper.nju
 
 import java.io.IOException
 import java.net._

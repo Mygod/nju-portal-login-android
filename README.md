@@ -1,4 +1,4 @@
-# NJU Portal Login Helper for Android (unofficial)
+# Portal Login Helper for NJU
 This app is designed for Nanjing University users to login into [p.nju.edu.cn](http://p.nju.edu.cn) automatically and
 conveniently with your Android device. However it can be easily modified to adapt to other network portals.
 

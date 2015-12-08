@@ -1,4 +1,4 @@
-package tk.mygod.nju.portal
+package tk.mygod.portal.helper
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -6,7 +6,7 @@ import scala.concurrent.Future
 /**
   * @author Mygod
   */
-package object login {
+package object nju {
   var app: App = _
   val DEBUG = true
 

@@ -1,4 +1,4 @@
-package tk.mygod.nju.portal.login
+package tk.mygod.portal.helper.nju
 
 import java.net.{HttpURLConnection, SocketTimeoutException, URL, UnknownHostException}
 
