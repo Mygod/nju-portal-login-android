@@ -1,8 +1,8 @@
 package tk.mygod.portal.helper.nju
 
 import android.os.Bundle
+import android.support.v4.content.ContextCompat
 import android.support.v7.preference.PreferenceScreen
-import android.util.TypedValue
 import android.view.View
 
 /**
@@ -20,9 +20,7 @@ abstract class SettingsSubFragment[T](screen: PreferenceScreen)
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) {
     super.onViewCreated(view, savedInstanceState)
-    val typedValue = new TypedValue
-    view.getContext.getTheme.resolveAttribute(android.R.attr.windowBackground, typedValue, true)
-    view.setBackgroundColor(typedValue.data)
+    view.setBackgroundColor(ContextCompat.getColor(getActivity, R.color.material_purple_200))
   }
 
   protected def backgroundWork: Option[T]
