@@ -37,7 +37,7 @@ class PortalActivity extends ToolbarActivity with TypedFindView with OnRefreshLi
     manager.setAcceptCookie(true)
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_webview)
-    configureToolbar(0)
+    configureToolbar(R.drawable.ic_close)
     toolbar.setTitle(PortalManager.DOMAIN)
     toolbar.inflateMenu(R.menu.activity_webview)
     toolbar.setOnMenuItemClickListener(this)

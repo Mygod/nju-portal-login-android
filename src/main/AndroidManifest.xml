@@ -14,7 +14,8 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".PortalActivity" android:launchMode="singleTask"/>
+        <activity android:exported="true" android:name=".PortalActivity" android:label="p.nju.edu.cn"
+                  android:launchMode="singleTask"/>
         <service android:name=".NetworkMonitor"/>
         <receiver android:name=".NetworkMonitorListener">
             <intent-filter>
