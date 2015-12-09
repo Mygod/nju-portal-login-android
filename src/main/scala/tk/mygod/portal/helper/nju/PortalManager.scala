@@ -28,7 +28,7 @@ object PortalManager {
   final val ROOT_URL = HTTP + "://" + DOMAIN
   private final val TAG = "PortalManager"
   private final val STATUS = "status"
-  case class NetworkUnavailableException() extends IOException { }
+  private case class NetworkUnavailableException() extends IOException { }
 
   var currentUsername: String = _
   def username = app.pref.getString("account.username", "")
@@ -94,18 +94,24 @@ object PortalManager {
     */
   private def loginCore(conn: URL => URLConnection) = {
     if (DEBUG) Log.d(TAG, "Logging in...")
-    var code: Option[Int] = None
     try autoDisconnect(conn(new URL(HTTP, DOMAIN, "/portal_io/login")).asInstanceOf[HttpURLConnection])
     { conn =>
       setup(conn, app.loginTimeout, 2)
-      code = Some(conn.getResponseCode)
-      if (!code.contains(200)) throw new CaptivePortalException
-      val result = processResult(IOUtils.readAllText(conn.getInputStream()))
-      (if (result == 3 || result == 8) 2 else 0, result)
+      conn.getResponseCode match {
+        case 200 =>
+          val result = processResult(IOUtils.readAllText(conn.getInputStream()))
+          (if (result == 3 || result == 8) 2 else 0, result)
+        case 502 =>
+          app.showToast("无可用服务器资源!")
+          (1, 0)
+        case 503 =>
+          app.showToast("请求太频繁,请稍后再试!")
+          (1, 0)
+        case code =>
+          if (DEBUG) Log.w(TAG, "Unknown response code: " + code)
+          (2, 0)
+      }
     } catch {
-      case e: CaptivePortalException =>
-        if (DEBUG) Log.w(TAG, "Unknown response code: " + code)
-        (2, 0)
       case e: ParserUtil.ParseException =>
         if (DEBUG) Log.w(TAG, "Parse failed: " + e.getMessage)
         (2, 0)
