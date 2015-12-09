@@ -8,13 +8,13 @@
     <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
     <application android:name=".App" android:label="@string/app_name" android:icon="@drawable/logo"
                  android:theme="@style/Theme.Material" android:allowBackup="true" android:fullBackupContent="true">
-        <activity android:name=".MainActivity" android:label="@string/app_name" android:launchMode="singleTask">
+        <activity android:name=".MainActivity" android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:exported="true" android:name=".PortalActivity" android:label="p.nju.edu.cn"
+        <activity android:exported="true" android:label="@string/portal_activity_name" android:name=".PortalActivity"
                   android:launchMode="singleTask"/>
         <service android:name=".NetworkMonitor"/>
         <receiver android:name=".NetworkMonitorListener">

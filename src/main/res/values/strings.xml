@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Portal Login Helper for NJU</string>
+    <string name="portal_activity_name" translatable="false">p.nju.edu.cn</string>
 
     <!-- Settings -->
     <string name="settings_account">Account</string>
