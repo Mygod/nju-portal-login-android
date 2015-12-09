@@ -34,6 +34,7 @@ object PortalManager {
   private final val POST_AUTH_BASE = "username=%s&password=%s"
   case class NetworkUnavailableException() extends IOException { }
 
+  def chap = app.pref.getBoolean("auth.chap", true)
   var currentUsername: String = _
   def username = app.pref.getString("account.username", "")
   def password = app.pref.getString("account.password", "")
@@ -101,7 +102,7 @@ object PortalManager {
   private def loginCore(conn: URL => URLConnection): (Int, Int) = {
     if (DEBUG) Log.d(TAG, "Logging in...")
     try {
-      val chapPassword = if (app.pref.getBoolean("auth.chap", true))
+      val chapPassword = if (chap)
         autoDisconnect(conn(new URL(HTTP, DOMAIN, "/portal_io/getchallenge")).asInstanceOf[HttpURLConnection]) { conn =>
           setup(conn, app.loginTimeout, 1)
           val (code, json) = parseResult(conn)

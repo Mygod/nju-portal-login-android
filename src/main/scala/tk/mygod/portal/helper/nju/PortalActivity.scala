@@ -20,6 +20,7 @@ import tk.mygod.util.MetricsUtils
   */
 object PortalActivity {
   private final val COOKIE_URL = PortalManager.ROOT_URL + "/portal"
+  private final val ENABLE_CHAP = "globalVar.auth_type='chap'"
 }
 
 class PortalActivity extends ToolbarActivity with TypedFindView with OnRefreshListener with OnMenuItemClickListener {
@@ -47,7 +48,11 @@ class PortalActivity extends ToolbarActivity with TypedFindView with OnRefreshLi
     mobileUA = webViewSettings.getUserAgentString
     webViewSettings.setJavaScriptEnabled(true)
     webView.setWebViewClient(new WebViewClient {
-      override def onPageFinished(view: WebView, url: String) = swiper.setRefreshing(false)
+      override def onPageFinished(view: WebView, url: String) {
+        swiper.setRefreshing(false)
+        if (PortalManager.chap) if (Build.version >= 19) webView.evaluateJavascript(ENABLE_CHAP, null)
+          else webView.loadUrl("javascript:" + ENABLE_CHAP)
+      }
       override def onPageStarted(view: WebView, url: String, favicon: Bitmap) = swiper.setRefreshing(true)
       override def shouldOverrideUrlLoading(view: WebView, url: String) = {
         val uri = Uri.parse(url)
