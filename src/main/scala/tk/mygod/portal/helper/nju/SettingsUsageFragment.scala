@@ -2,7 +2,6 @@ package tk.mygod.portal.helper.nju
 
 import java.text.DecimalFormat
 
-import android.support.v7.preference.PreferenceScreen
 import android.util.Log
 import org.json4s.JsonAST.JObject
 
@@ -18,7 +17,7 @@ object SettingsUsageFragment {
   private val largeFormat = new DecimalFormat(",###")
 }
 
-class SettingsUsageFragment(screen: PreferenceScreen) extends SettingsSubFragment[JObject](screen) {
+class SettingsUsageFragment extends SettingsSubFragment[JObject] {
   import SettingsUsageFragment._
 
   override protected def backgroundWork = PortalManager.queryVolume

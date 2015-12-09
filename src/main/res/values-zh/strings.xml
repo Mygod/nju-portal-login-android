@@ -28,6 +28,7 @@
     <string name="settings_status_mac">MAC 地址</string>
 
     <string name="settings_status_usage">查询使用情况</string>
+    <string name="settings_status_usage_title">使用情况</string>
     <string name="settings_status_usage_user">用户</string>
     <string name="settings_status_usage_month">月份</string>
     <string name="settings_status_usage_service">服务</string>

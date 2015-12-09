@@ -21,14 +21,14 @@ object SettingsFragment {
   preferenceGetId.setAccessible(true)
 }
 
-final class SettingsFragment extends StoppablePreferenceFragment {
+final class SettingsFragment extends PreferenceScreenFragment {
   import SettingsFragment._
 
   private lazy val activity = getActivity.asInstanceOf[MainActivity]
   private lazy val portalWeb = findPreference("auth.portalWeb")
   private lazy val useBoundConnections = findPreference("misc.useBoundConnections")
 
-  def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
+  override def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
     getPreferenceManager.setSharedPreferencesName(PREF_NAME)
     addPreferencesFromResource(R.xml.settings)
 

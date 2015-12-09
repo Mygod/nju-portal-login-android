@@ -31,6 +31,7 @@
     <string name="settings_status_mac">MAC address</string>
 
     <string name="settings_status_usage">Query usage</string>
+    <string name="settings_status_usage_title">Usage</string>
     <string name="settings_status_usage_user">User</string>
     <string name="settings_status_usage_month">Month</string>
     <string name="settings_status_usage_service">Service</string>

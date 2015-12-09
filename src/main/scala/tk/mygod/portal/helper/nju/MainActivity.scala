@@ -25,7 +25,8 @@ final class MainActivity extends FragmentStackActivity with LocationObservedActi
 
   override protected def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
-    push(new SettingsFragmentHolder(new SettingsFragment))
+    if (getFragmentManager.getBackStackEntryCount <= 0)
+      push(new SettingsFragmentHolder(new SettingsFragment, R.string.app_name))
     testBoundConnections()
     startNetworkMonitor
     app.pref.registerOnSharedPreferenceChangeListener(this)
@@ -72,7 +73,8 @@ final class MainActivity extends FragmentStackActivity with LocationObservedActi
 
   def onPreferenceStartScreen(fragment: PreferenceFragment, screen: PreferenceScreen) = {
     val fragment = screen.getKey match {
-      case "status.usage" => new SettingsFragmentHolder(new SettingsUsageFragment(screen), screen)
+      case "status.usage" =>
+        SettingsFragmentHolder.create(new SettingsUsageFragment, R.string.settings_status_usage_title, screen.getKey)
     }
     fragment.setSpawnLocation(getLocationOnScreen)
     push(fragment)
