@@ -63,7 +63,7 @@ object PortalManager {
         }
       case _ =>
     }
-    if (code != 0 && app.pref.getBoolean("notifications.login", true))
+    if (code != 0 && (code != 1 && code != 6 && code != 101 || app.pref.getBoolean("notifications.login", true)))
       app.showToast("#%d: %s".format(code, (json \ "reply_msg").asInstanceOf[JString].values))
     (code, json)
   }
@@ -79,7 +79,8 @@ object PortalManager {
     * @param conn HttpURLConnection.
     * @param timeout Connect/read timeout.
     * @param output 0-2: Nothing, post, post username/password.
-    * @param chapPassword Only useful when output = 2. When this is set, it will use CHAP encryption.
+    * @param chapPassword (password, challenge). Only useful when output = 2.
+    *                     When this is set, it will use CHAP encryption.
     */
   def setup(conn: HttpURLConnection, timeout: Int, output: Int = 0, chapPassword: Option[(String, String)] = None) {
     conn.setInstanceFollowRedirects(false)
@@ -116,7 +117,7 @@ object PortalManager {
           digest.update(passphraseRaw.toArray)
           digest.digest(passphrase, 1, 16)
           Some(passphrase.map("%02X".format(_)).mkString, challenge)
-        } else null
+        } else None
       autoDisconnect(conn(new URL(HTTP, DOMAIN, "/portal_io/login")).asInstanceOf[HttpURLConnection])
       { conn =>
         setup(conn, app.loginTimeout, 2, chapPassword)
