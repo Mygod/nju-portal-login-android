@@ -27,6 +27,15 @@
     <string name="settings_status_useripv6">IPv6 地址</string>
     <string name="settings_status_mac">MAC 地址</string>
 
+    <string name="settings_status_usage">查询使用情况</string>
+    <string name="settings_status_usage_user">用户</string>
+    <string name="settings_status_usage_month">月份</string>
+    <string name="settings_status_usage_service">服务</string>
+    <string name="settings_status_usage_output">传入流量</string>
+    <string name="settings_status_usage_input">传出流量</string>
+    <string name="settings_status_usage_time">在线时间</string>
+    <string name="settings_status_usage_refer">理论费用</string>
+
     <string name="settings_speed">速度优化</string>
     <string name="settings_speed_skip_connect">跳过连接测试</string>
     <string name="settings_speed_connect_timeout">连接超时</string>
@@ -66,6 +75,19 @@
     <string name="bound_connections_summary_enabled">已启用。</string>
 
     <string name="coming_soon">即将推出……</string>
+
+    <plurals name="bytes">
+        <item quantity="other">字节</item>
+    </plurals>
+    <plurals name="hours">
+        <item quantity="other">小时</item>
+    </plurals>
+    <plurals name="minutes">
+        <item quantity="other">分</item>
+    </plurals>
+    <plurals name="seconds">
+        <item quantity="other">秒</item>
+    </plurals>
 
     <!-- NetworkMonitor & PortalManager -->
     <string name="auto_relogin_active">将于 %d 毫秒后自动重新登录</string>

@@ -29,6 +29,15 @@
     <string name="settings_status_useripv6">IPv6 address</string>
     <string name="settings_status_mac">MAC address</string>
 
+    <string name="settings_status_usage">Query usage</string>
+    <string name="settings_status_usage_user">User</string>
+    <string name="settings_status_usage_month">Month</string>
+    <string name="settings_status_usage_service">Service</string>
+    <string name="settings_status_usage_output">Incoming traffic</string>
+    <string name="settings_status_usage_input">Outgoing traffic</string>
+    <string name="settings_status_usage_time">Online time</string>
+    <string name="settings_status_usage_refer">Theoretical fees</string>
+
     <string name="settings_speed">Speed optimizations</string>
     <string name="settings_speed_skip_connect">Skip connection test</string>
     <string name="settings_speed_connect_timeout">Connect timeout</string>
@@ -72,6 +81,23 @@
     <string name="bound_connections_summary_enabled">Enabled.</string>
 
     <string name="coming_soon">Coming soon…</string>
+
+    <plurals name="bytes">
+        <item quantity="one">Byte</item>
+        <item quantity="other">Bytes</item>
+    </plurals>
+    <plurals name="hours">
+        <item quantity="one">hour</item>
+        <item quantity="other">hours</item>
+    </plurals>
+    <plurals name="minutes">
+        <item quantity="one">minute</item>
+        <item quantity="other">minutes</item>
+    </plurals>
+    <plurals name="seconds">
+        <item quantity="one">second</item>
+        <item quantity="other">seconds</item>
+    </plurals>
 
     <!-- NetworkMonitor & PortalManager -->
     <string name="auto_relogin_active">Auto relogin pending in %dms</string>

@@ -1,7 +1,7 @@
 package tk.mygod.portal.helper.nju
 
 import java.net.InetAddress
-import java.text.{DateFormat, DecimalFormat}
+import java.text.DateFormat
 import java.util.Date
 
 import android.os.Bundle
@@ -16,9 +16,12 @@ import tk.mygod.util.Logcat
 object SettingsFragment {
   private val TAG = "SettingsFragment"
   private val SUPPORT_TIP = "misc.support.tip"
+
+  private val preferenceGetId = classOf[Preference].getDeclaredMethod("getId")
+  preferenceGetId.setAccessible(true)
 }
 
-final class SettingsFragment extends PreferenceFragmentPlus {
+final class SettingsFragment extends StoppablePreferenceFragment {
   import SettingsFragment._
 
   private lazy val activity = getActivity.asInstanceOf[MainActivity]
@@ -98,17 +101,16 @@ final class SettingsFragment extends PreferenceFragmentPlus {
   }
 
   def userInfoUpdated(info: JObject) {
-    var username: String = null
-    var fullname: String = null
+    val name = new DualFormatter
     for ((key, value) <- info.values) {
       val preference = findPreference("status." + key)
       if (preference == null) key match {
-        case "username" => username = value.asInstanceOf[String]
-        case "fullname" => fullname = value.asInstanceOf[String]
+        case "fullname" => name.value1 = value.asInstanceOf[String]
+        case "username" => name.value2 = value.asInstanceOf[String]
         case _ => Log.e(TAG, "Unknown key in user_info: " + key)
       } else preference.setSummary(key match {
         case "acctstarttime" => DateFormat.getDateTimeInstance.format(new Date(value.asInstanceOf[BigInt].toLong * 1000))
-        case "balance" => new DecimalFormat("0.00").format(value.asInstanceOf[BigInt].toInt / 100.0)
+        case "balance" => formatCurrency(value.asInstanceOf[BigInt].toInt)
         case "useripv4" =>
           val bytes = value.asInstanceOf[BigInt].toInt
           InetAddress.getByAddress(Array[Byte]((bytes >>> 24 & 0xFF).toByte, (bytes >>> 16 & 0xFF).toByte,
@@ -116,9 +118,7 @@ final class SettingsFragment extends PreferenceFragmentPlus {
         case _ => value.toString
       })
     }
-    findPreference("status.name").setSummary(if (username == null)
-      if (fullname == null) null else fullname
-    else if (fullname == null) "(%s)".format(username) else "%s (%s)".format(fullname, username))
+    findPreference("status.name").setSummary(name.toString)
   }
 
   private def humorous(preference: Preference) = {

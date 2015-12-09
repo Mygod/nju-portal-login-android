@@ -6,23 +6,26 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.support.v14.preference.PreferenceFragment
+import android.support.v14.preference.PreferenceFragment.OnPreferenceStartScreenCallback
 import android.support.v7.app.AlertDialog
+import android.support.v7.preference.PreferenceScreen
 import android.text.TextUtils
-import tk.mygod.app.ToolbarActivity
+import tk.mygod.app.{LocationObservedActivity, FragmentStackActivity}
 
 object MainActivity {
   private val ASKED_BOUND_CONNECTION = "misc.useBoundConnections.asked"
 }
 
-final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeListener {
+final class MainActivity extends FragmentStackActivity with LocationObservedActivity
+  with OnSharedPreferenceChangeListener with OnPreferenceStartScreenCallback {
   import MainActivity._
 
   private lazy val serviceIntent = intent[NetworkMonitor]
 
   override protected def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_main)
-    configureToolbar()
+    push(new SettingsFragmentHolder(new SettingsFragment))
     testBoundConnections()
     startNetworkMonitor
     app.pref.registerOnSharedPreferenceChangeListener(this)
@@ -67,7 +70,13 @@ final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeLi
     case _ => // ignore
   }
 
-  def startNetworkMonitor = if (app.autoLoginEnabled) {
-    startService(serviceIntent)
+  def onPreferenceStartScreen(fragment: PreferenceFragment, screen: PreferenceScreen) = {
+    val fragment = screen.getKey match {
+      case "status.usage" => new SettingsFragmentHolder(new SettingsUsageFragment(screen), screen)
+    }
+    fragment.setSpawnLocation(getLocationOnScreen)
+    push(fragment)
   }
+
+  def startNetworkMonitor = if (app.autoLoginEnabled) startService(serviceIntent)
 }

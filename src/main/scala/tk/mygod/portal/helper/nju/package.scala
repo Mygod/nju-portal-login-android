@@ -1,5 +1,7 @@
 package tk.mygod.portal.helper
 
+import java.text.DecimalFormat
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -22,4 +24,7 @@ package object nju {
       e.printStackTrace
       app.showToast(e.getMessage)
   }
+
+  private val currencyFormat = new DecimalFormat("0.00")
+  def formatCurrency(c: Int) = currencyFormat.format(c / 100.0)
 }

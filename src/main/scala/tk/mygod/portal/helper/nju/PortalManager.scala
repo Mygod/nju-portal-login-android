@@ -181,8 +181,8 @@ object PortalManager {
   def login: Int =
     if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) login(null) else loginLegacy()
 
-  def logout = try {
-    val url = new URL(HTTP, DOMAIN, "/portal_io/logout")
+  def openPortalConnection[T](file: String)(handler: (HttpURLConnection, Network) => Option[T]) = try {
+    val url = new URL(HTTP, DOMAIN, file)
     var network: Network = null
     autoDisconnect((if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) {
       network = NetworkMonitor.instance.listener.preferredNetwork
@@ -191,25 +191,38 @@ object PortalManager {
     } else {
       NetworkMonitor.preferNetworkLegacy()
       url.openConnection
-    }).asInstanceOf[HttpURLConnection]) { conn =>
-      setup(conn, 0, 1)
-      if (parseResult(conn)._1 == 101) {
-        if (app.boundConnectionsAvailable > 1 && network != null) reportNetworkConnectivity(network, false)
-        NetworkMonitor.listenerLegacy.loginedNetwork = null
-        if (NetworkMonitor.instance != null) {
-          if (NetworkMonitor.instance.listener != null) NetworkMonitor.instance.listener.loginedNetwork = null
-          NetworkMonitor.instance.reloginThread.synchronizedNotify()
-        }
-        true
-      } else false
-    }
+    }).asInstanceOf[HttpURLConnection])(handler(_, network))
   } catch {
     case e: ConnectException =>
       app.showToast(e.getMessage)
-      false
+      None
     case e: Exception =>
       app.showToast(e.getMessage)
       e.printStackTrace
-      false
+      None
+  }
+
+  def logout = openPortalConnection[Unit]("/portal_io/logout") { (conn, network) =>
+    setup(conn, 0, 1)
+    if (parseResult(conn)._1 == 101) {
+      if (app.boundConnectionsAvailable > 1 && network != null) reportNetworkConnectivity(network, false)
+      NetworkMonitor.listenerLegacy.loginedNetwork = null
+      if (NetworkMonitor.instance != null) {
+        if (NetworkMonitor.instance.listener != null) NetworkMonitor.instance.listener.loginedNetwork = null
+        NetworkMonitor.instance.reloginThread.synchronizedNotify()
+      }
+      Some()
+    } else None
+  }.nonEmpty
+
+  def queryVolume = openPortalConnection[JObject]("/portal_io/selfservice/volume/getlist")
+  { (conn, _) =>
+    setup(conn, 0, 1)
+    val (code, json) = parseResult(conn)
+    if (code == 0) {
+      val total = (json \ "total").asInstanceOf[JInt].values
+      if (total != BigInt(1)) throw new Exception("total = " + total)
+      Some((json \ "rows")(0).asInstanceOf[JObject])
+    } else None
   }
 }
