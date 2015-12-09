@@ -193,6 +193,9 @@ object PortalManager {
       url.openConnection
     }).asInstanceOf[HttpURLConnection])(handler(_, network))
   } catch {
+    case e: NetworkUnavailableException =>
+      app.showToast(app.getString(R.string.error_network_unavailable))
+      None
     case e: ConnectException =>
       app.showToast(e.getMessage)
       None
