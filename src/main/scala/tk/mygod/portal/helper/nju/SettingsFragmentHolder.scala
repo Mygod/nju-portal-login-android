@@ -59,7 +59,11 @@ class SettingsFragmentHolder[T <: PreferenceScreenFragment] extends CircularReve
 
   override def onDestroyView {
     super.onDestroyView
-    if (Build.version < 17) fm.beginTransaction.remove(fragment).commitAllowingStateLoss
     fragment.parent = null
+  }
+
+  override def stop(sender: View = null) {
+    super.stop(sender)
+    if (Build.version < 17) fm.beginTransaction.remove(fragment).commitAllowingStateLoss
   }
 }
