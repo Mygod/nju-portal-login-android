@@ -16,6 +16,9 @@ First, create a `local.properties` following [this guide](https://github.com/pfn
     sbt clean android:packageRelease
 
 ## Alternatives
+DISCLAIMER: I don't own these projects. YOU are choosing to use these projects, and if you point your finger at me for
+anything gone wrong, I will laugh at you.
+
 * [Windows](https://github.com/miaoxw/Auto-p.nju)
 * [Mac](https://github.com/Cee/PNJU-TodayWidget)
 * [Android 4.0](https://github.com/padeoe/AutoConnect)
