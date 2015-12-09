@@ -50,7 +50,7 @@
 
     <string name="settings_notices">提醒</string>
     <string name="settings_notices_1">本应用使用南大认证 API，但并未受过南京大学官方承认或批准。</string>
-    <string name="settings_notices_2">本应用不会收集或传输你和你的设备的信息和隐私。有关安全问题的更多信息请参见常见问题。</string>
+    <string name="settings_notices_2">本应用不会收集或传输你和你的设备的信息和隐私。</string>
 
     <!-- MainActivity/SettingsFragment -->
     <string name="su_success">操作成功，重启后生效。</string>
