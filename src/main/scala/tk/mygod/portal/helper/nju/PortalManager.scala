@@ -181,17 +181,19 @@ object PortalManager {
   def login: Int =
     if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) login(null) else loginLegacy()
 
-  def openPortalConnection[T](file: String)(handler: (HttpURLConnection, Network) => Option[T]) = try {
+  // AnyRef is a workaround for 4.x
+  def openPortalConnection[T](file: String)(handler: (HttpURLConnection, AnyRef) => Option[T]) = try {
     val url = new URL(HTTP, DOMAIN, file)
-    var network: Network = null
+    var n: AnyRef = null
     autoDisconnect((if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) {
-      network = NetworkMonitor.instance.listener.preferredNetwork
+      val network = NetworkMonitor.instance.listener.preferredNetwork
       if (network == null) throw new NetworkUnavailableException
+      n = network
       network.openConnection(url)
     } else {
       NetworkMonitor.preferNetworkLegacy()
       url.openConnection
-    }).asInstanceOf[HttpURLConnection])(handler(_, network))
+    }).asInstanceOf[HttpURLConnection])(handler(_, n))
   } catch {
     case e: NetworkUnavailableException =>
       app.showToast(app.getString(R.string.error_network_unavailable))
@@ -208,7 +210,8 @@ object PortalManager {
   def logout = openPortalConnection[Unit]("/portal_io/logout") { (conn, network) =>
     setup(conn, 0, 1)
     if (parseResult(conn)._1 == 101) {
-      if (app.boundConnectionsAvailable > 1 && network != null) reportNetworkConnectivity(network, false)
+      if (app.boundConnectionsAvailable > 1 && network != null)
+        reportNetworkConnectivity(network.asInstanceOf[Network], false)
       NetworkMonitor.listenerLegacy.loginedNetwork = null
       if (NetworkMonitor.instance != null) {
         if (NetworkMonitor.instance.listener != null) NetworkMonitor.instance.listener.loginedNetwork = null

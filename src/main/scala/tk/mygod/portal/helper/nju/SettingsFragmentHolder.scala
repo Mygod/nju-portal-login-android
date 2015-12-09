@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.support.v7.preference.PreferenceScreen
 import android.view.{LayoutInflater, View, ViewGroup}
 import tk.mygod.app.CircularRevealFragment
+import tk.mygod.os.Build
 
 /**
   * @author Mygod
@@ -14,12 +15,19 @@ class SettingsFragmentHolder[T <: StoppablePreferenceFragment](val fragment: T, 
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
     val result = inflater.inflate(R.layout.fragment_holder, container, false)
-    configureToolbar(result, if (screen == null) R.string.app_name else screen.getTitle, if (screen == null) -1 else 0)
+    if (screen == null) configureToolbar(result, R.string.app_name, -1)
+    else configureToolbar(result, screen.getTitle, 0)
     result
   }
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) {
     super.onViewCreated(view, savedInstanceState)
-    getChildFragmentManager.beginTransaction.add(R.id.content, fragment, null).commit
+    (if (Build.version >= 17) getChildFragmentManager else getFragmentManager)
+      .beginTransaction.add(R.id.content, fragment, null).commit
+  }
+
+  override def onDestroyView {
+    super.onDestroyView
+    if (Build.version < 17) getFragmentManager.beginTransaction.remove(fragment).commitAllowingStateLoss
   }
 }
