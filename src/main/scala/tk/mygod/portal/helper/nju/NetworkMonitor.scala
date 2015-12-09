@@ -77,7 +77,7 @@ object NetworkMonitor {
         val url = new URL(HTTP, "mygod.tk", "/generate_204")
         preferNetworkLegacy(n)
         try autoDisconnect(url.openConnection.asInstanceOf[HttpURLConnection]) { conn =>
-          PortalManager.setup(conn, app.connectTimeout)
+          PortalManager.setup(conn, app.connectTimeout, false)
           val start = System.currentTimeMillis
           conn.getInputStream
           val code = conn.getResponseCode

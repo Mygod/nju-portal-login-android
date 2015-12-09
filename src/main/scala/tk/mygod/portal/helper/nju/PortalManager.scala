@@ -79,24 +79,14 @@ object PortalManager {
     *
     * @param conn HttpURLConnection.
     * @param timeout Connect/read timeout.
-    * @param output 0-2: Nothing, post, post username/password.
-    * @param chapPassword (password, challenge). Only useful when output = 2.
-    *                     When this is set, it will use CHAP encryption.
+    * @param post Use HTTP post.
     */
-  def setup(conn: HttpURLConnection, timeout: Int, output: Int = 0, chapPassword: Option[(String, String)] = None) {
+  def setup(conn: HttpURLConnection, timeout: Int = 0, post: Boolean = true) {
     conn.setInstanceFollowRedirects(false)
     conn.setConnectTimeout(timeout)
     conn.setReadTimeout(timeout)
     conn.setUseCaches(false)
-    if (output == 0) return
-    conn.setRequestMethod("POST")
-    if (output == 1) return
-    conn.setDoOutput(true)
-    //noinspection JavaAccessorMethodCalledAsEmptyParen
-    autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, chapPassword match {
-      case Some((password, challenge)) => (POST_AUTH_BASE + "&challenge=%s").format(username, password, challenge)
-      case None => POST_AUTH_BASE.format(username, password)
-    }))
+    if (post) conn.setRequestMethod("POST")
   }
 
   private def loginCore(conn: URL => URLConnection): (Int, Int) = {
@@ -104,7 +94,7 @@ object PortalManager {
     try {
       val chapPassword = if (chap)
         autoDisconnect(conn(new URL(HTTP, DOMAIN, "/portal_io/getchallenge")).asInstanceOf[HttpURLConnection]) { conn =>
-          setup(conn, app.loginTimeout, 1)
+          setup(conn, app.loginTimeout)
           val (code, json) = parseResult(conn)
           if (code != 0) return (1, 0)  // retry
           val challenge = (json \ "challenge").asInstanceOf[JString].values
@@ -119,9 +109,14 @@ object PortalManager {
           digest.digest(passphrase, 1, 16)
           Some(passphrase.map("%02X".format(_)).mkString, challenge)
         } else None
-      autoDisconnect(conn(new URL(HTTP, DOMAIN, "/portal_io/login")).asInstanceOf[HttpURLConnection])
-      { conn =>
-        setup(conn, app.loginTimeout, 2, chapPassword)
+      autoDisconnect(conn(new URL(HTTP, DOMAIN, "/portal_io/login")).asInstanceOf[HttpURLConnection]) { conn =>
+        setup(conn, app.loginTimeout)
+        conn.setDoOutput(true)
+        //noinspection JavaAccessorMethodCalledAsEmptyParen
+        autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, chapPassword match {
+          case Some((password, challenge)) => (POST_AUTH_BASE + "&challenge=%s").format(username, password, challenge)
+          case None => POST_AUTH_BASE.format(username, password)
+        }))
         conn.getResponseCode match {
           case 200 =>
             val (result, _) = parseResult(conn)
@@ -208,7 +203,7 @@ object PortalManager {
   }
 
   def logout = openPortalConnection[Unit]("/portal_io/logout") { (conn, network) =>
-    setup(conn, 0, 1)
+    setup(conn, 0)
     if (parseResult(conn)._1 == 101) {
       if (app.boundConnectionsAvailable > 1 && network != null)
         reportNetworkConnectivity(network.asInstanceOf[Network], false)
@@ -223,7 +218,7 @@ object PortalManager {
 
   def queryVolume = openPortalConnection[JObject]("/portal_io/selfservice/volume/getlist")
   { (conn, _) =>
-    setup(conn, 0, 1)
+    setup(conn, 0)
     val (code, json) = parseResult(conn)
     if (code == 0) {
       val total = (json \ "total").asInstanceOf[JInt].values
