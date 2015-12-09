@@ -20,8 +20,7 @@
     <string name="settings_auth_relogin_delay_summary">%dms (0 = disable)</string>
 
     <string name="settings_status">Status</string>
-    <string name="settings_status_username">Username</string>
-    <string name="settings_status_fullname">Full name</string>
+    <string name="settings_status_name">Name</string>
     <string name="settings_status_service_name">Service name</string>
     <string name="settings_status_area_name">Area name</string>
     <string name="settings_status_acctstarttime">Activity start time</string>

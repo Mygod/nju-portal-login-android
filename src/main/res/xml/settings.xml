@@ -24,10 +24,8 @@
                                                     android:summary="@string/settings_auth_relogin_delay_summary"/>
     </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory android:title="@string/settings_status">
-        <android.support.v7.preference.Preference android:key="status.username"
-                                                  android:title="@string/settings_status_username"/>
-        <android.support.v7.preference.Preference android:key="status.fullname"
-                                                  android:title="@string/settings_status_fullname"/>
+        <android.support.v7.preference.Preference android:key="status.name"
+                                                  android:title="@string/settings_status_name"/>
         <android.support.v7.preference.Preference android:key="status.service_name"
                                                   android:title="@string/settings_status_service_name"/>
         <android.support.v7.preference.Preference android:key="status.area_name"

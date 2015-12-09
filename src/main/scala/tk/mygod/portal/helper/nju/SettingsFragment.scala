@@ -50,7 +50,6 @@ final class SettingsFragment extends PreferenceFragmentPlus {
     })
 
     PortalManager.setUserInfoListener(userInfoUpdated)
-    findPreference("status.fullname").setOnPreferenceClickListener(humorous)
     findPreference("status.service_name").setOnPreferenceClickListener(humorous)
     findPreference("status.area_name").setOnPreferenceClickListener(humorous)
     findPreference("status.balance").setOnPreferenceClickListener(humorous)
@@ -98,17 +97,28 @@ final class SettingsFragment extends PreferenceFragmentPlus {
     super.onDestroy
   }
 
-  def userInfoUpdated(info: JObject) = for ((key, value) <- info.values) {
-    val preference = findPreference("status." + key)
-    if (preference == null) Log.e(TAG, "Unknown key in user_info: " + key) else preference.setSummary(key match {
-      case "acctstarttime" => DateFormat.getDateTimeInstance.format(new Date(value.asInstanceOf[BigInt].toLong * 1000))
-      case "balance" => new DecimalFormat("0.00").format(value.asInstanceOf[BigInt].toInt / 100.0)
-      case "useripv4" =>
-        val bytes = value.asInstanceOf[BigInt].toInt
-        InetAddress.getByAddress(Array[Byte]((bytes >>> 24 & 0xFF).toByte, (bytes >>> 16 & 0xFF).toByte,
-          (bytes >>> 8 & 0xFF).toByte, (bytes & 0xFF).toByte)).getHostAddress
-      case _ => value.toString
-    })
+  def userInfoUpdated(info: JObject) {
+    var username: String = null
+    var fullname: String = null
+    for ((key, value) <- info.values) {
+      val preference = findPreference("status." + key)
+      if (preference == null) key match {
+        case "username" => username = value.asInstanceOf[String]
+        case "fullname" => fullname = value.asInstanceOf[String]
+        case _ => Log.e(TAG, "Unknown key in user_info: " + key)
+      } else preference.setSummary(key match {
+        case "acctstarttime" => DateFormat.getDateTimeInstance.format(new Date(value.asInstanceOf[BigInt].toLong * 1000))
+        case "balance" => new DecimalFormat("0.00").format(value.asInstanceOf[BigInt].toInt / 100.0)
+        case "useripv4" =>
+          val bytes = value.asInstanceOf[BigInt].toInt
+          InetAddress.getByAddress(Array[Byte]((bytes >>> 24 & 0xFF).toByte, (bytes >>> 16 & 0xFF).toByte,
+            (bytes >>> 8 & 0xFF).toByte, (bytes & 0xFF).toByte)).getHostAddress
+        case _ => value.toString
+      })
+    }
+    findPreference("status.name").setSummary(if (username == null)
+      if (fullname == null) null else fullname
+    else if (fullname == null) "(%s)".format(username) else "%s (%s)".format(fullname, username))
   }
 
   private def humorous(preference: Preference) = {

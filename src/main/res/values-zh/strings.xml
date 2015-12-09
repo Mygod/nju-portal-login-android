@@ -18,8 +18,7 @@
     <string name="settings_auth_relogin_delay_summary">%dms（0 = 禁用）</string>
 
     <string name="settings_status">状态</string>
-    <string name="settings_status_username">用户名</string>
-    <string name="settings_status_fullname">姓名</string>
+    <string name="settings_status_name">姓名</string>
     <string name="settings_status_service_name">服务名</string>
     <string name="settings_status_area_name">区域名称</string>
     <string name="settings_status_acctstarttime">上线时间</string>
