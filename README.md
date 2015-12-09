@@ -14,3 +14,11 @@ No personal or private information about you or your device is collected or tran
 First, create a `local.properties` following [this guide](https://github.com/pfn/android-sdk-plugin#usage). Then:
 
     sbt clean android:packageRelease
+
+## Alternatives
+* [Windows](https://github.com/miaoxw/Auto-p.nju)
+* [Mac](https://github.com/Cee/PNJU-TodayWidget)
+* [Android 4.0](https://github.com/padeoe/AutoConnect)
+* [iOS &  Watch](https://github.com/Cee/PNJU-Watch)
+* [Alfred Workflow](https://github.com/Cee/PNJU-Workflow)
+* Got more? Feel free to tell me.
