@@ -13,6 +13,9 @@
         network.</string>
     <string name="settings_auth_login">Login</string>
     <string name="settings_auth_logout">Logout</string>
+    <string name="settings_auth_chap">Enable CHAP encryption</string>
+    <string name="settings_auth_chap_summary">For enhanced security. Disable for better performance (not
+        recommended).</string>
     <string name="settings_auth_relogin_delay">Relogin delay (experimental)</string>
     <string name="settings_auth_relogin_delay_summary">%dms (0 = disable)</string>
 
@@ -52,7 +55,7 @@
     <string name="settings_notices_1">This application uses NJU portal\'s API and is not endorsed or certified by
         Nanjing University.</string>
     <string name="settings_notices_2">No personal or private information about you or your device is collected or
-        transmitted by this app. For security concerns, see FAQ for more information.</string>
+        transmitted by this app.</string>
 
     <!-- MainActivity/SettingsFragment -->
     <string name="su_success">Operation completed. Reboot your device to apply changes.</string>

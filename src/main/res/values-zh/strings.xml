@@ -12,6 +12,8 @@
     <string name="settings_auth_portal_web_summary">此功能不支持绑定连接，系统可能会使用手机网络。</string>
     <string name="settings_auth_login">登录</string>
     <string name="settings_auth_logout">登出</string>
+    <string name="settings_auth_chap">启用 CHAP 加密</string>
+    <string name="settings_auth_chap_summary">提高安全性。禁用可提升性能（不推荐）。</string>
     <string name="settings_auth_relogin_delay">重新登录等待时间（实验性功能）</string>
     <string name="settings_auth_relogin_delay_summary">%dms（0 = 禁用）</string>
 

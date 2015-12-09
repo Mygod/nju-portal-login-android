@@ -65,6 +65,9 @@ object NetworkMonitor {
       if (instance != null && n != null) instance.reloginThread.synchronizedNotify(code)
     }
 
+    /**
+      * Based on: https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/connectivity/NetworkMonitor.java#640
+      */
     def onAvailable(n: NetworkInfo) {
       available.add(n)
       if (!app.autoLoginEnabled || app.boundConnectionsAvailable > 1) return

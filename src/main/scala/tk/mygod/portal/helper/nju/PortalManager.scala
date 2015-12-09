@@ -2,6 +2,7 @@ package tk.mygod.portal.helper.nju
 
 import java.io.IOException
 import java.net._
+import java.security.MessageDigest
 
 import android.annotation.TargetApi
 import android.net.{Network, NetworkInfo}
@@ -15,6 +16,9 @@ import tk.mygod.util.CloseUtils._
 import tk.mygod.util.Conversions._
 import tk.mygod.util.IOUtils
 
+import scala.collection.mutable
+import scala.util.Random
+
 /**
   * Portal manager. Supports:
   *   Desktop v = 201510210840
@@ -22,13 +26,13 @@ import tk.mygod.util.IOUtils
   *
   * @author Mygod
   */
-//noinspection JavaAccessorMethodCalledAsEmptyParen
 object PortalManager {
   final val DOMAIN = "p.nju.edu.cn"
   final val ROOT_URL = HTTP + "://" + DOMAIN
   private final val TAG = "PortalManager"
   private final val STATUS = "status"
-  private case class NetworkUnavailableException() extends IOException { }
+  private final val POST_AUTH_BASE = "username=%s&password=%s"
+  case class NetworkUnavailableException() extends IOException { }
 
   var currentUsername: String = _
   def username = app.pref.getString("account.username", "")
@@ -43,7 +47,9 @@ object PortalManager {
   }
 
   private implicit val formats = Serialization.formats(NoTypeHints)
-  private def processResult(resultStr: String) = {
+  //noinspection JavaAccessorMethodCalledAsEmptyParen
+  private def parseResult(conn: HttpURLConnection) = {
+    val resultStr = IOUtils.readAllText(conn.getInputStream())
     if (DEBUG) Log.v(TAG, resultStr)
     val json = parse(resultStr)
     val code = (json \ "reply_code").asInstanceOf[JInt].values.toInt
@@ -57,9 +63,9 @@ object PortalManager {
         }
       case _ =>
     }
-    if (app.pref.getBoolean("notifications.login", true))
+    if (code != 0 && app.pref.getBoolean("notifications.login", true))
       app.showToast("#%d: %s".format(code, (json \ "reply_msg").asInstanceOf[JString].values))
-    code
+    (code, json)
   }
 
   //noinspection ScalaDeprecation
@@ -73,8 +79,9 @@ object PortalManager {
     * @param conn HttpURLConnection.
     * @param timeout Connect/read timeout.
     * @param output 0-2: Nothing, post, post username/password.
+    * @param chapPassword Only useful when output = 2. When this is set, it will use CHAP encryption.
     */
-  def setup(conn: HttpURLConnection, timeout: Int, output: Int = 0) {
+  def setup(conn: HttpURLConnection, timeout: Int, output: Int = 0, chapPassword: Option[(String, String)] = None) {
     conn.setInstanceFollowRedirects(false)
     conn.setConnectTimeout(timeout)
     conn.setReadTimeout(timeout)
@@ -84,32 +91,49 @@ object PortalManager {
     if (output == 1) return
     conn.setDoOutput(true)
     //noinspection JavaAccessorMethodCalledAsEmptyParen
-    autoClose(conn.getOutputStream())(os =>
-      IOUtils.writeAllText(os, "username=%s&password=%s".format(username, password)))
+    autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, chapPassword match {
+      case Some((password, challenge)) => (POST_AUTH_BASE + "&challenge=%s").format(username, password, challenge)
+      case None => POST_AUTH_BASE.format(username, password)
+    }))
   }
 
-  private case class CaptivePortalException() extends Exception
-  /**
-    * Based on: https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/connectivity/NetworkMonitor.java#640
-    */
-  private def loginCore(conn: URL => URLConnection) = {
+  private def loginCore(conn: URL => URLConnection): (Int, Int) = {
     if (DEBUG) Log.d(TAG, "Logging in...")
-    try autoDisconnect(conn(new URL(HTTP, DOMAIN, "/portal_io/login")).asInstanceOf[HttpURLConnection])
-    { conn =>
-      setup(conn, app.loginTimeout, 2)
-      conn.getResponseCode match {
-        case 200 =>
-          val result = processResult(IOUtils.readAllText(conn.getInputStream()))
-          (if (result == 3 || result == 8) 2 else 0, result)
-        case 502 =>
-          app.showToast("无可用服务器资源!")
-          (1, 0)
-        case 503 =>
-          app.showToast("请求太频繁,请稍后再试!")
-          (1, 0)
-        case code =>
-          if (DEBUG) Log.w(TAG, "Unknown response code: " + code)
-          (2, 0)
+    try {
+      val chapPassword = if (app.pref.getBoolean("auth.chap", true))
+        autoDisconnect(conn(new URL(HTTP, DOMAIN, "/portal_io/getchallenge")).asInstanceOf[HttpURLConnection]) { conn =>
+          setup(conn, app.loginTimeout, 1)
+          val (code, json) = parseResult(conn)
+          if (code != 0) return (1, 0)  // retry
+          val challenge = (json \ "challenge").asInstanceOf[JString].values
+          val passphrase = new Array[Byte](17)
+          passphrase(0) = Random.nextInt.toByte
+          val passphraseRaw = new mutable.ArrayBuffer[Byte]
+          passphraseRaw += passphrase(0)
+          passphraseRaw ++= password.getBytes
+          passphraseRaw ++= challenge.sliding(2, 2).map(Integer.parseInt(_, 16).toByte)
+          val digest = MessageDigest.getInstance("MD5")
+          digest.update(passphraseRaw.toArray)
+          digest.digest(passphrase, 1, 16)
+          Some(passphrase.map("%02X".format(_)).mkString, challenge)
+        } else null
+      autoDisconnect(conn(new URL(HTTP, DOMAIN, "/portal_io/login")).asInstanceOf[HttpURLConnection])
+      { conn =>
+        setup(conn, app.loginTimeout, 2, chapPassword)
+        conn.getResponseCode match {
+          case 200 =>
+            val (result, _) = parseResult(conn)
+            (if (result == 3 || result == 8) 2 else 0, result)
+          case 502 =>
+            app.showToast("无可用服务器资源!")
+            (1, 0)
+          case 503 =>
+            app.showToast("请求太频繁,请稍后再试!")
+            (1, 0)
+          case code =>
+            if (DEBUG) Log.w(TAG, "Unknown response code: " + code)
+            (2, 0)
+        }
       }
     } catch {
       case e: ParserUtil.ParseException =>
@@ -167,7 +191,7 @@ object PortalManager {
       url.openConnection
     }).asInstanceOf[HttpURLConnection]) { conn =>
       setup(conn, 0, 1)
-      if (processResult(IOUtils.readAllText(conn.getInputStream())) == 101) {
+      if (parseResult(conn)._1 == 101) {
         if (app.boundConnectionsAvailable > 1 && network != null) reportNetworkConnectivity(network, false)
         NetworkMonitor.listenerLegacy.loginedNetwork = null
         if (NetworkMonitor.instance != null) {
