@@ -73,7 +73,6 @@ class PortalActivity extends ToolbarActivity with TypedFindView with OnRefreshLi
     onRefresh
   }
 
-  override def onBackPressed = if (webView.canGoBack) webView.goBack else super.onBackPressed
   def onMenuItemClick(menuItem: MenuItem) = menuItem.getItemId match {
     case R.id.action_desktop_site =>
       setDesktopSite(!menuItem.isChecked)
