@@ -25,30 +25,28 @@ abstract class SettingsSubFragment[T] extends SettingsFragmentBase with OnRefres
     swiper = view.findViewById(R.id.preference_holder).asInstanceOf[SwipeRefreshLayout]
     swiper.setColorSchemeResources(R.color.material_accent_500, R.color.material_primary_500)
     swiper.setOnRefreshListener(this)
-    swiper.setRefreshing(true)
-    ThrowableFuture(work)
+    onRefresh
   }
 
-  private def work = (try backgroundWork catch {
-    case e: PortalManager.NetworkUnavailableException =>
-      app.showToast(app.getString(R.string.error_network_unavailable))
-      None
-    case e: Exception =>
-      e.printStackTrace
-      app.showToast(e.getMessage)
-      None
-  }) match {
-    case Some(result) => runOnUiThread {
-      onResult(result)
-      swiper.setRefreshing(false)
-    }
-    case None => runOnUiThread(exit())
-  }
   protected def backgroundWork: Option[T]
   protected def onResult(result: T)
 
   override def onRefresh {
     swiper.setRefreshing(true)
-    ThrowableFuture(work)
+    ThrowableFuture((try backgroundWork catch {
+      case e: PortalManager.NetworkUnavailableException =>
+        app.showToast(app.getString(R.string.error_network_unavailable))
+        None
+      case e: Exception =>
+        e.printStackTrace
+        app.showToast(e.getMessage)
+        None
+    }) match {
+      case Some(result) => runOnUiThread {
+        onResult(result)
+        swiper.setRefreshing(false)
+      }
+      case None => runOnUiThread(exit())
+    })
   }
 }
