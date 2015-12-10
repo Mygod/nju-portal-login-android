@@ -40,18 +40,19 @@
     <string name="settings_status_usage_time">Online time</string>
     <string name="settings_status_usage_refer">Theoretical fees</string>
 
-    <string name="settings_speed">Speed optimizations</string>
-    <string name="settings_speed_skip_connect">Skip connection test</string>
-    <string name="settings_speed_connect_timeout">Connect timeout</string>
-    <string name="settings_speed_login_timeout">Login timeout</string>
-    <string name="settings_speed_timeout_summary">%dms (0 = infinite)</string>
-
     <string name="settings_notifications">Notifications</string>
+    <string name="settings_notifications_notices">View notices history</string>
     <string name="settings_notifications_connection">Connection available</string>
     <string name="settings_notifications_connection_summary">Display a toast when the current connection has access to
         Internet with an HTTP ping time.</string>
     <string name="settings_notifications_login">Login/logout successfully</string>
     <string name="settings_notifications_relogin_icon">Auto relogin pending notification icon</string>
+
+    <string name="settings_speed">Speed optimizations</string>
+    <string name="settings_speed_skip_connect">Skip connection test</string>
+    <string name="settings_speed_connect_timeout">Connect timeout</string>
+    <string name="settings_speed_login_timeout">Login timeout</string>
+    <string name="settings_speed_timeout_summary">%dms (0 = infinite)</string>
 
     <string name="settings_misc">Misc</string>
     <string name="settings_misc_update">Check for updates</string>
@@ -106,6 +107,10 @@
     <string name="network_available">Network available. Time=%dms</string>
     <string name="error_network_unavailable">No available network.</string>
     <string name="error_socket_timeout">Socket timeout.</string>
+
+    <!-- NoticeFragment -->
+    <string name="notices">Notices history</string>
+    <string name="notice_summary">Distribution time: %1$s %2$s\n%3$s</string>
 
     <!-- PortalActivity -->
     <string name="webview_desktop_site">Request desktop site</string>

@@ -37,18 +37,19 @@
     <string name="settings_status_usage_time">在线时间</string>
     <string name="settings_status_usage_refer">理论费用</string>
 
-    <string name="settings_speed">速度优化</string>
-    <string name="settings_speed_skip_connect">跳过连接测试</string>
-    <string name="settings_speed_connect_timeout">连接超时</string>
-    <string name="settings_speed_login_timeout">登录超时</string>
-    <string name="settings_speed_timeout_summary">%d 毫秒（0 = 无限长）</string>
-
     <string name="settings_notifications">通知</string>
+    <string name="settings_notifications_notices">查看通知公告历史</string>
     <string name="settings_notifications_connection">网络可用</string>
     <string name="settings_notifications_connection_summary">当前连接有 Internet 连接时显示通知，并显示 HTTP ping 延迟。
     </string>
     <string name="settings_notifications_login">登录/登出成功</string>
     <string name="settings_notifications_relogin_icon">自动重新登录通知图标</string>
+
+    <string name="settings_speed">速度优化</string>
+    <string name="settings_speed_skip_connect">跳过连接测试</string>
+    <string name="settings_speed_connect_timeout">连接超时</string>
+    <string name="settings_speed_login_timeout">登录超时</string>
+    <string name="settings_speed_timeout_summary">%d 毫秒（0 = 无限长）</string>
 
     <string name="settings_misc">其他</string>
     <string name="settings_misc_update">检查更新</string>
@@ -95,6 +96,10 @@
     <string name="network_available">网络可用。延迟 = %d 毫秒</string>
     <string name="error_socket_timeout">套接字超时。</string>
     <string name="error_network_unavailable">没有可用的连接。</string>
+
+    <!-- NoticeFragment -->
+    <string name="notices">通知公告历史</string>
+    <string name="notice_summary">发布时间：%1$s %2$s\n%3$s</string>
 
     <!-- PortalActivity -->
     <string name="webview_desktop_site">请求桌面版网站</string>

@@ -22,6 +22,7 @@ final class MainActivity extends FragmentStackActivity with LocationObservedActi
   import MainActivity._
 
   private lazy val serviceIntent = intent[NetworkMonitor]
+  var noticeFragment: NoticeFragment = _
 
   override protected def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
@@ -70,6 +71,8 @@ final class MainActivity extends FragmentStackActivity with LocationObservedActi
     case _ => // ignore
   }
 
+  def startNetworkMonitor = if (app.autoLoginEnabled) startService(serviceIntent)
+
   def onPreferenceStartScreen(fragment: PreferenceFragment, screen: PreferenceScreen) = {
     val fragment = screen.getKey match {
       case "status.usage" => new SettingsUsageFragment
@@ -79,5 +82,9 @@ final class MainActivity extends FragmentStackActivity with LocationObservedActi
     push(fragment)
   }
 
-  def startNetworkMonitor = if (app.autoLoginEnabled) startService(serviceIntent)
+  def showNoticeFragment {
+    val fragment =  if (noticeFragment == null) new NoticeFragment else noticeFragment
+    fragment.setSpawnLocation(getLocationOnScreen)
+    push(fragment)
+  }
 }

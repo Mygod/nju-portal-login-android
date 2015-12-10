@@ -63,6 +63,11 @@ final class SettingsFragment extends SettingsFragmentBase {
     findPreference("status.area_name").setOnPreferenceClickListener(humorous)
     findPreference("status.balance").setOnPreferenceClickListener(humorous)
 
+    findPreference("notifications.notices").setOnPreferenceClickListener(_ => {
+      activity.showNoticeFragment
+      false
+    })
+
     useBoundConnections.setOnPreferenceClickListener(_ => activity.testBoundConnections(true))
     findPreference("misc.update").setOnPreferenceClickListener(_ => {
       UpdateManager.check(activity, "https://github.com/Mygod/nju-portal-login-android/releases", app.handler)

@@ -1,5 +1,6 @@
 package tk.mygod.portal.helper.nju.database
 
+import android.text.Html
 import com.j256.ormlite.field.DatabaseField
 
 /**
@@ -30,6 +31,8 @@ class Notice {
 
   @DatabaseField
   var read: Boolean = _
+
+  def formattedTitle = Html.fromHtml(title)
 
   override def equals(o: Any) = o match {
     case that: Notice => distributionTime == that.distributionTime && title == that.title && url == that.url

@@ -153,7 +153,7 @@ final class NetworkMonitor extends ServicePlus {
           .setContentTitle(getString(R.string.auto_relogin_active, delay: Integer))
           .setPriority(if (app.pref.getBoolean("notifications.reloginIcon", true))
             NotificationCompat.PRIORITY_DEFAULT else NotificationCompat.PRIORITY_MIN)
-        app.handler.post(startForeground(1, notificationBuilder.build))
+        app.handler.post(startForeground(-1, notificationBuilder.build))
         if (DEBUG) Log.v(THREAD_TAG, "Waiting %dms...".format(delay))
         synchronized(wait(delay))
         if (DEBUG) Log.v(THREAD_TAG, "Timed out or notified.")

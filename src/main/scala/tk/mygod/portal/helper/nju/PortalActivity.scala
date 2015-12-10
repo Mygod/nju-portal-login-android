@@ -23,7 +23,8 @@ object PortalActivity {
   private final val ENABLE_CHAP = "globalVar.auth_type='chap'"
 }
 
-class PortalActivity extends ToolbarActivity with TypedFindView with OnRefreshListener with OnMenuItemClickListener {
+final class PortalActivity extends ToolbarActivity with TypedFindView with OnRefreshListener
+  with OnMenuItemClickListener {
   import PortalActivity._
 
   private lazy val webView = findView(TR.webView)

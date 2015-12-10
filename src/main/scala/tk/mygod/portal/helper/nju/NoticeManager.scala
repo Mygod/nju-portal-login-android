@@ -5,7 +5,6 @@ import android.content.res.Resources
 import android.content.{BroadcastReceiver, Context, Intent}
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
-import android.text.Html
 import tk.mygod.portal.helper.nju.database.Notice
 import tk.mygod.util.Conversions._
 
@@ -26,9 +25,9 @@ object NoticeManager {
   private lazy val nm = app.systemService[NotificationManager]
 
   private def fetchNotice(id: Int) = noticeDao.queryForId(id)
-  private def fetchAllNotices = noticeDao.query(noticeDao.queryBuilder.orderBy("distributionTime", false).prepare)
+  def fetchAllNotices = noticeDao.query(noticeDao.queryBuilder.orderBy("distributionTime", false).prepare).asScala
 
-  private def updateUnreadNotices = PortalManager.queryNotice match {
+  def updateUnreadNotices = PortalManager.queryNotice match {
     case Some(notices) =>
       val unread = new ArrayBuffer[Notice]
       val active = new mutable.HashMap[Notice, Notice] ++ notices.map(n => n -> n)
@@ -51,7 +50,7 @@ object NoticeManager {
     case _ => ArrayBuffer.empty[Notice]  // error, ignore
   }
 
-  private def read(notice: Notice) {
+  def read(notice: Notice) {
     notice.read = true
     noticeDao.update(notice)
   }
@@ -69,7 +68,7 @@ object NoticeManager {
         .setColor(ContextCompat.getColor(app, R.color.material_primary_500))
         .setLights(ContextCompat.getColor(app, R.color.material_purple_a700), lightOnMs, lightOffMs)
         .setSmallIcon(R.drawable.ic_action_announcement).setGroup("Notices").setContentText(notice.url)
-        .setContentTitle(Html.fromHtml(notice.title)).setWhen(notice.distributionTime * 1000)
+        .setContentTitle(notice.formattedTitle).setWhen(notice.distributionTime * 1000)
         .setContentIntent(app.pendingBroadcast(new Intent(ACTION_VIEW).putExtra(EXTRA_ID, notice.id)))
         .setDeleteIntent(app.pendingBroadcast(new Intent(ACTION_MARK_AS_READ).putExtra(EXTRA_ID, notice.id)))
       if (pushedNotices.add(notice.id))
@@ -77,6 +76,7 @@ object NoticeManager {
       nm.notify(notice.id, builder.build)
     })
   }
+  def cancelAllNotices = for (notice <- pushedNotices) nm.cancel(notice)
 }
 
 final class NoticeManager extends BroadcastReceiver {

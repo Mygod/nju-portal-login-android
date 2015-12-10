@@ -57,6 +57,18 @@
                                                       android:title="@string/settings_status_usage_refer"/>
         </android.support.v7.preference.PreferenceScreen>
     </android.support.v7.preference.PreferenceCategory>
+    <android.support.v7.preference.PreferenceCategory android:title="Notifications">
+        <android.support.v7.preference.Preference android:key="notifications.notices"
+                                                  android:title="@string/settings_notifications_notices"/>
+        <android.support.v14.preference.SwitchPreference
+                android:key="notifications.connection" android:title="@string/settings_notifications_connection"
+                android:summary="@string/settings_notifications_connection_summary" android:defaultValue="true"/>
+        <android.support.v14.preference.SwitchPreference android:key="notifications.login" android:defaultValue="true"
+                                                         android:title="@string/settings_notifications_login"/>
+        <android.support.v14.preference.SwitchPreference android:key="notifications.reloginIcon"
+                                                         android:title="@string/settings_notifications_relogin_icon"
+                                                         android:defaultValue="true"/>
+    </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory android:title="@string/settings_speed">
         <android.support.v14.preference.SwitchPreference android:key="speed.skipConnect"
                                                          android:title="@string/settings_speed_skip_connect"/>
@@ -68,16 +80,6 @@
                                                     android:defaultValue="4000" app:max="11111"
                                                     android:title="@string/settings_speed_login_timeout"
                                                     android:summary="@string/settings_speed_timeout_summary"/>
-    </android.support.v7.preference.PreferenceCategory>
-    <android.support.v7.preference.PreferenceCategory android:title="Notifications">
-        <android.support.v14.preference.SwitchPreference
-                android:key="notifications.connection" android:title="@string/settings_notifications_connection"
-                android:summary="@string/settings_notifications_connection_summary" android:defaultValue="true"/>
-        <android.support.v14.preference.SwitchPreference android:key="notifications.login" android:defaultValue="true"
-                                                         android:title="@string/settings_notifications_login"/>
-        <android.support.v14.preference.SwitchPreference android:key="notifications.reloginIcon"
-                                                         android:title="@string/settings_notifications_relogin_icon"
-                                                         android:defaultValue="true"/>
     </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory android:title="@string/settings_misc">
         <android.support.v7.preference.Preference android:key="misc.useBoundConnections"

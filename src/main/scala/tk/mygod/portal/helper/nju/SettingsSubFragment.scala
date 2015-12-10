@@ -2,7 +2,6 @@ package tk.mygod.portal.helper.nju
 
 import android.os.Bundle
 import android.support.v14.preference.PreferenceFragment
-import android.support.v4.content.ContextCompat
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
 import android.view.View
@@ -24,7 +23,6 @@ abstract class SettingsSubFragment[T] extends SettingsFragmentBase with OnRefres
   override def onViewCreated(view: View, savedInstanceState: Bundle) {
     super.onViewCreated(view, savedInstanceState)
     swiper = view.findViewById(R.id.preference_holder).asInstanceOf[SwipeRefreshLayout]
-    swiper.setBackgroundColor(ContextCompat.getColor(getActivity, R.color.material_purple_200))
     swiper.setColorSchemeResources(R.color.material_accent_500, R.color.material_primary_500)
     swiper.setOnRefreshListener(this)
     swiper.setRefreshing(true)
