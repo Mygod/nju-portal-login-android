@@ -4,7 +4,7 @@ import java.text.DecimalFormat
 
 import android.os.Bundle
 import android.util.Log
-import android.view.{ViewGroup, LayoutInflater}
+import android.view.View
 import org.json4s.JsonAST.JObject
 
 /**
@@ -22,10 +22,9 @@ object SettingsUsageFragment {
 class SettingsUsageFragment extends SettingsSubFragment[JObject] {
   import SettingsUsageFragment._
 
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
-    val result = super.onCreateView(inflater, container, savedInstanceState)
-    configureToolbar(result, R.string.settings_status_usage_title, 0)
-    result
+  override def onViewCreated(view: View, savedInstanceState: Bundle) {
+    super.onViewCreated(view, savedInstanceState)
+    configureToolbar(view, R.string.settings_status_usage_title, 0)
   }
 
   override protected def backgroundWork = PortalManager.queryVolume

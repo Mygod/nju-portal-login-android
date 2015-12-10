@@ -7,7 +7,7 @@ import java.util.Date
 import android.os.Bundle
 import android.support.v7.preference.Preference
 import android.util.Log
-import android.view.{ViewGroup, LayoutInflater}
+import android.view.View
 import org.json4s.JObject
 import tk.mygod.net.UpdateManager
 import tk.mygod.preference._
@@ -29,10 +29,9 @@ final class SettingsFragment extends SettingsFragmentBase {
   private lazy val portalWeb = findPreference("auth.portalWeb")
   private lazy val useBoundConnections = findPreference("misc.useBoundConnections")
 
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
-    val result = super.onCreateView(inflater, container, savedInstanceState)
-    configureToolbar(result, R.string.app_name)
-    result
+  override def onViewCreated(view: View, savedInstanceState: Bundle) {
+    super.onViewCreated(view, savedInstanceState)
+    configureToolbar(view, R.string.app_name)
   }
 
   override def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
