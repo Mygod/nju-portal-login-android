@@ -7,12 +7,12 @@ import android.view.View
 /**
   * @author Mygod
   */
-abstract class SettingsSubFragment[T] extends PreferenceScreenFragment {
+abstract class SettingsSubFragment[T] extends SettingsFragmentBase {
   override def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
     super.onCreatePreferences(savedInstanceState, rootKey)
     ThrowableFuture(backgroundWork match {
       case Some(result) => runOnUiThread(onResult(result))
-      case None => runOnUiThread(parent.exit())
+      case None => runOnUiThread(exit())
     })
   }
 

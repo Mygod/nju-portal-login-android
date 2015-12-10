@@ -2,7 +2,9 @@ package tk.mygod.portal.helper.nju
 
 import java.text.DecimalFormat
 
+import android.os.Bundle
 import android.util.Log
+import android.view.{ViewGroup, LayoutInflater}
 import org.json4s.JsonAST.JObject
 
 /**
@@ -19,6 +21,12 @@ object SettingsUsageFragment {
 
 class SettingsUsageFragment extends SettingsSubFragment[JObject] {
   import SettingsUsageFragment._
+
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
+    val result = super.onCreateView(inflater, container, savedInstanceState)
+    configureToolbar(result, R.string.settings_status_usage_title, 0)
+    result
+  }
 
   override protected def backgroundWork = PortalManager.queryVolume
   override protected def onResult(result: JObject) {

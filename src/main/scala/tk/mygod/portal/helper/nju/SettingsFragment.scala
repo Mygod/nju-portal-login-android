@@ -7,6 +7,7 @@ import java.util.Date
 import android.os.Bundle
 import android.support.v7.preference.Preference
 import android.util.Log
+import android.view.{ViewGroup, LayoutInflater}
 import org.json4s.JObject
 import tk.mygod.net.UpdateManager
 import tk.mygod.preference._
@@ -21,12 +22,18 @@ object SettingsFragment {
   preferenceGetId.setAccessible(true)
 }
 
-final class SettingsFragment extends PreferenceScreenFragment {
+final class SettingsFragment extends SettingsFragmentBase {
   import SettingsFragment._
 
   private lazy val activity = getActivity.asInstanceOf[MainActivity]
   private lazy val portalWeb = findPreference("auth.portalWeb")
   private lazy val useBoundConnections = findPreference("misc.useBoundConnections")
+
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
+    val result = super.onCreateView(inflater, container, savedInstanceState)
+    configureToolbar(result, R.string.app_name)
+    result
+  }
 
   override def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
     getPreferenceManager.setSharedPreferencesName(PREF_NAME)
