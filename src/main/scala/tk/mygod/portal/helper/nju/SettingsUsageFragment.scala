@@ -19,7 +19,7 @@ object SettingsUsageFragment {
   private val largeFormat = new DecimalFormat(",###")
 }
 
-class SettingsUsageFragment extends SettingsSubFragment[JObject] {
+final class SettingsUsageFragment extends SettingsSubFragment[JObject] {
   import SettingsUsageFragment._
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) {
@@ -27,8 +27,14 @@ class SettingsUsageFragment extends SettingsSubFragment[JObject] {
     configureToolbar(view, R.string.settings_status_usage_title, 0)
   }
 
-  override protected def backgroundWork = PortalManager.queryVolume
-  override protected def onResult(result: JObject) {
+  protected def backgroundWork {
+    PortalManager.logout
+    Thread.sleep(2000)
+    PortalManager.login
+    Thread.sleep(2000)
+    PortalManager.queryVolume
+  }
+  protected def onResult(result: JObject) {
     val user = new DualFormatter(format2 = NUMBER_FORMAT)
     val monthId = new DualFormatter(format2 = NUMBER_FORMAT)
     val service = new DualFormatter(format2 = NUMBER_FORMAT)

@@ -49,12 +49,6 @@ abstract class SettingsSubFragment[T] extends SettingsFragmentBase with OnRefres
 
   override def onRefresh {
     swiper.setRefreshing(true)
-    ThrowableFuture {
-      PortalManager.logout
-      Thread.sleep(2000)
-      PortalManager.login
-      Thread.sleep(2000)
-      work
-    }
+    ThrowableFuture(work)
   }
 }
