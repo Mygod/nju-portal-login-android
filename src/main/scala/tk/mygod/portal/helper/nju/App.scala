@@ -30,6 +30,8 @@ class App extends Application with ContextPlus {
   def autoLoginEnabled = pref.getBoolean(AUTO_LOGIN_ENABLED, true)
   def reloginDelay = pref.getInt(RELOGIN_DELAY, 0)
 
+  def syncNotices = pref.getBoolean("syncNotices", true)
+
   def skipConnect = pref.getBoolean("speed.skipConnect", false)
   def connectTimeout = pref.getInt("speed.connectTimeout", 4000)
   def loginTimeout = pref.getInt("speed.loginTimeout", 4000)

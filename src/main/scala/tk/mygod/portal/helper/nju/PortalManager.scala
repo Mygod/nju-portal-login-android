@@ -12,6 +12,7 @@ import org.json4s._
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization
 import tk.mygod.os.Build
+import tk.mygod.portal.helper.nju.database.Notice
 import tk.mygod.util.CloseUtils._
 import tk.mygod.util.Conversions._
 import tk.mygod.util.IOUtils
@@ -48,12 +49,15 @@ object PortalManager {
   }
 
   private implicit val formats = Serialization.formats(NoTypeHints)
-  //noinspection JavaAccessorMethodCalledAsEmptyParen
   private def parseResult(conn: HttpURLConnection) = {
+    //noinspection JavaAccessorMethodCalledAsEmptyParen
     val resultStr = IOUtils.readAllText(conn.getInputStream())
     if (DEBUG) Log.v(TAG, resultStr)
     val json = parse(resultStr)
-    val code = (json \ "reply_code").asInstanceOf[JInt].values.toInt
+    val code = json \ "reply_code" match {
+      case i: JInt => i.values.toInt
+      case _ => 0
+    }
     val info = json \ "userinfo"
     info match {
       case obj: JObject =>
@@ -161,6 +165,7 @@ object PortalManager {
     if (code == 1 || code == 6) {
       reportNetworkConnectivity(network, true)
       NetworkMonitor.instance.listener.onLogin(network, code)
+      if (app.syncNotices) NoticeManager.pushUnreadNotices
     }
     result
   }
@@ -170,7 +175,10 @@ object PortalManager {
       network = NetworkMonitor.preferNetworkLegacy(n)
       _.openConnection
     })
-    if (code == 1 || code == 6) NetworkMonitor.listenerLegacy.onLogin(network, code)
+    if (code == 1 || code == 6) {
+      NetworkMonitor.listenerLegacy.onLogin(network, code)
+      if (app.syncNotices) NoticeManager.pushUnreadNotices
+    }
     result
   }
   def login: Int =
@@ -203,7 +211,7 @@ object PortalManager {
   }
 
   def logout = openPortalConnection[Unit]("/portal_io/logout") { (conn, network) =>
-    setup(conn, 0)
+    setup(conn)
     if (parseResult(conn)._1 == 101) {
       if (app.boundConnectionsAvailable > 1 && network != null)
         reportNetworkConnectivity(network.asInstanceOf[Network], false)
@@ -216,9 +224,14 @@ object PortalManager {
     } else None
   }.nonEmpty
 
-  def queryVolume = openPortalConnection[JObject]("/portal_io/selfservice/volume/getlist")
-  { (conn, _) =>
-    setup(conn, 0)
+  def queryNotice = openPortalConnection[List[Notice]]("/portal_io/proxy/notice") { (conn, _) =>
+    setup(conn)
+    Some((parseResult(conn)._2 \ "notice").asInstanceOf[JArray].values
+      .map(i => new Notice(i.asInstanceOf[Map[String, Any]])))
+  }
+
+  def queryVolume = openPortalConnection[JObject]("/portal_io/selfservice/volume/getlist") { (conn, _) =>
+    setup(conn)
     val (code, json) = parseResult(conn)
     if (code == 0) {
       val total = (json \ "total").asInstanceOf[JInt].values

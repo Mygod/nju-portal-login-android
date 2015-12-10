@@ -17,8 +17,10 @@ shrinkResources in Android := true
 resolvers += Resolver.sonatypeRepo("public")
 
 libraryDependencies ++= Seq(
-  "tk.mygod" %% "mygod-lib-android" % "1.3.7-SNAPSHOT",
-  "org.json4s" %% "json4s-native" % "3.3.0"
+  "com.j256.ormlite" % "ormlite-core" % "4.48",
+  "com.j256.ormlite" % "ormlite-android" % "4.48",
+  "org.json4s" %% "json4s-native" % "3.3.0",
+  "tk.mygod" %% "mygod-lib-android" % "1.3.7-SNAPSHOT"
 )
 
 proguardOptions += "-dontwarn com.thoughtworks.**"
