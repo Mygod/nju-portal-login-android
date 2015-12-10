@@ -13,7 +13,7 @@ import tk.mygod.portal.helper.nju.app
   */
 object DatabaseManager {
   private lazy val instance = new DatabaseManager(app)
-  lazy val noticeDao: Dao[Notice, Long] = instance.getDao(classOf[Notice])
+  lazy val noticeDao: Dao[Notice, Int] = instance.getDao(classOf[Notice])
 }
 
 final class DatabaseManager(context: Context) extends OrmLiteSqliteOpenHelper(context, "data.db", null, 1) {

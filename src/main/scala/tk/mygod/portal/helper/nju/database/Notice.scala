@@ -13,13 +13,16 @@ class Notice {
     url = o("url").toString
   }
 
-  @DatabaseField
+  @DatabaseField(generatedId = true)
+  var id: Int = _
+
+  @DatabaseField(uniqueCombo = true)
   var title: String = _
 
-  @DatabaseField(id = true)
+  @DatabaseField(uniqueCombo = true)
   var distributionTime: Long = _
 
-  @DatabaseField
+  @DatabaseField(uniqueCombo = true)
   var url: String = _
 
   @DatabaseField
@@ -27,4 +30,10 @@ class Notice {
 
   @DatabaseField
   var read: Boolean = _
+
+  override def equals(o: Any) = o match {
+    case that: Notice => distributionTime == that.distributionTime && title == that.title && url == that.url
+    case _ => false
+  }
+  override def hashCode = title.toUpperCase.hashCode ^ distributionTime.hashCode ^ url.hashCode
 }

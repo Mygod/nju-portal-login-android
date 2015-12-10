@@ -2,11 +2,10 @@ package tk.mygod.portal.helper.nju
 
 import android.app.NotificationManager
 import android.content.res.Resources
-import android.content.{Context, BroadcastReceiver, Intent}
+import android.content.{BroadcastReceiver, Context, Intent}
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
 import android.text.Html
-import android.util.Log
 import tk.mygod.portal.helper.nju.database.Notice
 import tk.mygod.util.Conversions._
 
@@ -22,40 +21,33 @@ object NoticeManager {
 
   private final val ACTION_MARK_AS_READ = "tk.mygod.portal.helper.nju.NoticeManager.MARK_AS_READ"
   private final val ACTION_VIEW = "tk.mygod.portal.helper.nju.NoticeManager.VIEW"
-  private final val EXTRA_DISTRIBUTION_TIME = "DISTRIBUTION_TIME"
+  private final val EXTRA_ID = "ID"
 
   private lazy val nm = app.systemService[NotificationManager]
 
-  private def fetchNotice(distributionTime: Long) = noticeDao.queryForId(distributionTime)
+  private def fetchNotice(id: Int) = noticeDao.queryForId(id)
   private def fetchAllNotices = noticeDao.query(noticeDao.queryBuilder.orderBy("distributionTime", false).prepare)
 
   private def updateUnreadNotices = PortalManager.queryNotice match {
     case Some(notices) =>
-      val unreadNotices = new ArrayBuffer[Notice]
-      val activeNotices = new mutable.HashMap ++ notices.map(notice => notice.distributionTime -> notice)
-      for (activeNotice <- noticeDao.query(noticeDao.queryBuilder.where.eq("obsolete", false).prepare).asScala)
-        activeNotices.get(activeNotice.distributionTime) match {
-          case Some(notice) =>
-            activeNotices.remove(activeNotice.distributionTime)
-            if (activeNotice.title != notice.title || activeNotice.url != notice.url) { // updated
-              notice.read = false
-              noticeDao.update(notice)
-            }
-            if (!notice.read) unreadNotices += notice
-          case None =>
-            // archive obsolete notices
-            activeNotice.obsolete = true
-            noticeDao.update(activeNotice)
-        }
-      for ((time, notice) <- activeNotices) {
+      val unread = new ArrayBuffer[Notice]
+      val active = new mutable.HashMap[Notice, Notice] ++ notices.map(n => n -> n)
+      for (notice <- noticeDao.query(noticeDao.queryBuilder.where.eq("obsolete", false).prepare).asScala)
+        if (active.remove(notice).isEmpty) {
+          // archive obsolete notices
+          notice.obsolete = true
+          noticeDao.update(notice)
+        } else if (!notice.read) unread += notice
+      for ((_, notice) <- active) {
         var result = noticeDao.createIfNotExists(notice)
         if (result.obsolete) {
-          noticeDao.update(notice)
-          result = notice
+          result.obsolete = false
+          result.read = false
+          noticeDao.update(result)
         }
-        if (!result.read) unreadNotices += result
+        if (!result.read) unread += result
       }
-      unreadNotices
+      unread
     case _ => ArrayBuffer.empty[Notice]  // error, ignore
   }
 
@@ -68,21 +60,22 @@ object NoticeManager {
     app.getResources.getInteger(Resources.getSystem.getIdentifier(key, "integer", "android"))
   private lazy val lightOnMs = readSystemInteger("config_defaultNotificationLedOn")
   private lazy val lightOffMs = readSystemInteger("config_defaultNotificationLedOff")
+  private val pushedNotices = new mutable.HashSet[Int]
 
-  def pushUnreadNotices = {
+  def pushUnreadNotices {
     val notices = updateUnreadNotices
-    // todo: reuse Builder if possible
-    val accent = ContextCompat.getColor(app, R.color.material_primary_500)
-    Log.v("NoticeManager", "%s, %s".format(lightOnMs, lightOffMs))
-    if (notices.nonEmpty) app.handler.post(for (notice <- notices) nm.notify(notice.distributionTime.hashCode,
-      new NotificationCompat.Builder(app).setColor(accent).setLights(accent, lightOnMs, lightOffMs)
-        .setSmallIcon(R.drawable.ic_action_announcement).setGroup("Notices").setAutoCancel(true)
-        .setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE) // todo: customize
-        .setContentTitle(Html.fromHtml(notice.title)).setWhen(notice.distributionTime * 1000).setContentText(notice.url)
-        .setContentIntent(app.pendingBroadcast(new Intent(ACTION_VIEW)
-          .putExtra(EXTRA_DISTRIBUTION_TIME, notice.distributionTime)))
-        .setDeleteIntent(app.pendingBroadcast(new Intent(ACTION_MARK_AS_READ)
-          .putExtra(EXTRA_DISTRIBUTION_TIME, notice.distributionTime))).build))
+    if (notices.nonEmpty) app.handler.post(for (notice <- notices) {
+      val builder = new NotificationCompat.Builder(app).setAutoCancel(true)
+        .setColor(ContextCompat.getColor(app, R.color.material_primary_500))
+        .setLights(ContextCompat.getColor(app, R.color.material_purple_a700), lightOnMs, lightOffMs)
+        .setSmallIcon(R.drawable.ic_action_announcement).setGroup("Notices").setContentText(notice.url)
+        .setContentTitle(Html.fromHtml(notice.title)).setWhen(notice.distributionTime * 1000)
+        .setContentIntent(app.pendingBroadcast(new Intent(ACTION_VIEW).putExtra(EXTRA_ID, notice.id)))
+        .setDeleteIntent(app.pendingBroadcast(new Intent(ACTION_MARK_AS_READ).putExtra(EXTRA_ID, notice.id)))
+      if (pushedNotices.add(notice.id))
+        builder.setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE)  // todo: customize
+      nm.notify(notice.id, builder.build)
+    })
   }
 }
 
@@ -90,7 +83,7 @@ final class NoticeManager extends BroadcastReceiver {
   import NoticeManager._
 
   def onReceive(context: Context, intent: Intent) {
-    val notice = fetchNotice(intent.getLongExtra(EXTRA_DISTRIBUTION_TIME, 0))
+    val notice = fetchNotice(intent.getIntExtra(EXTRA_ID, 0))
     if (intent.getAction == ACTION_VIEW)
       context.startActivity(new Intent(Intent.ACTION_VIEW).setData(notice.url).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     read(notice)
