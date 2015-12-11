@@ -39,6 +39,9 @@
 
     <string name="settings_notifications">通知</string>
     <string name="settings_notifications_notices">查看通知公告历史</string>
+    <string name="settings_notifications_notices_sync_login">登录时同步通知公告</string>
+    <string name="settings_notifications_notices_sound">有新的通知公告时使用声音提醒</string>
+    <string name="settings_notifications_notices_vibrate">有新的通知公告时振动</string>
     <string name="settings_notifications_connection">网络可用</string>
     <string name="settings_notifications_connection_summary">当前连接有 Internet 连接时显示通知，并显示 HTTP ping 延迟。
     </string>

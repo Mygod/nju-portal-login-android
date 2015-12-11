@@ -42,6 +42,9 @@
 
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_notices">View notices history</string>
+    <string name="settings_notifications_notices_sync_login">Sync notices on login</string>
+    <string name="settings_notifications_notices_sound">Notification sound when new notices are available</string>
+    <string name="settings_notifications_notices_vibrate">Vibrate when new notices are available</string>
     <string name="settings_notifications_connection">Connection available</string>
     <string name="settings_notifications_connection_summary">Display a toast when the current connection has access to
         Internet with an HTTP ping time.</string>

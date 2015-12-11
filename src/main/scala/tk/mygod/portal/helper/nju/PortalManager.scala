@@ -165,7 +165,7 @@ object PortalManager {
     if (code == 1 || code == 6) {
       reportNetworkConnectivity(network, true)
       NetworkMonitor.instance.listener.onLogin(network, code)
-      if (app.syncNotices) NoticeManager.pushUnreadNotices
+      NoticeManager.pushUnreadNotices
     }
     result
   }
@@ -177,7 +177,7 @@ object PortalManager {
     })
     if (code == 1 || code == 6) {
       NetworkMonitor.listenerLegacy.onLogin(network, code)
-      if (app.syncNotices) NoticeManager.pushUnreadNotices
+      NoticeManager.pushUnreadNotices
     }
     result
   }

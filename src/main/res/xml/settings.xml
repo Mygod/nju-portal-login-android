@@ -61,6 +61,15 @@
         <android.support.v7.preference.Preference android:key="notifications.notices"
                                                   android:title="@string/settings_notifications_notices"/>
         <android.support.v14.preference.SwitchPreference
+                android:key="notifications.notices.sync.login" android:defaultValue="true"
+                android:title="@string/settings_notifications_notices_sync_login"/>
+        <android.support.v14.preference.SwitchPreference android:key="notifications.notices.sound"
+                                                         android:title="@string/settings_notifications_notices_sound"
+                                                         android:defaultValue="true"/>
+        <android.support.v14.preference.SwitchPreference android:key="notifications.notices.vibrate"
+                                                         android:title="@string/settings_notifications_notices_vibrate"
+                                                         android:defaultValue="true"/>
+        <android.support.v14.preference.SwitchPreference
                 android:key="notifications.connection" android:title="@string/settings_notifications_connection"
                 android:summary="@string/settings_notifications_connection_summary" android:defaultValue="true"/>
         <android.support.v14.preference.SwitchPreference android:key="notifications.login" android:defaultValue="true"

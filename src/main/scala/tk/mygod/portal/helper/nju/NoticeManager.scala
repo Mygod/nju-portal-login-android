@@ -60,7 +60,7 @@ object NoticeManager {
   private lazy val lightOffMs = readSystemInteger("config_defaultNotificationLedOff")
   private val pushedNotices = new mutable.HashSet[Int]
 
-  def pushUnreadNotices {
+  def pushUnreadNotices = if (app.pref.getBoolean("notifications.notices.sync.login", true)) {
     val notices = updateUnreadNotices
     if (notices.nonEmpty) app.handler.post(for (notice <- notices) {
       val builder = new NotificationCompat.Builder(app).setAutoCancel(true)
@@ -70,8 +70,12 @@ object NoticeManager {
         .setContentTitle(notice.formattedTitle).setWhen(notice.distributionTime * 1000)
         .setContentIntent(app.pendingBroadcast(new Intent(ACTION_VIEW).putExtra(EXTRA_ID, notice.id)))
         .setDeleteIntent(app.pendingBroadcast(new Intent(ACTION_MARK_AS_READ).putExtra(EXTRA_ID, notice.id)))
-      if (pushedNotices.add(notice.id))
-        builder.setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE)  // todo: customize
+      if (pushedNotices.add(notice.id)) {
+        var defaults = 0
+        if (app.pref.getBoolean("notifications.notices.sound", true)) defaults |= NotificationCompat.DEFAULT_SOUND
+        if (app.pref.getBoolean("notifications.notices.vibrate", true)) defaults |= NotificationCompat.DEFAULT_VIBRATE
+        if (defaults != 0) builder.setDefaults(defaults)
+      }
       nm.notify(notice.id, builder.build)
     })
   }
