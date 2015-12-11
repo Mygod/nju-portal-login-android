@@ -6,6 +6,10 @@ import com.j256.ormlite.field.DatabaseField
 /**
   * @author Mygod
   */
+object Notice {
+  final val DISTRIBUTION_TIME = "distributionTime"
+}
+
 class Notice {
   def this(o: Map[String, Any]) {
     this()

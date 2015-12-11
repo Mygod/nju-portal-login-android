@@ -26,25 +26,32 @@ object NoticeManager {
   private lazy val nm = app.systemService[NotificationManager]
 
   private def fetchNotice(id: Int) = noticeDao.queryForId(id)
-  def fetchAllNotices = noticeDao.query(noticeDao.queryBuilder.orderBy("distributionTime", false).prepare).asScala
+  def fetchAllNotices = noticeDao.query(noticeDao.queryBuilder.orderBy(Notice.DISTRIBUTION_TIME, false).prepare).asScala
 
   def updateUnreadNotices = PortalManager.queryNotice match {
     case Some(notices) =>
       val unread = new ArrayBuffer[Notice]
       val active = new mutable.HashMap[Notice, Notice] ++ notices.map(n => n -> n)
-      for (notice <- noticeDao.query(noticeDao.queryBuilder.where.eq("obsolete", false).prepare).asScala)
+      for (notice <- noticeDao.queryForEq("obsolete", false).asScala)
         if (active.remove(notice).isEmpty) {
           // archive obsolete notices
           notice.obsolete = true
           noticeDao.update(notice)
         } else if (!notice.read) unread += notice
       for ((_, notice) <- active) {
-        var result = noticeDao.createIfNotExists(notice)
-        if (result.obsolete) {
-          result.obsolete = false
-          noticeDao.update(result)
+        val duplicate = noticeDao.query(noticeDao.queryBuilder.where.eq(Notice.DISTRIBUTION_TIME,
+          notice.distributionTime).and.eq("title", notice.title).and.eq("url", notice.url).prepare)
+        if (duplicate.size > 0) {
+          val result = duplicate.get(0)
+          if (result.obsolete) {
+            result.obsolete = false
+            noticeDao.update(result)
+          }
+          if (!result.read) unread += result
+        } else {
+          noticeDao.create(notice)
+          unread += notice
         }
-        if (!result.read) unread += result
       }
       ShortcutBadger.`with`(app).count(unread.size)
       unread
