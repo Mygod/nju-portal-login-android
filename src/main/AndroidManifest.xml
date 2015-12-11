@@ -24,11 +24,5 @@
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
             </intent-filter>
         </receiver>
-        <receiver android:name=".NoticeManager" android:exported="false">
-            <intent-filter>
-                <action android:name="tk.mygod.portal.helper.nju.NoticeManager.MARK_AS_READ"/>
-                <action android:name="tk.mygod.portal.helper.nju.NoticeManager.VIEW"/>
-            </intent-filter>
-        </receiver>
     </application>
 </manifest>

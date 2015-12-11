@@ -10,7 +10,7 @@ object Notice {
   final val DISTRIBUTION_TIME = "distributionTime"
 }
 
-class Notice {
+final class Notice {
   def this(o: Map[String, Any]) {
     this()
     title = o("title").toString
