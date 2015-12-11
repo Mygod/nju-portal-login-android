@@ -72,6 +72,7 @@ final class NoticeFragment extends CircularRevealFragment with OnRefreshListener
     swiper = result.findView(TR.swiper)
     swiper.setColorSchemeResources(R.color.material_accent_500, R.color.material_primary_500)
     swiper.setOnRefreshListener(this)
+    adapter.notices = NoticeManager.fetchAllNotices.toArray
     val notices = result.findView(TR.notices)
     notices.setLayoutManager(new LinearLayoutManager(getActivity))
     notices.setItemAnimator(new DefaultItemAnimator)
