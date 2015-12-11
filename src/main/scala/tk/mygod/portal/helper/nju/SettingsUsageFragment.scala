@@ -40,16 +40,24 @@ final class SettingsUsageFragment extends SettingsFragmentBase with OnRefreshLis
     swiper = view.findViewById(R.id.preference_holder).asInstanceOf[SwipeRefreshLayout]
     swiper.setColorSchemeResources(R.color.material_accent_500, R.color.material_primary_500)
     swiper.setOnRefreshListener(this)
-    onRefresh
   }
 
-  override def onRefresh {
+  override def onResume {
+    super.onResume
+    refresh()
+  }
+
+  def onRefresh = refresh(true)
+
+  def refresh(manual: Boolean = false) = {
     swiper.setRefreshing(true)
     ThrowableFuture((try {
-      PortalManager.logout
-      Thread.sleep(2000)
-      PortalManager.login
-      Thread.sleep(2000)
+      if (manual) {
+        PortalManager.logout
+        Thread.sleep(2000)
+        PortalManager.login
+        Thread.sleep(2000)
+      }
       PortalManager.queryVolume
     } catch {
       case e: PortalManager.NetworkUnavailableException =>
