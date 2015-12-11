@@ -41,7 +41,6 @@ object NoticeManager {
         var result = noticeDao.createIfNotExists(notice)
         if (result.obsolete) {
           result.obsolete = false
-          result.read = false
           noticeDao.update(result)
         }
         if (!result.read) unread += result
