@@ -73,7 +73,7 @@ final class MainActivity extends FragmentStackActivity with LocationObservedActi
 
   def startNetworkMonitor = if (app.autoLoginEnabled) startService(serviceIntent)
 
-  def onPreferenceStartScreen(fragment: PreferenceFragment, screen: PreferenceScreen) {
+  def onPreferenceStartScreen(fragment: PreferenceFragment, screen: PreferenceScreen) = {
     val fragment = new SettingsUsageFragment
     fragment.setRootKey(screen.getKey)
     fragment.setSpawnLocation(getLocationOnScreen)
