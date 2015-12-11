@@ -3,7 +3,6 @@ package tk.mygod.portal.helper.nju
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.content._
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.support.v14.preference.PreferenceFragment
@@ -11,7 +10,8 @@ import android.support.v14.preference.PreferenceFragment.OnPreferenceStartScreen
 import android.support.v7.app.AlertDialog
 import android.support.v7.preference.PreferenceScreen
 import android.text.TextUtils
-import tk.mygod.app.{LocationObservedActivity, FragmentStackActivity}
+import tk.mygod.app.{FragmentStackActivity, LocationObservedActivity}
+import tk.mygod.util.Conversions._
 
 object MainActivity {
   private val ASKED_BOUND_CONNECTION = "misc.useBoundConnections.asked"
@@ -35,7 +35,7 @@ final class MainActivity extends FragmentStackActivity with LocationObservedActi
   }
 
   private def manageWriteSettings(dialog: DialogInterface = null, which: Int = 0) = startActivity(
-    new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).setData(Uri.parse("package:" + getPackageName)))
+    new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).setData("package:" + getPackageName))
   def testBoundConnections(requested: Boolean = false) = app.boundConnectionsAvailable match {
     case 1 => if (requested) {
       manageWriteSettings()
@@ -73,17 +73,15 @@ final class MainActivity extends FragmentStackActivity with LocationObservedActi
 
   def startNetworkMonitor = if (app.autoLoginEnabled) startService(serviceIntent)
 
-  def onPreferenceStartScreen(fragment: PreferenceFragment, screen: PreferenceScreen) = {
-    val fragment = screen.getKey match {
-      case "status.usage" => new SettingsUsageFragment
-    }
+  def onPreferenceStartScreen(fragment: PreferenceFragment, screen: PreferenceScreen) {
+    val fragment = new SettingsUsageFragment
     fragment.setRootKey(screen.getKey)
     fragment.setSpawnLocation(getLocationOnScreen)
     push(fragment)
   }
 
   def showNoticeFragment {
-    val fragment =  if (noticeFragment == null) new NoticeFragment else noticeFragment
+    val fragment = if (noticeFragment == null) new NoticeFragment else noticeFragment
     fragment.setSpawnLocation(getLocationOnScreen)
     push(fragment)
   }
