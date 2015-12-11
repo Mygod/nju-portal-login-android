@@ -76,6 +76,8 @@ object NoticeManager {
         if (app.pref.getBoolean("notifications.notices.vibrate", true)) defaults |= NotificationCompat.DEFAULT_VIBRATE
         if (defaults != 0) builder.setDefaults(defaults)
       }
+      if (app.pref.getBoolean("notifications.notices.headsUp", true))
+        builder.setPriority(NotificationCompat.PRIORITY_HIGH)
       nm.notify(notice.id, builder.build)
     })
   }

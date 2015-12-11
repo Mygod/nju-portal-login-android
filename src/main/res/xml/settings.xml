@@ -63,12 +63,18 @@
         <android.support.v14.preference.SwitchPreference
                 android:key="notifications.notices.sync.login" android:defaultValue="true"
                 android:title="@string/settings_notifications_notices_sync_login"/>
-        <android.support.v14.preference.SwitchPreference android:key="notifications.notices.sound"
-                                                         android:title="@string/settings_notifications_notices_sound"
-                                                         android:defaultValue="true"/>
-        <android.support.v14.preference.SwitchPreference android:key="notifications.notices.vibrate"
-                                                         android:title="@string/settings_notifications_notices_vibrate"
-                                                         android:defaultValue="true"/>
+        <android.support.v14.preference.SwitchPreference
+                android:key="notifications.notices.headsUp" android:defaultValue="true"
+                android:title="@string/settings_notifications_notices_heads_up"
+                android:summary="@string/settings_notifications_notices_summary"/>
+        <android.support.v14.preference.SwitchPreference
+                android:key="notifications.notices.sound" android:defaultValue="true"
+                android:title="@string/settings_notifications_notices_sound"
+                android:summary="@string/settings_notifications_notices_summary"/>
+        <android.support.v14.preference.SwitchPreference
+                android:key="notifications.notices.vibrate" android:defaultValue="true"
+                android:title="@string/settings_notifications_notices_vibrate"
+                android:summary="@string/settings_notifications_notices_summary"/>
         <android.support.v14.preference.SwitchPreference
                 android:key="notifications.connection" android:title="@string/settings_notifications_connection"
                 android:summary="@string/settings_notifications_connection_summary" android:defaultValue="true"/>
