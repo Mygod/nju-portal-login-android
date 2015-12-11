@@ -47,6 +47,7 @@
 
     <string name="settings_speed">速度优化</string>
     <string name="settings_speed_skip_connect">跳过连接测试</string>
+    <string name="settings_speed_skip_connect_summary">一旦连接可用就立即登陆。</string>
     <string name="settings_speed_connect_timeout">连接超时</string>
     <string name="settings_speed_login_timeout">登录超时</string>
     <string name="settings_speed_timeout_summary">%d 毫秒（0 = 无限长）</string>

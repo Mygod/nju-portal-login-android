@@ -50,6 +50,7 @@
 
     <string name="settings_speed">Speed optimizations</string>
     <string name="settings_speed_skip_connect">Skip connection test</string>
+    <string name="settings_speed_skip_connect_summary">Login as soon as a connection is available.</string>
     <string name="settings_speed_connect_timeout">Connect timeout</string>
     <string name="settings_speed_login_timeout">Login timeout</string>
     <string name="settings_speed_timeout_summary">%dms (0 = infinite)</string>
