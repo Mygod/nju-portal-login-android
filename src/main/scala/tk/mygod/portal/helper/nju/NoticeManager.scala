@@ -5,6 +5,7 @@ import android.content.res.Resources
 import android.content.{BroadcastReceiver, Context, Intent}
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
+import me.leolin.shortcutbadger.ShortcutBadger
 import tk.mygod.portal.helper.nju.database.Notice
 import tk.mygod.util.Conversions._
 
@@ -45,6 +46,7 @@ object NoticeManager {
         }
         if (!result.read) unread += result
       }
+      ShortcutBadger.`with`(app).count(unread.size)
       unread
     case _ => ArrayBuffer.empty[Notice]  // error, ignore
   }
