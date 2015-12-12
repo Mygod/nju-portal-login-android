@@ -1,8 +1,10 @@
 package tk.mygod.portal.helper.nju
 
-import android.app.NotificationManager
+import android.accounts.Account
+import android.app.{NotificationManager, Service}
 import android.content.res.Resources
-import android.content.{Intent, IntentFilter}
+import android.content._
+import android.os.Bundle
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
 import me.leolin.shortcutbadger.ShortcutBadger
@@ -22,13 +24,31 @@ object NoticeManager {
   private final val ACTION_MARK_AS_READ = "tk.mygod.portal.helper.nju.NoticeManager.MARK_AS_READ"
   private final val ACTION_VIEW = "tk.mygod.portal.helper.nju.NoticeManager.VIEW"
   private final val EXTRA_ID = "ID"
+  private final val AUTHORITY = "tk.mygod.portal.helper.nju.provider"
+
+  private final class SyncAdapter(context: Context, autoInitialize: Boolean, allowParallelSyncs: Boolean)
+    extends AbstractThreadedSyncAdapter(context, autoInitialize, allowParallelSyncs) {
+    def onPerformSync(account: Account, extras: Bundle, authority: String, provider: ContentProviderClient,
+                      syncResult: SyncResult) = updateUnreadNotices(syncResult)
+  }
+
+  val account = new Account(app.getString(R.string.notice_sync), PortalManager.DOMAIN)
+  def updatePeriodicSync = app.pref.getString("notifications.notices.sync.period", "1").toLong match {
+    case 0 =>
+      ContentResolver.removePeriodicSync(account, AUTHORITY, Bundle.EMPTY)
+      ContentResolver.setMasterSyncAutomatically(false)
+    case mins =>
+      ContentResolver.setMasterSyncAutomatically(true)
+      ContentResolver.setSyncAutomatically(account, AUTHORITY, true)
+      ContentResolver.addPeriodicSync(account, AUTHORITY, Bundle.EMPTY, mins * 60)
+  }
 
   private lazy val nm = app.systemService[NotificationManager]
 
   private def fetchNotice(id: Int) = noticeDao.queryForId(id)
   def fetchAllNotices = noticeDao.query(noticeDao.queryBuilder.orderBy(Notice.DISTRIBUTION_TIME, false).prepare).asScala
 
-  def updateUnreadNotices = PortalManager.queryNotice match {
+  def updateUnreadNotices(syncResult: SyncResult = null) = synchronized(PortalManager.queryNotice match {
     case Some(notices) =>
       val unread = new ArrayBuffer[Notice]
       val active = new mutable.HashMap[Notice, Notice] ++ notices.map(n => n -> n)
@@ -37,6 +57,7 @@ object NoticeManager {
           // archive obsolete notices
           notice.obsolete = true
           noticeDao.update(notice)
+          if (syncResult != null) syncResult.stats.numUpdates += 1
         } else if (!notice.read) unread += notice
       for ((_, notice) <- active) {
         val duplicate = noticeDao.query(noticeDao.queryBuilder.where.eq(Notice.DISTRIBUTION_TIME,
@@ -46,17 +67,21 @@ object NoticeManager {
           if (result.obsolete) {
             result.obsolete = false
             noticeDao.update(result)
+            if (syncResult != null) syncResult.stats.numUpdates += 1
           }
           if (!result.read) unread += result
         } else {
           noticeDao.create(notice)
+          if (syncResult != null) syncResult.stats.numInserts += 1
           unread += notice
         }
       }
       ShortcutBadger.`with`(app).count(unread.size)
       unread
-    case _ => ArrayBuffer.empty[Notice]  // error, ignore
-  }
+    case _ => // error, ignore
+      if (syncResult != null) syncResult.stats.numIoExceptions += 1
+      ArrayBuffer.empty[Notice]
+  })
 
   def read(notice: Notice) {
     notice.read = true
@@ -72,7 +97,7 @@ object NoticeManager {
   private def pending(action: String, id: Int) =
     app.pendingBroadcast(new Intent(action).putExtra(EXTRA_ID, id).setFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY))
   def pushUnreadNotices = if (app.pref.getBoolean("notifications.notices.sync.login", true)) {
-    val notices = updateUnreadNotices
+    val notices = updateUnreadNotices()
     if (notices.nonEmpty) app.handler.post(() => {
       synchronized(if (!receiverRegistered) {
         val filter = new IntentFilter(ACTION_MARK_AS_READ)
@@ -107,4 +132,17 @@ object NoticeManager {
     })
   }
   def cancelAllNotices = for (notice <- pushedNotices) nm.cancel(notice)
+}
+
+final class NoticeManager extends Service {
+  import NoticeManager._
+
+  private var syncAdapter: SyncAdapter = _
+
+  override def onCreate {
+    super.onCreate
+    syncAdapter = new SyncAdapter(app, true, false)
+  }
+
+  def onBind(intent: Intent) = syncAdapter.getSyncAdapterBinder
 }

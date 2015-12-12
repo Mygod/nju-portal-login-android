@@ -1,5 +1,6 @@
 package tk.mygod.portal.helper.nju
 
+import android.accounts.AccountManager
 import android.app.Application
 import android.content.Context
 import android.net.ConnectivityManager
@@ -15,6 +16,8 @@ class App extends Application with ContextPlus {
   override def onCreate {
     app = this
     super.onCreate
+    systemService[AccountManager].addAccountExplicitly(NoticeManager.account, null, null)
+    NoticeManager.updatePeriodicSync
   }
 
   /**

@@ -4,9 +4,11 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS"/>
     <application android:name=".App" android:label="@string/app_name" android:icon="@drawable/logo"
                  android:theme="@style/Theme.Material" android:allowBackup="true" android:fullBackupContent="true">
         <activity android:name=".MainActivity" android:launchMode="singleTask">
@@ -17,6 +19,20 @@
         </activity>
         <activity android:name=".PortalActivity" android:exported="true" android:label="@string/portal_activity_name"
                   android:launchMode="singleTask"/>
+        <provider android:name="tk.mygod.content.StubProvider" android:authorities="tk.mygod.portal.helper.nju.provider"
+                  android:label="@string/app_name" android:exported="false" android:syncable="true"/>
+        <service android:name="tk.mygod.accounts.StubAuthenticatorService">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator"/>
+            </intent-filter>
+            <meta-data android:name="android.accounts.AccountAuthenticator" android:resource="@xml/authenticator"/>
+        </service>
+        <service android:name=".NoticeManager" android:exported="true">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter"/>
+            </intent-filter>
+            <meta-data android:name="android.content.SyncAdapter" android:resource="@xml/syncadapter"/>
+        </service>
         <service android:name=".NetworkMonitor"/>
         <receiver android:name=".NetworkMonitorListener">
             <intent-filter>

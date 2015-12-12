@@ -22,7 +22,7 @@ object SettingsFragment {
   preferenceGetId.setAccessible(true)
 }
 
-final class SettingsFragment extends SettingsFragmentBase {
+final class SettingsFragment extends ToolbarPreferenceFragment {
   import SettingsFragment._
 
   private lazy val activity = getActivity.asInstanceOf[MainActivity]

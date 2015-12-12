@@ -11,7 +11,7 @@ import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, Recy
 import android.text.format.DateFormat
 import android.view.{View, ViewGroup, LayoutInflater}
 import android.widget.TextView
-import tk.mygod.app.{ActivityPlus, CircularRevealFragment}
+import tk.mygod.app.{ToolbarFragment, ActivityPlus, CircularRevealFragment}
 import tk.mygod.portal.helper.nju.TypedResource._
 import tk.mygod.portal.helper.nju.database.Notice
 import tk.mygod.util.Conversions._
@@ -66,18 +66,19 @@ final class NoticeFragment extends CircularRevealFragment with OnRefreshListener
   private var swiper: SwipeRefreshLayout = _
   private val adapter = new NoticeAdapter
 
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
-    val result = inflater.inflate(R.layout.fragment_notices, container, false)
-    configureToolbar(result, R.string.notices, 0)
-    swiper = result.findView(TR.swiper)
+  override def layout = R.layout.fragment_notices
+  override def onViewCreated(view: View, savedInstanceState: Bundle) = {
+    super.onViewCreated(view, savedInstanceState)
+    configureToolbar(view, R.string.notices)
+    setNavigationIcon(ToolbarFragment.BACK)
+    swiper = view.findView(TR.swiper)
     swiper.setColorSchemeResources(R.color.material_accent_500, R.color.material_primary_500)
     swiper.setOnRefreshListener(this)
     adapter.notices = NoticeManager.fetchAllNotices.toArray
-    val notices = result.findView(TR.notices)
+    val notices = view.findView(TR.notices)
     notices.setLayoutManager(new LinearLayoutManager(getActivity))
     notices.setItemAnimator(new DefaultItemAnimator)
     notices.setAdapter(adapter)
-    result
   }
 
   override def onAttach(activity: Activity) {
@@ -95,7 +96,7 @@ final class NoticeFragment extends CircularRevealFragment with OnRefreshListener
   def onRefresh {
     swiper.setRefreshing(true)
     ThrowableFuture {
-      NoticeManager.updateUnreadNotices
+      NoticeManager.updateUnreadNotices()
       adapter.notices = NoticeManager.fetchAllNotices.toArray
       runOnUiThread {
         adapter.notifyDataSetChanged

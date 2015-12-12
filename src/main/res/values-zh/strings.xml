@@ -103,9 +103,10 @@
     <string name="error_socket_timeout">套接字超时。</string>
     <string name="error_network_unavailable">没有可用的连接。</string>
 
-    <!-- NoticeFragment -->
+    <!-- NoticeFragment & NoticeManager -->
     <string name="notices">通知公告历史</string>
     <string name="notice_summary">发布时间：%1$s %2$s\n%3$s</string>
+    <string name="notice_sync">通知公告同步</string>
 
     <!-- PortalActivity -->
     <string name="webview_desktop_site">请求桌面版网站</string>

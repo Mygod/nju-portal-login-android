@@ -8,6 +8,8 @@ import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
 import android.util.Log
 import android.view.View
+import tk.mygod.app.ToolbarFragment
+import tk.mygod.preference.ToolbarPreferenceFragment
 
 /**
   * @author Mygod
@@ -21,7 +23,7 @@ object SettingsUsageFragment {
   private val largeFormat = new DecimalFormat(",###")
 }
 
-final class SettingsUsageFragment extends SettingsFragmentBase with OnRefreshListener {
+final class SettingsUsageFragment extends ToolbarPreferenceFragment with OnRefreshListener {
   import SettingsUsageFragment._
 
   def setRootKey(rootKey: String) {
@@ -36,7 +38,8 @@ final class SettingsUsageFragment extends SettingsFragmentBase with OnRefreshLis
   private var swiper: SwipeRefreshLayout = _
   override def onViewCreated(view: View, savedInstanceState: Bundle) {
     super.onViewCreated(view, savedInstanceState)
-    configureToolbar(view, R.string.settings_status_usage_title, 0)
+    configureToolbar(view, R.string.settings_status_usage_title)
+    setNavigationIcon(ToolbarFragment.BACK)
     swiper = view.findViewById(R.id.preference_holder).asInstanceOf[SwipeRefreshLayout]
     swiper.setColorSchemeResources(R.color.material_accent_500, R.color.material_primary_500)
     swiper.setOnRefreshListener(this)

@@ -115,9 +115,10 @@
     <string name="error_network_unavailable">No available network.</string>
     <string name="error_socket_timeout">Socket timeout.</string>
 
-    <!-- NoticeFragment -->
+    <!-- NoticeFragment & NoticeManager -->
     <string name="notices">Notices history</string>
     <string name="notice_summary">Distribution time: %1$s %2$s\n%3$s</string>
+    <string name="notice_sync">Notice sync</string>
 
     <!-- PortalActivity -->
     <string name="webview_desktop_site">Request desktop site</string>
