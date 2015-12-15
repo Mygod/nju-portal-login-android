@@ -48,40 +48,41 @@ object NoticeManager {
   private def fetchNotice(id: Int) = noticeDao.queryForId(id)
   def fetchAllNotices = noticeDao.query(noticeDao.queryBuilder.orderBy(Notice.DISTRIBUTION_TIME, false).prepare).asScala
 
-  def updateUnreadNotices(syncResult: SyncResult = null) = synchronized(PortalManager.queryNotice match {
-    case Some(notices) =>
-      val unread = new ArrayBuffer[Notice]
-      val active = new mutable.HashMap[Notice, Notice] ++ notices.map(n => n -> n)
-      for (notice <- noticeDao.queryForEq("obsolete", false).asScala)
-        if (active.remove(notice).isEmpty) {
-          // archive obsolete notices
-          notice.obsolete = true
-          noticeDao.update(notice)
-          if (syncResult != null) syncResult.stats.numUpdates += 1
-        } else if (!notice.read) unread += notice
-      for ((_, notice) <- active) {
-        val duplicate = noticeDao.query(noticeDao.queryBuilder.where.eq(Notice.DISTRIBUTION_TIME,
-          notice.distributionTime).and.eq("title", notice.title).and.eq("url", notice.url).prepare)
-        if (duplicate.size > 0) {
-          val result = duplicate.get(0)
-          if (result.obsolete) {
-            result.obsolete = false
-            noticeDao.update(result)
+  def updateUnreadNotices(syncResult: SyncResult = null) =
+    synchronized(PortalManager.queryNotice(syncResult == null) match {
+      case Some(notices) =>
+        val unread = new ArrayBuffer[Notice]
+        val active = new mutable.HashMap[Notice, Notice] ++ notices.map(n => n -> n)
+        for (notice <- noticeDao.queryForEq("obsolete", false).asScala)
+          if (active.remove(notice).isEmpty) {
+            // archive obsolete notices
+            notice.obsolete = true
+            noticeDao.update(notice)
             if (syncResult != null) syncResult.stats.numUpdates += 1
+          } else if (!notice.read) unread += notice
+        for ((_, notice) <- active) {
+          val duplicate = noticeDao.query(noticeDao.queryBuilder.where.eq(Notice.DISTRIBUTION_TIME,
+            notice.distributionTime).and.eq("title", notice.title).and.eq("url", notice.url).prepare)
+          if (duplicate.size > 0) {
+            val result = duplicate.get(0)
+            if (result.obsolete) {
+              result.obsolete = false
+              noticeDao.update(result)
+              if (syncResult != null) syncResult.stats.numUpdates += 1
+            }
+            if (!result.read) unread += result
+          } else {
+            noticeDao.create(notice)
+            if (syncResult != null) syncResult.stats.numInserts += 1
+            unread += notice
           }
-          if (!result.read) unread += result
-        } else {
-          noticeDao.create(notice)
-          if (syncResult != null) syncResult.stats.numInserts += 1
-          unread += notice
         }
-      }
-      ShortcutBadger.`with`(app).count(unread.size)
-      unread
-    case _ => // error, ignore
-      if (syncResult != null) syncResult.stats.numIoExceptions += 1
-      ArrayBuffer.empty[Notice]
-  })
+        ShortcutBadger.`with`(app).count(unread.size)
+        unread
+      case _ => // error, ignore
+        if (syncResult != null) syncResult.stats.numIoExceptions += 1
+        ArrayBuffer.empty[Notice]
+    })
 
   def read(notice: Notice) {
     notice.read = true

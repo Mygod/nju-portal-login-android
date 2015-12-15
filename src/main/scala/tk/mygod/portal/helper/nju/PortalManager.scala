@@ -185,7 +185,8 @@ object PortalManager {
     if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) login(null) else loginLegacy()
 
   // AnyRef is a workaround for 4.x
-  def openPortalConnection[T](file: String)(handler: (HttpURLConnection, AnyRef) => Option[T]) = try {
+  def openPortalConnection[T](file: String, explicit: Boolean = true)
+                             (handler: (HttpURLConnection, AnyRef) => Option[T]) = try {
     val url = new URL(HTTP, DOMAIN, file)
     var n: AnyRef = null
     autoDisconnect((if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) {
@@ -199,7 +200,7 @@ object PortalManager {
     }).asInstanceOf[HttpURLConnection])(handler(_, n))
   } catch {
     case e: NetworkUnavailableException =>
-      app.showToast(app.getString(R.string.error_network_unavailable))
+      if (explicit) app.showToast(app.getString(R.string.error_network_unavailable))
       None
     case e: ConnectException =>
       app.showToast(e.getMessage)
@@ -224,7 +225,8 @@ object PortalManager {
     } else None
   }.nonEmpty
 
-  def queryNotice = openPortalConnection[List[Notice]]("/portal_io/proxy/notice") { (conn, _) =>
+  def queryNotice(explicit: Boolean = true) = openPortalConnection[List[Notice]]("/portal_io/proxy/notice", explicit)
+  { (conn, _) =>
     setup(conn)
     Some((parseResult(conn)._2 \ "notice").asInstanceOf[JArray].values
       .map(i => new Notice(i.asInstanceOf[Map[String, Any]])))
