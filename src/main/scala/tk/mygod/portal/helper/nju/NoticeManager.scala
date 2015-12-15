@@ -49,6 +49,8 @@ object NoticeManager {
   private def fetchNotice(id: Int) = noticeDao.queryForId(id)
   def fetchAllNotices = noticeDao.query(noticeDao.queryBuilder.orderBy(Notice.DISTRIBUTION_TIME, false).prepare).asScala
 
+  def updateUnreadCount = ShortcutBadger.`with`(app).count(noticeDao.queryForEq("read", false).size)
+
   def updateUnreadNotices(syncResult: SyncResult = null) =
     synchronized(PortalManager.queryNotice(syncResult == null) match {
       case Some(notices) =>
@@ -61,6 +63,7 @@ object NoticeManager {
             noticeDao.update(notice)
             if (syncResult != null) syncResult.stats.numUpdates += 1
           } else if (!notice.read) unread += notice
+        var newItem = false
         for ((_, notice) <- active) {
           val duplicate = noticeDao.query(noticeDao.queryBuilder.where.eq(Notice.DISTRIBUTION_TIME,
             notice.distributionTime).and.eq("title", notice.title).and.eq("url", notice.url).prepare)
@@ -76,9 +79,10 @@ object NoticeManager {
             noticeDao.create(notice)
             if (syncResult != null) syncResult.stats.numInserts += 1
             unread += notice
+            newItem = true
           }
         }
-        ShortcutBadger.`with`(app).count(unread.size)
+        if (newItem) updateUnreadCount
         unread
       case _ => // error, ignore
         if (syncResult != null) syncResult.stats.numIoExceptions += 1
@@ -88,6 +92,7 @@ object NoticeManager {
   def read(notice: Notice) {
     notice.read = true
     noticeDao.update(notice)
+    updateUnreadCount
   }
 
   private def readSystemInteger(key: String) =
