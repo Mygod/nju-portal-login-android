@@ -91,7 +91,7 @@
                                                          android:defaultValue="true"/>
     </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory android:title="@string/settings_speed">
-        <android.support.v14.preference.SwitchPreference android:key="speed.skipConnect"
+        <android.support.v14.preference.SwitchPreference android:key="speed.skipConnect" android:defaultValue="true"
                                                          android:title="@string/settings_speed_skip_connect"
                                                          android:summary="@string/settings_speed_skip_connect_summary"/>
         <tk.mygod.preference.NumberPickerPreference android:key="speed.connectTimeout"
