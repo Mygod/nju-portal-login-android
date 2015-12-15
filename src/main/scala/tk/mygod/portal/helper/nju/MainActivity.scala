@@ -68,6 +68,7 @@ final class MainActivity extends FragmentStackActivity with LocationObservedActi
         stopService(serviceIntent)
       }
     case RELOGIN_DELAY => if (NetworkMonitor.instance != null) NetworkMonitor.instance.reloginThread.interrupt
+    case NoticeManager.SYNC_INTERVAL => NoticeManager.updatePeriodicSync
     case _ => // ignore
   }
 

@@ -21,6 +21,7 @@ import scala.collection.mutable.ArrayBuffer
 object NoticeManager {
   import tk.mygod.portal.helper.nju.database.DatabaseManager.noticeDao
 
+  final val SYNC_INTERVAL = "notifications.notices.sync.interval"
   private final val ACTION_MARK_AS_READ = "tk.mygod.portal.helper.nju.NoticeManager.MARK_AS_READ"
   private final val ACTION_VIEW = "tk.mygod.portal.helper.nju.NoticeManager.VIEW"
   private final val EXTRA_ID = "ID"
@@ -33,7 +34,7 @@ object NoticeManager {
   }
 
   val account = new Account(app.getString(R.string.notice_sync), PortalManager.DOMAIN)
-  def updatePeriodicSync = app.pref.getString("notifications.notices.sync.period", "1").toLong match {
+  def updatePeriodicSync = app.pref.getString(SYNC_INTERVAL, "0").toLong match {
     case 0 =>
       ContentResolver.removePeriodicSync(account, AUTHORITY, Bundle.EMPTY)
       ContentResolver.setMasterSyncAutomatically(false)

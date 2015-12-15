@@ -42,6 +42,7 @@ final class SettingsFragment extends ToolbarPreferenceFragment {
       startActivity(activity.intent[PortalActivity])
       true
     })
+
     findPreference("auth.login").setOnPreferenceClickListener(_ => {
       ThrowableFuture(PortalManager.login)
       true

@@ -41,6 +41,21 @@
     <string name="settings_notifications_notices">查看通知公告历史</string>
     <string name="settings_notifications_notices_summary">应用于有新的通知公告时的提醒。如果同步被禁用，此项无效。</string>
     <string name="settings_notifications_notices_sync_login">登录时同步通知公告</string>
+    <string name="settings_notifications_notices_sync_interval">自动同步间隔</string>
+    <string name="settings_notifications_notices_sync_interval_summary">%s（若经常使用此应用登录则可禁用此项）</string>
+    <string-array name="settings_notifications_notices_sync_intervals">
+        <item>从不</item>
+        <item>1 分钟</item>
+        <item>5 分钟</item>
+        <item>15 分钟</item>
+        <item>30 分钟</item>
+        <item>1 小时</item>
+        <item>2 小时</item>
+        <item>4 小时</item>
+        <item>6 小时</item>
+        <item>12 小时</item>
+        <item>24 小时</item>
+    </string-array>
     <string name="settings_notifications_notices_heads_up">使用浮动通知 (5.0+)</string>
     <string name="settings_notifications_notices_sound">使用声音提醒</string>
     <string name="settings_notifications_notices_vibrate">振动</string>

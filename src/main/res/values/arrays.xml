@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="settings_notifications_notices_sync_interval_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>5</item>
+        <item>15</item>
+        <item>30</item>
+        <item>60</item>
+        <item>120</item>
+        <item>240</item>
+        <item>360</item>
+        <item>720</item>
+        <item>1440</item>
+    </string-array>
+</resources>

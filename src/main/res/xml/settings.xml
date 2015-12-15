@@ -63,6 +63,12 @@
         <android.support.v14.preference.SwitchPreference
                 android:key="notifications.notices.sync.login" android:defaultValue="true"
                 android:title="@string/settings_notifications_notices_sync_login"/>
+        <tk.mygod.preference.DropDownPreference
+                android:key="notifications.notices.sync.interval" android:defaultValue="0"
+                app:entries="@array/settings_notifications_notices_sync_intervals"
+                app:entryValues="@array/settings_notifications_notices_sync_interval_values"
+                android:title="@string/settings_notifications_notices_sync_interval"
+                android:summary="@string/settings_notifications_notices_sync_interval_summary"/>
         <android.support.v14.preference.SwitchPreference
                 android:key="notifications.notices.headsUp" android:defaultValue="true"
                 android:title="@string/settings_notifications_notices_heads_up"
