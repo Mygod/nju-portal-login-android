@@ -182,14 +182,14 @@ final class NetworkMonitor extends ServicePlus {
     private val testing = new mutable.HashMap[Network, Long]
     var loginedNetwork: Network = _
 
-    private def waitForNetwork(n: Network, retry: Boolean = false) =
-      if (app.skipConnect) login(n) else if (!testing.contains(n)) {
-      testing.synchronized(testing(n) = System.currentTimeMillis)
-      Thread.sleep(app.connectTimeout)
-      if (testing.synchronized(testing.remove(n)).nonEmpty && available.contains(n)) {
-        if (retry) Thread.sleep(retryDelay)
-        login(n)
+    private def waitForNetwork(n: Network, retry: Boolean = false) {
+      if (!app.skipConnect && !testing.contains(n)) {
+        testing.synchronized(testing(n) = System.currentTimeMillis)
+        Thread.sleep(app.connectTimeout)
+        if (testing.synchronized(testing.remove(n)).isEmpty || !available.contains(n)) return
       }
+      if (retry) Thread.sleep(retryDelay)
+      login(n)
     }
     private def onAvailable(n: Network, unsure: Boolean) = testing.get(n) match {
       case Some(start) =>
