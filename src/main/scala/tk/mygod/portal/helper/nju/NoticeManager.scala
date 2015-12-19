@@ -39,7 +39,6 @@ object NoticeManager {
       ContentResolver.removePeriodicSync(account, AUTHORITY, Bundle.EMPTY)
       ContentResolver.setSyncAutomatically(account, AUTHORITY, false)
     case mins =>
-      ContentResolver.setMasterSyncAutomatically(true)
       ContentResolver.setSyncAutomatically(account, AUTHORITY, true)
       ContentResolver.addPeriodicSync(account, AUTHORITY, Bundle.EMPTY, mins * 60)
   }
