@@ -58,7 +58,7 @@ object NetworkMonitor {
     private val testing = new mutable.TreeSet[NetworkInfo]
     var loginedNetwork: NetworkInfo = _
 
-    def login(n: NetworkInfo) = while (instance != null && loginedNetwork == null && available.contains(n) &&
+    private def login(n: NetworkInfo) = while (instance != null && loginedNetwork == null && available.contains(n) &&
       app.autoLoginEnabled && PortalManager.loginLegacy(n) == 1) Thread.sleep(retryDelay)
     def onLogin(n: NetworkInfo, code: Int) {
       loginedNetwork = n
@@ -70,29 +70,28 @@ object NetworkMonitor {
       */
     def onAvailable(n: NetworkInfo) {
       available.add(n)
-      if (!app.autoLoginEnabled || app.boundConnectionsAvailable > 1) return
-      if (app.skipConnect) ThrowableFuture(login(n))
-      else if (testing.synchronized(testing.add(n))) ThrowableFuture {
-        if (DEBUG) Log.d(TAG, "Testing connection manually...")
-        val url = new URL(HTTP, "mygod.tk", "/generate_204")
-        preferNetworkLegacy(n)
-        try autoDisconnect(url.openConnection.asInstanceOf[HttpURLConnection]) { conn =>
-          PortalManager.setup(conn, app.connectTimeout, false)
-          val start = System.currentTimeMillis
-          conn.getInputStream
-          val code = conn.getResponseCode
-          if (code == 204 || code == 200 && conn.getContentLength == 0) onNetworkAvailable(start)
-          testing.synchronized(testing.remove(n))
-        } catch {
-          case _: SocketTimeoutException | _: UnknownHostException =>
+      if (app.autoLoginEnabled && app.boundConnectionsAvailable < 2 && testing.synchronized(testing.add(n)))
+        ThrowableFuture(if (app.skipConnect) login(n) else {
+          if (DEBUG) Log.d(TAG, "Testing connection manually...")
+          val url = new URL(HTTP, "mygod.tk", "/generate_204")
+          preferNetworkLegacy(n)
+          try autoDisconnect(url.openConnection.asInstanceOf[HttpURLConnection]) { conn =>
+            PortalManager.setup(conn, app.connectTimeout, false)
+            val start = System.currentTimeMillis
+            conn.getInputStream
+            val code = conn.getResponseCode
+            if (code == 204 || code == 200 && conn.getContentLength == 0) onNetworkAvailable(start)
             testing.synchronized(testing.remove(n))
-            login(n)
-          case e: Exception =>
-            testing.synchronized(testing.remove(n))
-            app.showToast(e.getMessage)
-            e.printStackTrace
-        }
-      }
+          } catch {
+            case _: SocketTimeoutException | _: UnknownHostException =>
+              testing.synchronized(testing.remove(n))
+              login(n)
+            case e: Exception =>
+              testing.synchronized(testing.remove(n))
+              app.showToast(e.getMessage)
+              e.printStackTrace
+          }
+        })
     }
 
     def onLost(n: NetworkInfo) {
@@ -163,12 +162,12 @@ final class NetworkMonitor extends ServicePlus {
             val network = listener.loginedNetwork
             PortalManager.logout
             Thread.sleep(2000)
-            listener.login(network)
+            PortalManager.login(network)
           case 2 =>
             val network = listenerLegacy.loginedNetwork
             PortalManager.logout
             Thread.sleep(2000)
-            listenerLegacy.login(network)
+            PortalManager.loginLegacy(network)
         }
     } catch {
       case ignore: InterruptedException => if (DEBUG) Log.v(THREAD_TAG, "Interrupted.")
@@ -182,24 +181,23 @@ final class NetworkMonitor extends ServicePlus {
     private val testing = new mutable.HashMap[Network, Long]
     var loginedNetwork: Network = _
 
-    private def waitForNetwork(n: Network, retry: Boolean = false) {
-      if (!app.skipConnect && !testing.contains(n)) {
-        testing.synchronized(testing(n) = System.currentTimeMillis)
-        Thread.sleep(app.connectTimeout)
-        if (testing.synchronized(testing.remove(n)).isEmpty || !available.contains(n)) return
-      }
-      if (retry) Thread.sleep(retryDelay)
-      login(n)
+    private def waitForNetwork(n: Network) = if (testing.synchronized(if (!testing.contains(n)) {
+      testing(n) = System.currentTimeMillis
+      true
+    } else false)) {
+      if (!app.skipConnect) Thread.sleep(app.connectTimeout)
+      while (available.contains(n) && loginedNetwork == null && testing.synchronized(if (testing.contains(n)) {
+        testing(n) = System.currentTimeMillis
+        true
+      } else false) && app.autoLoginEnabled && PortalManager.login(n) == 1) Thread.sleep(retryDelay)
     }
     private def onAvailable(n: Network, unsure: Boolean) = testing.get(n) match {
       case Some(start) =>
-        onNetworkAvailable(start)
         testing.synchronized(testing.remove(n))
+        onNetworkAvailable(start)
       case None => if (unsure) ThrowableFuture(waitForNetwork(n))
     }
 
-    def login(n: Network): Unit = if (available.contains(n) && loginedNetwork == null && app.autoLoginEnabled &&
-      PortalManager.login(n) == 1) waitForNetwork(n, true)
     def onLogin(n: Network, code: Int) {
       loginedNetwork = n
       reloginThread.synchronizedNotify(code)
