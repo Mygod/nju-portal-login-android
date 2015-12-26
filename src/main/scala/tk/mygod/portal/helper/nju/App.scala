@@ -7,6 +7,7 @@ import android.net.ConnectivityManager
 import android.os.Handler
 import android.provider.Settings
 import android.widget.Toast
+import com.j256.ormlite.logger.LocalLog
 import tk.mygod.content.ContextPlus
 import tk.mygod.os.Build
 
@@ -15,6 +16,7 @@ class App extends Application with ContextPlus {
 
   override def onCreate {
     app = this
+    if (!DEBUG) System.setProperty(LocalLog.LOCAL_LOG_LEVEL_PROPERTY, "WARNING")
     super.onCreate
     systemService[AccountManager].addAccountExplicitly(NoticeManager.account, null, null)
     NoticeManager.updatePeriodicSync
