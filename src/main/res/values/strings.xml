@@ -136,6 +136,7 @@
     <string name="notices">Notices history</string>
     <string name="notice_summary">Distribution time: %1$s\n%2$s</string>
     <string name="notice_sync">Notice sync</string>
+    <string name="notice_sync_off">System sync is turned off, auto sync will not work.</string>
 
     <!-- PortalActivity -->
     <string name="webview_desktop_site">Request desktop site</string>

@@ -39,7 +39,7 @@ object NoticeManager {
       ContentResolver.removePeriodicSync(account, AUTHORITY, Bundle.EMPTY)
       ContentResolver.setSyncAutomatically(account, AUTHORITY, false)
     case mins =>
-      if (!ContentResolver.getMasterSyncAutomatically) app.showToast("TODO")
+      if (!ContentResolver.getMasterSyncAutomatically) app.showToast(app.getString(R.string.notice_sync_off))
       ContentResolver.setSyncAutomatically(account, AUTHORITY, true)
       ContentResolver.addPeriodicSync(account, AUTHORITY, Bundle.EMPTY, mins * 60)
   }
