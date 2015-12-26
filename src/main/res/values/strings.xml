@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">Portal Login Helper for NJU</string>
     <string name="portal_activity_name" translatable="false">p.nju.edu.cn</string>
+    <string name="login_logout">Login/logout</string>
 
     <!-- Settings -->
     <string name="settings_account">Account</string>

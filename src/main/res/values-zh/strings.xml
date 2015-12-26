@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">校园网登陆助手南大版</string>
+    <string name="login_logout">登录/登出</string>
 
     <!-- Settings -->
     <string name="settings_account">帐号</string>

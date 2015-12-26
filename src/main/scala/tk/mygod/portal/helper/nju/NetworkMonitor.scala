@@ -108,19 +108,20 @@ object NetworkMonitor {
       }.orNull
   }
   lazy val listenerLegacy = new NetworkListenerLegacy
-}
-
-final class NetworkMonitor extends ServicePlus {
-  import NetworkMonitor._
 
   /**
     * Get login status.
     *
     * @return 0-2: Logged out, logged in, logged in (legacy).
     */
-  private def loginStatus =
-    if (listener != null && app.boundConnectionsAvailable > 1 && listener.loginedNetwork != null) 1
-    else if (listenerLegacy.loginedNetwork != null) 2 else 0
+  def loginStatus =
+    if (instance != null && instance.loggedIn) 1 else if (listenerLegacy.loginedNetwork != null) 2 else 0
+}
+
+final class NetworkMonitor extends ServicePlus {
+  import NetworkMonitor._
+
+  private def loggedIn = listener != null && app.boundConnectionsAvailable > 1 && listener.loginedNetwork != null
 
   private lazy val notificationBuilder = new NotificationCompat.Builder(this)
     .setColor(ContextCompat.getColor(this, R.color.material_primary_500)).setContentIntent(pendingIntent[MainActivity])
