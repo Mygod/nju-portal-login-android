@@ -1,5 +1,6 @@
 package tk.mygod.portal.helper.nju
 
+import java.text.DateFormat
 import java.util.Date
 
 import android.app.Activity
@@ -8,10 +9,9 @@ import android.os.Bundle
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
 import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, RecyclerView}
-import android.text.format.DateFormat
-import android.view.{View, ViewGroup, LayoutInflater}
+import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.TextView
-import tk.mygod.app.{ToolbarFragment, ActivityPlus, CircularRevealFragment}
+import tk.mygod.app.{ActivityPlus, CircularRevealFragment, ToolbarFragment}
 import tk.mygod.portal.helper.nju.TypedResource._
 import tk.mygod.portal.helper.nju.database.Notice
 import tk.mygod.util.Conversions._
@@ -35,8 +35,8 @@ final class NoticeFragment extends CircularRevealFragment with OnRefreshListener
       this.item = item
       text1.setText(item.formattedTitle)
       val date = new Date(item.distributionTime * 1000)
-      text2.setText(getString(R.string.notice_summary, DateFormat.getDateFormat(getActivity).format(date),
-        DateFormat.getTimeFormat(getActivity).format(date), item.url))
+      text2.setText(getString(R.string.notice_summary, DateFormat.getDateTimeInstance(
+        DateFormat.DEFAULT, DateFormat.DEFAULT, getResources.getConfiguration.locale).format(date), item.url))
       val alpha = if (item.obsolete) .8F else 1
       val style = if (item.read) Typeface.NORMAL else Typeface.BOLD
       text1.setAlpha(alpha)
