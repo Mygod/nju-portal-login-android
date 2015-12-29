@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="tk.mygod.portal.helper.nju"
-          android:versionCode="385" android:versionName="2.1.2">
+          android:versionCode="386" android:versionName="2.1.3">
     <uses-sdk android:minSdkVersion="16" android:targetSdkVersion="23" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
@@ -21,10 +21,11 @@
         </activity>
         <activity android:name=".PortalActivity" android:exported="true" android:label="@string/portal_activity_name"
                   android:launchMode="singleTask"/>
-        <activity android:name=".ShortcutActivity" android:label="@string/login_logout"
-                  android:theme="@android:style/Theme.NoDisplay">
+        <activity android:name=".ShortcutActivity" android:label="@string/login_logout" android:noHistory="true"
+                  android:theme="@android:style/Theme.NoDisplay" android:excludeFromRecents="true">
             <intent-filter>
                 <action android:name="android.intent.action.CREATE_SHORTCUT" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <provider android:name="tk.mygod.content.StubProvider" android:authorities="tk.mygod.portal.helper.nju.provider"
