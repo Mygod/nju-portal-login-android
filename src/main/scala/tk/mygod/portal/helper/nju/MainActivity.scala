@@ -43,8 +43,8 @@ final class MainActivity extends FragmentStackActivity with LocationObservedActi
     } else if (!app.pref.getBoolean(ASKED_BOUND_CONNECTION, false)) {
       new AlertDialog.Builder(this).setTitle(R.string.bound_connections_title)
         .setPositiveButton(android.R.string.yes, manageWriteSettings: DialogInterface.OnClickListener)
-        .setMessage(R.string.bound_connections_message).setNegativeButton(android.R.string.no, null).create.show
-      app.editor.putBoolean(ASKED_BOUND_CONNECTION, true)
+        .setNegativeButton(android.R.string.no, ((_, _) => app.editor.putBoolean(ASKED_BOUND_CONNECTION, true)): DialogInterface.OnClickListener)
+        .setMessage(R.string.bound_connections_message).create.show
       true
     } else false
     case 2 => if (requested) {
