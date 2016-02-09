@@ -37,7 +37,7 @@ final class NoticeFragment extends CircularRevealFragment with OnRefreshListener
       val date = new Date(item.distributionTime * 1000)
       text2.setText(getString(R.string.notice_summary, DateFormat.getDateTimeInstance(
         DateFormat.DEFAULT, DateFormat.DEFAULT, getResources.getConfiguration.locale).format(date), item.url))
-      val alpha = if (item.obsolete) .8F else 1
+      val alpha = if (item.obsolete) .5F else 1F
       val style = if (item.read) Typeface.NORMAL else Typeface.BOLD
       text1.setAlpha(alpha)
       text2.setAlpha(alpha)
