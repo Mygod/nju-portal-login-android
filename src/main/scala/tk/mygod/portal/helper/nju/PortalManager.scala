@@ -8,6 +8,7 @@ import android.annotation.TargetApi
 import android.net.{Network, NetworkInfo}
 import android.text.TextUtils
 import android.util.Log
+import org.json4s.ParserUtil.ParseException
 import org.json4s._
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization
@@ -34,6 +35,7 @@ object PortalManager {
   private final val STATUS = "status"
   private final val POST_AUTH_BASE = "username=%s&password=%s"
   case class NetworkUnavailableException() extends IOException { }
+  case class InvalidResponseException(response: String) extends IOException("Invalid response: " + response) { }
 
   def chap = app.pref.getBoolean("auth.chap", true)
   var currentUsername: String = _
@@ -53,7 +55,9 @@ object PortalManager {
     //noinspection JavaAccessorMethodCalledAsEmptyParen
     val resultStr = IOUtils.readAllText(conn.getInputStream())
     if (DEBUG) Log.v(TAG, resultStr)
-    val json = parse(resultStr)
+    val json = try parse(resultStr) catch {
+      case e: ParseException => throw new InvalidResponseException(resultStr)
+    }
     val code = json \ "reply_code" match {
       case i: JInt => i.values.toInt
       case _ => 0
