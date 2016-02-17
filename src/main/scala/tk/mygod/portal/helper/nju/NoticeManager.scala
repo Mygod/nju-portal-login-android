@@ -49,7 +49,7 @@ object NoticeManager {
   private def fetchNotice(id: Int) = noticeDao.queryForId(id)
   def fetchAllNotices = noticeDao.query(noticeDao.queryBuilder.orderBy(Notice.DISTRIBUTION_TIME, false).prepare).asScala
 
-  def updateUnreadCount = ShortcutBadger.`with`(app).count(noticeDao.queryForEq("read", false).size)
+  def updateUnreadCount = ShortcutBadger.applyCount(app, noticeDao.queryForEq("read", false).size)
 
   def updateUnreadNotices(syncResult: SyncResult = null) =
     synchronized(PortalManager.queryNotice(syncResult == null) match {
