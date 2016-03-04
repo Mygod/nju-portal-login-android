@@ -39,6 +39,7 @@ final class PortalActivity extends ToolbarActivity with TypedFindView with OnRef
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_webview)
     configureToolbar(R.drawable.ic_navigation_close)
+    setNavigationIcon(R.drawable.ic_close)
     toolbar.setTitle(PortalManager.DOMAIN)
     toolbar.inflateMenu(R.menu.activity_webview)
     toolbar.setOnMenuItemClickListener(this)
