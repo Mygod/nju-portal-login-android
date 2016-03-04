@@ -31,7 +31,7 @@ final class SettingsFragment extends ToolbarPreferenceFragment {
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) {
     super.onViewCreated(view, savedInstanceState)
-    configureToolbar(view, R.string.app_name)
+    configureToolbar(R.string.app_name)
   }
 
   override def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {

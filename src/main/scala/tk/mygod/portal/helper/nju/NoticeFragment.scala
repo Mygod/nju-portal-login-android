@@ -11,7 +11,7 @@ import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
 import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, RecyclerView}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.TextView
-import tk.mygod.app.{ActivityPlus, CircularRevealFragment, ToolbarFragment}
+import tk.mygod.app.{ActivityPlus, CircularRevealFragment, ToolbarTypedFindView}
 import tk.mygod.portal.helper.nju.TypedResource._
 import tk.mygod.portal.helper.nju.database.Notice
 import tk.mygod.util.Conversions._
@@ -69,8 +69,8 @@ final class NoticeFragment extends CircularRevealFragment with OnRefreshListener
   override def layout = R.layout.fragment_notices
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
     super.onViewCreated(view, savedInstanceState)
-    configureToolbar(view, R.string.notices)
-    setNavigationIcon(ToolbarFragment.BACK)
+    configureToolbar(R.string.notices)
+    setNavigationIcon(ToolbarTypedFindView.BACK)
     swiper = view.findView(TR.swiper)
     swiper.setColorSchemeResources(R.color.material_accent_500, R.color.material_primary_500)
     swiper.setOnRefreshListener(this)

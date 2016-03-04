@@ -8,7 +8,7 @@ import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
 import android.util.Log
 import android.view.View
-import tk.mygod.app.ToolbarFragment
+import tk.mygod.app.ToolbarTypedFindView
 import tk.mygod.preference.ToolbarPreferenceFragment
 
 /**
@@ -38,8 +38,8 @@ final class SettingsUsageFragment extends ToolbarPreferenceFragment with OnRefre
   private var swiper: SwipeRefreshLayout = _
   override def onViewCreated(view: View, savedInstanceState: Bundle) {
     super.onViewCreated(view, savedInstanceState)
-    configureToolbar(view, R.string.settings_status_usage_title)
-    setNavigationIcon(ToolbarFragment.BACK)
+    configureToolbar(R.string.settings_status_usage_title)
+    setNavigationIcon(ToolbarTypedFindView.BACK)
     swiper = view.findViewById(R.id.preference_holder).asInstanceOf[SwipeRefreshLayout]
     swiper.setColorSchemeResources(R.color.material_accent_500, R.color.material_primary_500)
     swiper.setOnRefreshListener(this)
