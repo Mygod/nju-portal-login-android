@@ -65,9 +65,6 @@
     <string name="settings_notifications_notices_heads_up">Heads-up notification (5.0+)</string>
     <string name="settings_notifications_notices_sound">Notification sound</string>
     <string name="settings_notifications_notices_vibrate">Vibrate</string>
-    <string name="settings_notifications_connection">Connection available</string>
-    <string name="settings_notifications_connection_summary">Display a toast when the current connection has access to
-        Internet with an HTTP ping time.</string>
     <string name="settings_notifications_login">Login/logout successfully</string>
     <string name="settings_notifications_relogin_icon">Auto relogin pending notification icon</string>
 
@@ -128,7 +125,6 @@
 
     <!-- NetworkMonitor & PortalManager -->
     <string name="auto_relogin_active">Auto relogin pending in %dms</string>
-    <string name="network_available">Network available. Time=%dms</string>
     <string name="error_network_unavailable">No available network.</string>
     <string name="error_socket_timeout">Socket timeout.</string>
 

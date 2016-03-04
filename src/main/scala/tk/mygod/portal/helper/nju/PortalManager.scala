@@ -5,7 +5,7 @@ import java.net._
 import java.security.MessageDigest
 
 import android.annotation.TargetApi
-import android.net.{Network, NetworkInfo}
+import android.net.{Uri, Network, NetworkInfo}
 import android.text.TextUtils
 import android.util.Log
 import org.json4s.ParserUtil.ParseException
@@ -25,6 +25,9 @@ import scala.util.Random
   * Portal manager. Supports:
   *   Desktop v = 201510210840
   *   Mobile v = 201603011609
+  *
+  * To be supported:
+  *   Hotel v = 201503170854
   *
   * @author Mygod
   */
@@ -76,6 +79,30 @@ object PortalManager {
       app.showToast("#%d: %s".format(code, (json \ "reply_msg").asInstanceOf[JString].values))
     (code, json)
   }
+
+  /**
+    * Based on: https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/connectivity/NetworkMonitor.java#640
+    */
+  def testConnectionCore(conn: URL => URLConnection): Boolean = {
+    try autoDisconnect(conn(new URL(HTTP, "mygod.tk", "/generate_204")).asInstanceOf[HttpURLConnection]) { conn =>
+      setup(conn, app.connectTimeout, false)
+      val start = System.currentTimeMillis
+      conn.getInputStream
+      return conn.getResponseCode == 302 && DOMAIN.equalsIgnoreCase(Uri.parse(conn.getHeaderField("Location")).getHost)
+    } catch {
+      case _: SocketTimeoutException | _: UnknownHostException => // ignore
+      case e: Exception =>
+        app.showToast(e.getMessage)
+        e.printStackTrace
+    }
+    false
+  }
+  @TargetApi(21)
+  def testConnection(network: Network) = testConnectionCore(network.openConnection)
+  def testConnectionLegacy(network: NetworkInfo) = testConnectionCore({
+    NetworkMonitor.preferNetworkLegacy(network)
+    _.openConnection
+  })
 
   //noinspection ScalaDeprecation
   @TargetApi(21)

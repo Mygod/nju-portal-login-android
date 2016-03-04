@@ -1,7 +1,5 @@
 package tk.mygod.portal.helper.nju
 
-import java.net.{HttpURLConnection, SocketTimeoutException, URL, UnknownHostException}
-
 import android.annotation.TargetApi
 import android.net.ConnectivityManager.NetworkCallback
 import android.net._
@@ -10,7 +8,6 @@ import android.support.v4.content.ContextCompat
 import android.util.Log
 import tk.mygod.app.ServicePlus
 import tk.mygod.os.Build
-import tk.mygod.util.CloseUtils._
 import tk.mygod.util.Conversions._
 
 import scala.collection.mutable
@@ -34,12 +31,6 @@ object NetworkMonitor {
     if (retryCount < 10) retryCount = retryCount + 1
     2000 + Random.nextInt(1000 << retryCount) // prevent overwhelming failing notifications
   }
-  private def onNetworkAvailable(start: Long) {
-    val now = System.currentTimeMillis
-    retryCount = 0
-    if (app.pref.getBoolean("notifications.connection", true))
-      app.showToast(app.getString(R.string.network_available).format(now - start))
-  }
 
   //noinspection ScalaDeprecation
   def preferNetworkLegacy(n: NetworkInfo = null) = {
@@ -58,40 +49,20 @@ object NetworkMonitor {
     private val testing = new mutable.TreeSet[NetworkInfo]
     var loginedNetwork: NetworkInfo = _
 
-    private def login(n: NetworkInfo) = while (instance != null && loginedNetwork == null && available.contains(n) &&
-      app.autoLoginEnabled && PortalManager.loginLegacy(n) == 1) Thread.sleep(retryDelay)
     def onLogin(n: NetworkInfo, code: Int) {
       loginedNetwork = n
       if (instance != null && n != null) instance.reloginThread.synchronizedNotify(code)
     }
 
-    /**
-      * Based on: https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/connectivity/NetworkMonitor.java#640
-      */
     def onAvailable(n: NetworkInfo) {
       available.add(n)
       if (app.autoLoginEnabled && app.boundConnectionsAvailable < 2 && testing.synchronized(testing.add(n)))
-        ThrowableFuture(if (app.skipConnect) login(n) else {
-          if (DEBUG) Log.d(TAG, "Testing connection manually...")
-          val url = new URL(HTTP, "mygod.tk", "/generate_204")
-          preferNetworkLegacy(n)
-          try autoDisconnect(url.openConnection.asInstanceOf[HttpURLConnection]) { conn =>
-            PortalManager.setup(conn, app.connectTimeout, false)
-            val start = System.currentTimeMillis
-            conn.getInputStream
-            val code = conn.getResponseCode
-            if (code == 204 || code == 200 && conn.getContentLength == 0) onNetworkAvailable(start)
-            testing.synchronized(testing.remove(n))
-          } catch {
-            case _: SocketTimeoutException | _: UnknownHostException =>
-              testing.synchronized(testing.remove(n))
-              login(n)
-            case e: Exception =>
-              testing.synchronized(testing.remove(n))
-              app.showToast(e.getMessage)
-              e.printStackTrace
-          }
-        })
+        ThrowableFuture {
+          if (app.skipConnect || PortalManager.testConnectionLegacy(n))
+            while (instance != null && loginedNetwork == null && available.contains(n) && app.autoLoginEnabled &&
+              PortalManager.loginLegacy(n) == 1) Thread.sleep(retryDelay)
+          testing.synchronized(testing.remove(n))
+        }
     }
 
     def onLost(n: NetworkInfo) {
@@ -179,24 +150,13 @@ final class NetworkMonitor extends ServicePlus {
   @TargetApi(21)
   class NetworkListener extends NetworkCallback {
     private val available = new mutable.TreeSet[Network]
-    private val testing = new mutable.HashMap[Network, Long]
+    private val testing = new mutable.HashSet[Network]
     var loginedNetwork: Network = _
 
-    private def waitForNetwork(n: Network) = if (testing.synchronized(if (!testing.contains(n)) {
-      testing(n) = System.currentTimeMillis
-      true
-    } else false)) {
-      if (!app.skipConnect) Thread.sleep(app.connectTimeout)
-      while (available.contains(n) && loginedNetwork == null && testing.synchronized(if (testing.contains(n)) {
-        testing(n) = System.currentTimeMillis
-        true
-      } else false) && app.autoLoginEnabled && PortalManager.login(n) == 1) Thread.sleep(retryDelay)
-    }
-    private def onAvailable(n: Network, unsure: Boolean) = testing.get(n) match {
-      case Some(start) =>
-        testing.synchronized(testing.remove(n))
-        onNetworkAvailable(start)
-      case None => if (unsure) ThrowableFuture(waitForNetwork(n))
+    private def waitForNetwork(n: Network) = if (testing.synchronized(testing.add(n))) {
+      if (app.skipConnect || PortalManager.testConnection(n))
+        while (available.contains(n) && loginedNetwork == null && testing.synchronized(testing.contains(n)) &&
+          app.autoLoginEnabled && PortalManager.login(n) == 1) Thread.sleep(retryDelay)
     }
 
     def onLogin(n: Network, code: Int) {
@@ -205,25 +165,18 @@ final class NetworkMonitor extends ServicePlus {
     }
 
     override def onAvailable(n: Network) {
-      if (DEBUG) Log.d(TAG, "onAvailable (%s)".format(n))
-      if (available.contains(n)) {
-        if (Build.version < 23) onAvailable(n, false)     // this is validated on 5.x
-        else Log.e(TAG, "onAvailable called twice! WTF?") // this is unexpected on 6.0+
-      } else {
-        available.add(n)
-        if (Build.version < 23) onAvailable(n, true)
-        else if (!app.cm.getNetworkCapabilities(n).hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
+      val capabilities = app.cm.getNetworkCapabilities(n)
+      if (DEBUG) Log.d(TAG, "onAvailable (%s): %s".format(n, capabilities))
+      if (available.add(n)) {
+        if (Build.version < 23 || !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) ||
+          capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL))
           ThrowableFuture(waitForNetwork(n))
-      }
+      } else if (Build.version < 23) testing.synchronized(testing.remove(n))  // validated on 5.x
     }
-    override def onCapabilitiesChanged(n: Network, networkCapabilities: NetworkCapabilities) {
-      if (DEBUG) Log.d(TAG, "onCapabilitiesChanged (%s): %s".format(n, networkCapabilities))
-      if (!networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) ||
-        networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL))
-        ThrowableFuture(waitForNetwork(n))
-      else if (Build.version >= 23)
-        if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) onAvailable(n, false)
-        else ThrowableFuture(waitForNetwork(n))
+    override def onCapabilitiesChanged(n: Network, capabilities: NetworkCapabilities) {
+      if (DEBUG) Log.d(TAG, "onCapabilitiesChanged (%s): %s".format(n, capabilities))
+      if (Build.version >= 23 && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
+        testing.synchronized(testing.remove(n)) else ThrowableFuture(waitForNetwork(n))
     }
     override def onLost(n: Network) {
       if (DEBUG) Log.d(TAG, "onLost (%s)".format(n))

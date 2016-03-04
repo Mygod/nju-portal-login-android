@@ -81,9 +81,6 @@
                 android:key="notifications.notices.vibrate" android:defaultValue="true"
                 android:title="@string/settings_notifications_notices_vibrate"
                 android:summary="@string/settings_notifications_notices_summary"/>
-        <android.support.v14.preference.SwitchPreference
-                android:key="notifications.connection" android:title="@string/settings_notifications_connection"
-                android:summary="@string/settings_notifications_connection_summary" android:defaultValue="true"/>
         <android.support.v14.preference.SwitchPreference android:key="notifications.login" android:defaultValue="true"
                                                          android:title="@string/settings_notifications_login"/>
         <android.support.v14.preference.SwitchPreference android:key="notifications.reloginIcon"
@@ -91,7 +88,7 @@
                                                          android:defaultValue="true"/>
     </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory android:title="@string/settings_speed">
-        <android.support.v14.preference.SwitchPreference android:key="speed.skipConnect" android:defaultValue="true"
+        <android.support.v14.preference.SwitchPreference android:key="speed.skipConnect"
                                                          android:title="@string/settings_speed_skip_connect"
                                                          android:summary="@string/settings_speed_skip_connect_summary"/>
         <tk.mygod.preference.NumberPickerPreference android:key="speed.connectTimeout"
