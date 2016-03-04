@@ -1,4 +1,4 @@
-package tk.mygod.portal.helper.nju
+package tk.mygod.portal.helper.nju.util
 
 /**
   * Format values like a (b).

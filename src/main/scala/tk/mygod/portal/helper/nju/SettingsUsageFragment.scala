@@ -9,6 +9,7 @@ import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
 import android.util.Log
 import android.view.View
 import tk.mygod.app.ToolbarTypedFindView
+import tk.mygod.portal.helper.nju.util.DualFormatter
 import tk.mygod.preference.ToolbarPreferenceFragment
 
 /**

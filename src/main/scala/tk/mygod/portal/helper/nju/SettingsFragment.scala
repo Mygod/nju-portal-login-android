@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.View
 import org.json4s.JObject
 import tk.mygod.net.UpdateManager
+import tk.mygod.portal.helper.nju.util.DualFormatter
 import tk.mygod.preference._
 import tk.mygod.util.Conversions._
 import tk.mygod.util.Logcat
