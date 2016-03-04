@@ -29,7 +29,7 @@ import scala.util.Random
   * @author Mygod
   */
 object PortalManager {
-  final val DOMAIN = "p.nju.edu.cn"
+  final val DOMAIN = "219.219.114.15"
   final val ROOT_URL = HTTP + "://" + DOMAIN
   private final val TAG = "PortalManager"
   private final val STATUS = "status"
