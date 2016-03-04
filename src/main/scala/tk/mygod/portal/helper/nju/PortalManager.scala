@@ -88,7 +88,11 @@ object PortalManager {
       setup(conn, app.connectTimeout, false)
       val start = System.currentTimeMillis
       conn.getInputStream
-      return conn.getResponseCode == 302 && DOMAIN.equalsIgnoreCase(Uri.parse(conn.getHeaderField("Location")).getHost)
+      if (conn.getResponseCode == 302) {
+        val target = conn.getHeaderField("Location")
+        if (DEBUG) Log.d(TAG, "Captive portal detected: " + target)
+        return DOMAIN.equalsIgnoreCase(Uri.parse(target).getHost)
+      }
     } catch {
       case _: SocketTimeoutException | _: UnknownHostException => // ignore
       case e: Exception =>

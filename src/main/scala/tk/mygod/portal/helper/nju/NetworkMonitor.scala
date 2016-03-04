@@ -153,11 +153,12 @@ final class NetworkMonitor extends ServicePlus {
     private val testing = new mutable.HashSet[Network]
     var loginedNetwork: Network = _
 
-    private def waitForNetwork(n: Network) = if (testing.synchronized(testing.add(n))) {
-      if (app.skipConnect || PortalManager.testConnection(n))
+    private def testConnection(n: Network) =
+      if (testing.synchronized(testing.add(n)) && (app.skipConnect || PortalManager.testConnection(n))) {
         while (available.contains(n) && loginedNetwork == null && testing.synchronized(testing.contains(n)) &&
           app.autoLoginEnabled && PortalManager.login(n) == 1) Thread.sleep(retryDelay)
-    }
+        testing.synchronized(testing.remove(n))
+      }
 
     def onLogin(n: Network, code: Int) {
       loginedNetwork = n
@@ -170,13 +171,16 @@ final class NetworkMonitor extends ServicePlus {
       if (available.add(n)) {
         if (Build.version < 23 || !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) ||
           capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL))
-          ThrowableFuture(waitForNetwork(n))
+          ThrowableFuture(testConnection(n))
       } else if (Build.version < 23) testing.synchronized(testing.remove(n))  // validated on 5.x
     }
     override def onCapabilitiesChanged(n: Network, capabilities: NetworkCapabilities) {
       if (DEBUG) Log.d(TAG, "onCapabilitiesChanged (%s): %s".format(n, capabilities))
       if (Build.version >= 23 && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
-        testing.synchronized(testing.remove(n)) else ThrowableFuture(waitForNetwork(n))
+        testing.synchronized(testing.remove(n)) else {
+        loginedNetwork = null
+        ThrowableFuture(testConnection(n))
+      }
     }
     override def onLost(n: Network) {
       if (DEBUG) Log.d(TAG, "onLost (%s)".format(n))
