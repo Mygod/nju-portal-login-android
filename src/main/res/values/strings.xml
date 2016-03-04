@@ -43,8 +43,6 @@
 
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_notices">View notices history</string>
-    <string name="settings_notifications_notices_summary">When new notices are available. It has no effect if syncing
-        was disabled.</string>
     <string name="settings_notifications_notices_sync_login">Sync notices on login</string>
     <string name="settings_notifications_notices_sync_interval">Auto sync interval</string>
     <string name="settings_notifications_notices_sync_interval_summary">%s (disable if you login with this app very
@@ -62,9 +60,6 @@
         <item>12 hours</item>
         <item>24 hours</item>
     </string-array>
-    <string name="settings_notifications_notices_heads_up">Heads-up notification (5.0+)</string>
-    <string name="settings_notifications_notices_sound">Notification sound</string>
-    <string name="settings_notifications_notices_vibrate">Vibrate</string>
     <string name="settings_notifications_login">Login/logout successfully</string>
     <string name="settings_notifications_relogin_icon">Auto relogin pending notification icon</string>
 

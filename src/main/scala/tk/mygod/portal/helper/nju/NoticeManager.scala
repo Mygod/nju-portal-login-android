@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
 import me.leolin.shortcutbadger.ShortcutBadger
+import tk.mygod.os.Build
 import tk.mygod.portal.helper.nju.database.Notice
 import tk.mygod.util.Conversions._
 
@@ -124,16 +125,9 @@ object NoticeManager {
           .setSmallIcon(R.drawable.ic_action_announcement).setGroup("Notices").setContentText(notice.url)
           .setContentTitle(notice.formattedTitle).setWhen(notice.distributionTime * 1000)
           .setContentIntent(pending(ACTION_VIEW, notice.id)).setDeleteIntent(pending(ACTION_MARK_AS_READ, notice.id))
-        var defaults = 0
-        if (pushedNotices.add(notice.id)) {
-          if (app.pref.getBoolean("notifications.notices.sound", true)) defaults |= NotificationCompat.DEFAULT_SOUND
-          if (app.pref.getBoolean("notifications.notices.vibrate", true)) defaults |= NotificationCompat.DEFAULT_VIBRATE
-          if (defaults != 0) builder.setDefaults(defaults)
-        }
-        if (app.pref.getBoolean("notifications.notices.headsUp", true)) {
-          builder.setPriority(NotificationCompat.PRIORITY_HIGH)
-          if (defaults == 0) builder.setVibrate(Array[Long]())
-        }
+        if (pushedNotices.add(notice.id))
+          builder.setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE)
+        if (Build.version >= 21) builder.setPriority(NotificationCompat.PRIORITY_HIGH)
         nm.notify(notice.id, builder.build)
       }
     })

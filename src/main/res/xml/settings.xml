@@ -69,18 +69,6 @@
                 app:entryValues="@array/settings_notifications_notices_sync_interval_values"
                 android:title="@string/settings_notifications_notices_sync_interval"
                 android:summary="@string/settings_notifications_notices_sync_interval_summary"/>
-        <android.support.v14.preference.SwitchPreference
-                android:key="notifications.notices.headsUp" android:defaultValue="true"
-                android:title="@string/settings_notifications_notices_heads_up"
-                android:summary="@string/settings_notifications_notices_summary"/>
-        <android.support.v14.preference.SwitchPreference
-                android:key="notifications.notices.sound" android:defaultValue="true"
-                android:title="@string/settings_notifications_notices_sound"
-                android:summary="@string/settings_notifications_notices_summary"/>
-        <android.support.v14.preference.SwitchPreference
-                android:key="notifications.notices.vibrate" android:defaultValue="true"
-                android:title="@string/settings_notifications_notices_vibrate"
-                android:summary="@string/settings_notifications_notices_summary"/>
         <android.support.v14.preference.SwitchPreference android:key="notifications.login" android:defaultValue="true"
                                                          android:title="@string/settings_notifications_login"/>
         <android.support.v14.preference.SwitchPreference android:key="notifications.reloginIcon"
