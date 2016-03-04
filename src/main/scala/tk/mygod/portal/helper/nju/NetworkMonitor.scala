@@ -218,12 +218,12 @@ final class NetworkMonitor extends ServicePlus {
     }
     override def onCapabilitiesChanged(n: Network, networkCapabilities: NetworkCapabilities) {
       if (DEBUG) Log.d(TAG, "onCapabilitiesChanged (%s): %s".format(n, networkCapabilities))
-      if (!networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL))
-        if (!networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET))
-          ThrowableFuture(waitForNetwork(n))
-        else if (Build.version >= 23)
-          if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) onAvailable(n, false)
-          else ThrowableFuture(waitForNetwork(n))
+      if (!networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) ||
+        networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL))
+        ThrowableFuture(waitForNetwork(n))
+      else if (Build.version >= 23)
+        if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) onAvailable(n, false)
+        else ThrowableFuture(waitForNetwork(n))
     }
     override def onLost(n: Network) {
       if (DEBUG) Log.d(TAG, "onLost (%s)".format(n))
