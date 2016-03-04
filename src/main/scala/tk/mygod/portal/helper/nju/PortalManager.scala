@@ -24,7 +24,7 @@ import scala.util.Random
 /**
   * Portal manager. Supports:
   *   Desktop v = 201510210840
-  *   Mobile v = 201509101358
+  *   Mobile v = 201603011609
   *
   * @author Mygod
   */
