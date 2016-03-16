@@ -6,7 +6,7 @@ platformTarget in Android := "android-23"
 
 name := "nju-portal-login-android"
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 
 javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
 
