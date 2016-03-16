@@ -82,30 +82,41 @@ object PortalManager {
 
   /**
     * Based on: https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/connectivity/NetworkMonitor.java#640
+    *
+    * @return 0 for success, 1 for failure, 2 for login required
     */
-  def testConnectionCore(conn: URL => URLConnection): Boolean = {
+  def testConnectionCore(conn: URL => URLConnection): Int = {
     try autoDisconnect(conn(new URL(HTTP, "mygod.tk", "/generate_204")).asInstanceOf[HttpURLConnection]) { conn =>
       setup(conn, app.connectTimeout, false)
       conn.getInputStream
-      if (conn.getResponseCode == 302) {
+      val code = conn.getResponseCode
+      if (code == 302) {
         val target = conn.getHeaderField("Location")
         if (DEBUG) Log.d(TAG, "Captive portal detected: " + target)
-        return DOMAIN.equalsIgnoreCase(Uri.parse(target).getHost)
-      }
+        if (DOMAIN.equalsIgnoreCase(Uri.parse(target).getHost)) return 2
+      } else if (code == 204 || code == 200 && conn.getContentLength == 0) return 0
     } catch {
       case _: SocketTimeoutException | _: UnknownHostException => // ignore
       case e: Exception =>
         app.showToast(e.getMessage)
         e.printStackTrace
     }
-    false
+    1
   }
   @TargetApi(21)
-  def testConnection(network: Network) = testConnectionCore(network.openConnection)
+  def testConnection(network: Network) = testConnectionCore(network.openConnection) match {
+    case 0 =>
+      reportNetworkConnectivity(network, true)
+      false
+    case 1 =>
+      reportNetworkConnectivity(network, false)
+      false
+    case 2 => true
+  }
   def testConnectionLegacy(network: NetworkInfo) = testConnectionCore({
     NetworkMonitor.preferNetworkLegacy(network)
     _.openConnection
-  })
+  }) == 2
 
   //noinspection ScalaDeprecation
   @TargetApi(21)
