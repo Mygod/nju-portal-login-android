@@ -86,7 +86,6 @@ object PortalManager {
   def testConnectionCore(conn: URL => URLConnection): Boolean = {
     try autoDisconnect(conn(new URL(HTTP, "mygod.tk", "/generate_204")).asInstanceOf[HttpURLConnection]) { conn =>
       setup(conn, app.connectTimeout, false)
-      val start = System.currentTimeMillis
       conn.getInputStream
       if (conn.getResponseCode == 302) {
         val target = conn.getHeaderField("Location")
