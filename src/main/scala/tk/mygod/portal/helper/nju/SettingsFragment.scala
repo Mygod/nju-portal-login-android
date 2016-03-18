@@ -64,6 +64,12 @@ final class SettingsFragment extends ToolbarPreferenceFragment {
     findPreference("status.service_name").setOnPreferenceClickListener(humorous)
     findPreference("status.area_name").setOnPreferenceClickListener(humorous)
     findPreference("status.balance").setOnPreferenceClickListener(humorous)
+    findPreference("status.useripv4").setOnPreferenceClickListener(displayIpInfo)
+    findPreference("status.useripv6").setOnPreferenceClickListener(displayIpInfo)
+    findPreference("status.mac").setOnPreferenceClickListener(p => {
+      activity.launchUrl("http://www.coffer.com/mac_find/?string=" + p.getSummary)
+      true
+    })
 
     findPreference("notifications.notices").setOnPreferenceClickListener(_ => {
       activity.showNoticeFragment
@@ -132,6 +138,11 @@ final class SettingsFragment extends ToolbarPreferenceFragment {
       })
     }
     findPreference("status.name").setSummary(name.toString)
+  }
+
+  private def displayIpInfo(preference: Preference) = {
+    activity.launchUrl("https://ipinfo.io/" + preference.getSummary)
+    true
   }
 
   private def humorous(preference: Preference) = {
