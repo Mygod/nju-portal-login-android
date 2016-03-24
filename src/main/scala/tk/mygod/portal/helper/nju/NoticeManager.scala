@@ -34,7 +34,7 @@ object NoticeManager {
                       syncResult: SyncResult) = updateUnreadNotices(syncResult)
   }
 
-  val account = new Account(app.getString(R.string.notice_sync), PortalManager.DOMAIN)
+  val account = new Account(app.getString(R.string.notice_sync), app.getString(R.string.portal_activity_url))
   def updatePeriodicSync = app.pref.getString(SYNC_INTERVAL, "0").toLong match {
     case 0 =>
       ContentResolver.removePeriodicSync(account, AUTHORITY, Bundle.EMPTY)

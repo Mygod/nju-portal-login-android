@@ -19,7 +19,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".PortalActivity" android:exported="true" android:label="@string/portal_activity_name"
+        <activity android:name=".PortalActivity" android:exported="true" android:label="@string/portal_activity_url"
                   android:launchMode="singleTask"/>
         <activity android:name=".ShortcutActivity" android:label="@string/login_logout" android:noHistory="true"
                   android:theme="@android:style/Theme.NoDisplay" android:excludeFromRecents="true">

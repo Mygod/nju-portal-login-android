@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Portal Login Helper for NJU</string>
-    <string name="portal_activity_name" translatable="false">219.219.114.15</string>
+    <string name="portal_activity_url" translatable="false">p.nju.edu.cn</string>
     <string name="login_logout">Login/logout</string>
 
     <!-- Settings -->

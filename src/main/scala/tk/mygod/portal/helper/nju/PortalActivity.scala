@@ -19,7 +19,6 @@ import tk.mygod.util.MetricsUtils
   * @author Mygod
   */
 object PortalActivity {
-  private final val COOKIE_URL = PortalManager.ROOT_URL + "/portal"
   private final val ENABLE_CHAP = "globalVar.auth_type='chap'"
 }
 
@@ -27,6 +26,7 @@ final class PortalActivity extends ToolbarActivity with TypedFindView with OnRef
   with OnMenuItemClickListener {
   import PortalActivity._
 
+  private val rootUrl = HTTP + "://" + PortalManager.currentHost
   private lazy val webView = findView(TR.webView)
   private lazy val webViewSettings = webView.getSettings
   private var mobileUA: String = _
@@ -40,7 +40,7 @@ final class PortalActivity extends ToolbarActivity with TypedFindView with OnRef
     setContentView(R.layout.activity_webview)
     configureToolbar(R.drawable.ic_navigation_close)
     setNavigationIcon(R.drawable.ic_close)
-    toolbar.setTitle(PortalManager.DOMAIN)
+    toolbar.setTitle(R.string.portal_activity_url)
     toolbar.inflateMenu(R.menu.activity_webview)
     toolbar.setOnMenuItemClickListener(this)
     val swiper = findView(TR.swiper)
@@ -58,7 +58,7 @@ final class PortalActivity extends ToolbarActivity with TypedFindView with OnRef
       override def onPageStarted(view: WebView, url: String, favicon: Bitmap) = swiper.setRefreshing(true)
       override def shouldOverrideUrlLoading(view: WebView, url: String) = {
         val uri = Uri.parse(url)
-        if ("http".equalsIgnoreCase(uri.getScheme) && PortalManager.DOMAIN.equalsIgnoreCase(uri.getHost)) false else {
+        if ("http".equalsIgnoreCase(uri.getScheme) && PortalManager.isValidHost(uri.getHost)) false else {
           launchUrl(uri)
           true
         }
@@ -66,9 +66,10 @@ final class PortalActivity extends ToolbarActivity with TypedFindView with OnRef
     })
     //noinspection ScalaDeprecation
     if (Build.version >= 21) manager.removeSessionCookies(null) else manager.removeSessionCookie
-    manager.setCookie(COOKIE_URL, "username=" + Base64.encodeToString(PortalManager.username.getBytes, Base64.DEFAULT))
-    manager.setCookie(COOKIE_URL, "password=" + Base64.encodeToString(PortalManager.password.getBytes, Base64.DEFAULT))
-    manager.setCookie(COOKIE_URL, "rmbUser=true")
+    val url = rootUrl + "/portal"
+    manager.setCookie(url, "username=" + Base64.encodeToString(PortalManager.username.getBytes, Base64.DEFAULT))
+    manager.setCookie(url, "password=" + Base64.encodeToString(PortalManager.password.getBytes, Base64.DEFAULT))
+    manager.setCookie(url, "rmbUser=true")
     webView.post(setDesktopSite(webView.getWidth >= MetricsUtils.dp2px(this, 875)))
   }
 
@@ -85,10 +86,10 @@ final class PortalActivity extends ToolbarActivity with TypedFindView with OnRef
       setDesktopSite(!menuItem.isChecked)
       true
     case R.id.action_browser =>
-      launchUrl(Uri.parse(PortalManager.ROOT_URL))
+      launchUrl(rootUrl)
       finish
       true
     case _ => false
   }
-  def onRefresh = webView.loadUrl(PortalManager.ROOT_URL)
+  def onRefresh = webView.loadUrl(rootUrl)
 }

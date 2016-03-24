@@ -32,18 +32,22 @@ import scala.util.Random
   * @author Mygod
   */
 object PortalManager {
-  final val DOMAIN = "219.219.114.15"
-  final val ROOT_URL = HTTP + "://" + DOMAIN
+  private final val DOMAIN = "p.nju.edu.cn"
   private final val TAG = "PortalManager"
   private final val STATUS = "status"
   private final val POST_AUTH_BASE = "username=%s&password=%s"
   case class NetworkUnavailableException() extends IOException { }
   case class InvalidResponseException(response: String) extends IOException("Invalid response: " + response) { }
 
+  var currentHost = "219.219.114.172"
   def chap = app.pref.getBoolean("auth.chap", true)
   var currentUsername: String = _
   def username = app.pref.getString("account.username", "")
   def password = app.pref.getString("account.password", "")
+
+  private val ipv4Matcher = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$".r
+  def isValidHost(host: String) = host != null && (DOMAIN.equalsIgnoreCase(host) ||
+    ipv4Matcher.findFirstIn(host).nonEmpty && host.startsWith("210.28.129.") || host.startsWith("219.219.114."))
 
   private var userInfoListener: JObject => Any = _
   def setUserInfoListener(listener: JObject => Any) {
@@ -93,7 +97,11 @@ object PortalManager {
       if (code == 302) {
         val target = conn.getHeaderField("Location")
         if (DEBUG) Log.d(TAG, "Captive portal detected: " + target)
-        if (DOMAIN.equalsIgnoreCase(Uri.parse(target).getHost)) return 2
+        val host = Uri.parse(target).getHost
+        if (isValidHost(host)) {
+          currentHost = host
+          return 2
+        }
       } else if (code == 204 || code == 200 && conn.getContentLength == 0) return 0
     } catch {
       case _: SocketTimeoutException | _: UnknownHostException => // ignore
@@ -142,7 +150,7 @@ object PortalManager {
     if (DEBUG) Log.d(TAG, "Logging in...")
     try {
       val chapPassword = if (chap)
-        autoDisconnect(conn(new URL(HTTP, DOMAIN, "/portal_io/getchallenge")).asInstanceOf[HttpURLConnection]) { conn =>
+        autoDisconnect(conn(new URL(HTTP, currentHost, "/portal_io/getchallenge")).asInstanceOf[HttpURLConnection]) { conn =>
           setup(conn, app.loginTimeout)
           val (code, json) = parseResult(conn)
           if (code != 0) return (1, 0)  // retry
@@ -158,7 +166,7 @@ object PortalManager {
           digest.digest(passphrase, 1, 16)
           Some(passphrase.map("%02X".format(_)).mkString, challenge)
         } else None
-      autoDisconnect(conn(new URL(HTTP, DOMAIN, "/portal_io/login")).asInstanceOf[HttpURLConnection]) { conn =>
+      autoDisconnect(conn(new URL(HTTP, currentHost, "/portal_io/login")).asInstanceOf[HttpURLConnection]) { conn =>
         setup(conn, app.loginTimeout)
         conn.setDoOutput(true)
         //noinspection JavaAccessorMethodCalledAsEmptyParen
@@ -232,7 +240,7 @@ object PortalManager {
   // AnyRef is a workaround for 4.x
   def openPortalConnection[T](file: String, explicit: Boolean = true)
                              (handler: (HttpURLConnection, AnyRef) => Option[T]) = try {
-    val url = new URL(HTTP, DOMAIN, file)
+    val url = new URL(HTTP, currentHost, file)
     var n: AnyRef = null
     autoDisconnect((if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) {
       val network = NetworkMonitor.instance.listener.preferredNetwork
