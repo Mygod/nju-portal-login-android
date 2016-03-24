@@ -40,7 +40,7 @@ final class PortalActivity extends ToolbarActivity with TypedFindView with OnRef
     setContentView(R.layout.activity_webview)
     configureToolbar(R.drawable.ic_navigation_close)
     setNavigationIcon(R.drawable.ic_close)
-    toolbar.setTitle(R.string.portal_activity_url)
+    toolbar.setTitle(rootUrl)
     toolbar.inflateMenu(R.menu.activity_webview)
     toolbar.setOnMenuItemClickListener(this)
     val swiper = findView(TR.swiper)
