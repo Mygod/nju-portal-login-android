@@ -1,8 +1,7 @@
 package tk.mygod.portal.helper.nju
 
 import android.accounts.Account
-import android.app.{NotificationManager, Service}
-import android.content.res.Resources
+import android.app.Service
 import android.content._
 import android.os.Bundle
 import android.support.v4.app.NotificationCompat
@@ -44,8 +43,6 @@ object NoticeManager {
       ContentResolver.setSyncAutomatically(account, AUTHORITY, true)
       ContentResolver.addPeriodicSync(account, AUTHORITY, Bundle.EMPTY, mins * 60)
   }
-
-  private lazy val nm = app.systemService[NotificationManager]
 
   private def fetchNotice(id: Int) = noticeDao.queryForId(id)
   def fetchAllNotices = noticeDao.query(noticeDao.queryBuilder.orderBy(Notice.DISTRIBUTION_TIME, false).prepare).asScala
@@ -96,10 +93,6 @@ object NoticeManager {
     updateUnreadCount
   }
 
-  private def readSystemInteger(key: String) =
-    app.getResources.getInteger(Resources.getSystem.getIdentifier(key, "integer", "android"))
-  private lazy val lightOnMs = readSystemInteger("config_defaultNotificationLedOn")
-  private lazy val lightOffMs = readSystemInteger("config_defaultNotificationLedOff")
   private val pushedNotices = new mutable.HashSet[Int]
   private var receiverRegistered: Boolean = _
   private def pending(action: String, id: Int) =
@@ -121,18 +114,18 @@ object NoticeManager {
       for (notice <- notices) {
         val builder = new NotificationCompat.Builder(app).setAutoCancel(true)
           .setColor(ContextCompat.getColor(app, R.color.material_primary_500))
-          .setLights(ContextCompat.getColor(app, R.color.material_purple_a700), lightOnMs, lightOffMs)
-          .setSmallIcon(R.drawable.ic_action_announcement).setGroup("Notices").setContentText(notice.url)
+          .setLights(ContextCompat.getColor(app, R.color.material_purple_a700), app.lightOnMs, app.lightOffMs)
+          .setSmallIcon(R.drawable.ic_action_announcement).setGroup(ACTION_VIEW).setContentText(notice.url)
           .setContentTitle(notice.formattedTitle).setWhen(notice.distributionTime * 1000)
           .setContentIntent(pending(ACTION_VIEW, notice.id)).setDeleteIntent(pending(ACTION_MARK_AS_READ, notice.id))
         if (pushedNotices.add(notice.id))
           builder.setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE)
         if (Build.version >= 21) builder.setPriority(NotificationCompat.PRIORITY_HIGH)
-        nm.notify(notice.id, builder.build)
+        app.nm.notify(notice.id, builder.build)
       }
     })
   }
-  def cancelAllNotices = for (notice <- pushedNotices) nm.cancel(notice)
+  def cancelAllNotices = for (notice <- pushedNotices) app.nm.cancel(notice)
 }
 
 final class NoticeManager extends Service {

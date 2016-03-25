@@ -55,24 +55,21 @@ final class MainActivity extends FragmentStackActivity with LocationObservedActi
   }
 
   override def onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) = key match {
-    case AUTO_LOGIN_ENABLED =>
-      val value = app.autoLoginEnabled
-      app.editor.putBoolean(AUTO_LOGIN_ENABLED, value)
-      if (value) {
-        getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[NetworkMonitorListener]),
-          PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
-        startNetworkMonitor
-      } else {
-        getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[NetworkMonitorListener]),
-          PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
-        stopService(serviceIntent)
-      }
+    case SERVICE_STATUS => if (app.serviceStatus > 0) {
+      getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[NetworkMonitorListener]),
+        PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
+      startNetworkMonitor
+    } else {
+      getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[NetworkMonitorListener]),
+        PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
+      stopService(serviceIntent)
+    }
     case RELOGIN_DELAY => if (NetworkMonitor.instance != null) NetworkMonitor.instance.reloginThread.interrupt
     case NoticeManager.SYNC_INTERVAL => NoticeManager.updatePeriodicSync
     case _ => // ignore
   }
 
-  def startNetworkMonitor = if (app.autoLoginEnabled) startService(serviceIntent)
+  def startNetworkMonitor = if (app.serviceStatus > 0) startService(serviceIntent)
 
   def onPreferenceStartScreen(fragment: PreferenceFragment, screen: PreferenceScreen) = {
     val fragment = new SettingsUsageFragment

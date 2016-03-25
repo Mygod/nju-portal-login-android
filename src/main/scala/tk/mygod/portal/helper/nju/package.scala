@@ -10,12 +10,12 @@ import scala.concurrent.Future
   */
 package object nju {
   var app: App = _
-  val DEBUG = true
+  final val DEBUG = true
 
-  val HTTP = "http"
-  val PREF_NAME = "pref"
-  val AUTO_LOGIN_ENABLED = "auth.autoLogin"
-  val RELOGIN_DELAY = "auth.reloginDelay"
+  final val HTTP = "http"
+  final val PREF_NAME = "pref"
+  final val SERVICE_STATUS = "auth.serviceStatus"
+  final val RELOGIN_DELAY = "auth.reloginDelay"
 
   def ThrowableFuture[T](f: => T) = Future(f) onFailure {
     case e: PortalManager.NetworkUnavailableException =>

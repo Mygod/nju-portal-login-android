@@ -91,7 +91,7 @@ object PortalManager {
     */
   def testConnectionCore(conn: URL => URLConnection): Int = {
     try autoDisconnect(conn(new URL(HTTP, "mygod.tk", "/generate_204")).asInstanceOf[HttpURLConnection]) { conn =>
-      setup(conn, app.connectTimeout, false)
+      setup(conn, false)
       conn.getInputStream
       val code = conn.getResponseCode
       if (code == 302) {
@@ -135,13 +135,12 @@ object PortalManager {
     * Setup HttpURLConnection.
     *
     * @param conn HttpURLConnection.
-    * @param timeout Connect/read timeout.
     * @param post Use HTTP post.
     */
-  def setup(conn: HttpURLConnection, timeout: Int = 0, post: Boolean = true) {
+  def setup(conn: HttpURLConnection, post: Boolean = true) {
     conn.setInstanceFollowRedirects(false)
-    conn.setConnectTimeout(timeout)
-    conn.setReadTimeout(timeout)
+    conn.setConnectTimeout(4000)
+    conn.setReadTimeout(4000)
     conn.setUseCaches(false)
     if (post) conn.setRequestMethod("POST")
   }
@@ -151,7 +150,7 @@ object PortalManager {
     try {
       val chapPassword = if (chap)
         autoDisconnect(conn(new URL(HTTP, currentHost, "/portal_io/getchallenge")).asInstanceOf[HttpURLConnection]) { conn =>
-          setup(conn, app.loginTimeout)
+          setup(conn)
           val (code, json) = parseResult(conn)
           if (code != 0) return (1, 0)  // retry
           val challenge = (json \ "challenge").asInstanceOf[JString].values
@@ -167,7 +166,7 @@ object PortalManager {
           Some(passphrase.map("%02X".format(_)).mkString, challenge)
         } else None
       autoDisconnect(conn(new URL(HTTP, currentHost, "/portal_io/login")).asInstanceOf[HttpURLConnection]) { conn =>
-        setup(conn, app.loginTimeout)
+        setup(conn)
         conn.setDoOutput(true)
         //noinspection JavaAccessorMethodCalledAsEmptyParen
         autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, chapPassword match {

@@ -8,7 +8,13 @@
     <string name="settings_account_missing">Username/Password 未填写，此应用将无法正常使用。</string>
 
     <string name="settings_auth">认证</string>
-    <string name="settings_auth_auto_login">启用自动登录</string>
+    <string name="settings_auth_service_status">服务状态</string>
+    <string-array name="settings_auth_service_statuses">
+        <item>自动检测校园网并登录</item>
+        <item>对于所有网络均尝试登录</item>
+        <item>仅检测校园网</item>
+        <item>禁用</item>
+    </string-array>
     <string name="settings_auth_portal_web">打开认证界面</string>
     <string name="settings_auth_portal_web_summary">此功能不支持绑定连接，系统可能会使用手机网络。</string>
     <string name="settings_auth_login">登录</string>
@@ -59,13 +65,6 @@
     <string name="settings_notifications_login">登录/登出成功</string>
     <string name="settings_notifications_relogin_icon">自动重新登录通知图标</string>
 
-    <string name="settings_speed">速度优化</string>
-    <string name="settings_speed_skip_connect">跳过连接测试</string>
-    <string name="settings_speed_skip_connect_summary">一旦连接可用就立即登录。</string>
-    <string name="settings_speed_connect_timeout">连接超时</string>
-    <string name="settings_speed_login_timeout">登录超时</string>
-    <string name="settings_speed_timeout_summary">%d 毫秒（0 = 无限长）</string>
-
     <string name="settings_misc">其他</string>
     <string name="settings_misc_update">检查更新</string>
     <string name="settings_misc_support">常见问题与支持</string>
@@ -107,6 +106,7 @@
     </plurals>
 
     <!-- NetworkMonitor & PortalManager -->
+    <string name="network_available_sign_in">登录到校园网</string>
     <string name="auto_relogin_active">将于 %d 毫秒后自动重新登录</string>
     <string name="error_socket_timeout">套接字超时。</string>
     <string name="error_network_unavailable">没有可用的连接。</string>

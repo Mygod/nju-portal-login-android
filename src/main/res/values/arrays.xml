@@ -13,4 +13,10 @@
         <item>720</item>
         <item>1440</item>
     </string-array>
+    <string-array name="settings_auth_service_status_values" translatable="false">
+        <item>3</item>
+        <item>2</item>
+        <item>1</item>
+        <item>0</item>
+    </string-array>
 </resources>

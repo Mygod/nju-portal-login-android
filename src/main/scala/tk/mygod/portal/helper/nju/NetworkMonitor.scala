@@ -1,6 +1,9 @@
 package tk.mygod.portal.helper.nju
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 import android.annotation.TargetApi
+import android.content.{BroadcastReceiver, Context, Intent, IntentFilter}
 import android.net.ConnectivityManager.NetworkCallback
 import android.net._
 import android.support.v4.app.NotificationCompat
@@ -13,15 +16,14 @@ import tk.mygod.util.Conversions._
 import scala.collection.mutable
 import scala.util.Random
 
-object NetworkMonitor {
+object NetworkMonitor extends BroadcastReceiver {
   private final val TAG = "NetworkMonitor"
   private final val THREAD_TAG = TAG + "#reloginThread"
-  var instance: NetworkMonitor = _
+  private final val ACTION_LOGIN = "tk.mygod.portal.helper.nju.NetworkMonitor.ACTION_LOGIN"
+  private final val ACTION_LOGIN_LEGACY = "tk.mygod.portal.helper.nju.NetworkMonitor.ACTION_LOGIN_LEGACY"
+  private final val EXTRA_NETWORK_ID = "tk.mygod.portal.helper.nju.NetworkMonitor.EXTRA_NETWORK_ID"
 
-  private implicit val networkOrdering: Ordering[Network] =
-    Ordering.by[Network, Int](n => if (n == null) 0 else n.hashCode)
-  private implicit val networkInfoOrdering: Ordering[NetworkInfo] =
-    Ordering.by[NetworkInfo, (Int, Int)](n => if (n == null) (0, 0) else (n.getType, n.getSubtype))
+  var instance: NetworkMonitor = _
 
   def cares(network: Int) =
     network > 6 && network != ConnectivityManager.TYPE_VPN || network == ConnectivityManager.TYPE_WIFI
@@ -43,11 +45,24 @@ object NetworkMonitor {
 
   //noinspection ScalaDeprecation
   class NetworkListenerLegacy {
-    import networkInfoOrdering._
-
-    private val available = new mutable.TreeSet[NetworkInfo]
-    private val testing = new mutable.TreeSet[NetworkInfo]
+    private val available = new mutable.LongMap[NetworkInfo]
+    private val busy = new mutable.TreeSet[Long]
     var loginedNetwork: NetworkInfo = _
+
+    private def serialize(n: NetworkInfo) = n.getType.toLong << 32 | n.getSubtype
+    private def getNotificationId(id: Long) = (id ^ id >> 28 ^ id >> 56).toInt & 0xFFFFFFF | 0x10000000
+
+    def doLogin(id: Long): Unit = available.get(id) match {
+      case Some(n: NetworkInfo) => ThrowableFuture(if (busy.synchronized(busy.add(serialize(n)))) {
+        while (instance != null && loginedNetwork == null && available.contains(serialize(n)) &&
+          busy.contains(serialize(n)) && PortalManager.loginLegacy(n) == 1) Thread.sleep(retryDelay)
+        busy.synchronized(busy.remove(serialize(n)))
+      })
+      case _ =>
+    }
+    def doLogin(n: NetworkInfo) = while (instance != null && loginedNetwork == null &&
+      available.contains(serialize(n)) && app.autoLoginEnabled && PortalManager.loginLegacy(n) == 1)
+      Thread.sleep(retryDelay)
 
     def onLogin(n: NetworkInfo, code: Int) {
       loginedNetwork = n
@@ -55,26 +70,44 @@ object NetworkMonitor {
     }
 
     def onAvailable(n: NetworkInfo) {
-      available.add(n)
-      if (app.autoLoginEnabled && app.boundConnectionsAvailable < 2 && testing.synchronized(testing.add(n)))
-        ThrowableFuture {
-          if (app.skipConnect || PortalManager.testConnectionLegacy(n))
-            while (instance != null && loginedNetwork == null && available.contains(n) && app.autoLoginEnabled &&
-              PortalManager.loginLegacy(n) == 1) Thread.sleep(retryDelay)
-          testing.synchronized(testing.remove(n))
+      available += (serialize(n), n)
+      if (app.serviceStatus > 0 && app.boundConnectionsAvailable < 2 &&
+        busy.synchronized(busy.add(serialize(n)))) ThrowableFuture {
+        app.serviceStatus match {
+          case 1 =>
+            if (PortalManager.testConnectionLegacy(n)) {
+              if (receiverRegistered.compareAndSet(false, true))
+                app.registerReceiver(NetworkMonitor, new IntentFilter(ACTION_LOGIN_LEGACY))
+              val id = serialize(n)
+              app.nm.notify(getNotificationId(id), new NotificationCompat.Builder(app).setAutoCancel(true)
+                .setColor(ContextCompat.getColor(app, R.color.material_primary_500))
+                .setLights(ContextCompat.getColor(app, R.color.material_purple_a700), app.lightOnMs, app.lightOffMs)
+                .setSmallIcon(R.drawable.ic_device_signal_wifi_not_connected).setGroup(ACTION_LOGIN_LEGACY)
+                .setContentTitle(app.getString(R.string.network_available_sign_in))
+                .setContentText(app.getString(R.string.app_name)).setShowWhen(false)
+                .setContentIntent(app.pendingBroadcast(
+                  new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id))).build)
+            }
+          case 2 => doLogin(n)
+          case 3 => if (PortalManager.testConnectionLegacy(n)) doLogin(n)
+          case _ =>
         }
+        busy.synchronized(busy.remove(serialize(n)))
+      }
     }
 
     def onLost(n: NetworkInfo) {
-      available.remove(n)
-      if (n.equiv(loginedNetwork)) {
+      val id = serialize(n)
+      available.remove(id)
+      app.nm.cancel(getNotificationId(id))
+      if (loginedNetwork != null && id == serialize(loginedNetwork)) {
         loginedNetwork = null
         if (instance != null) instance.reloginThread.synchronizedNotify()
       }
     }
 
-    def preferredNetwork = if (available.contains(loginedNetwork)) loginedNetwork else
-      app.cm.getAllNetworkInfo.collectFirst {
+    def preferredNetwork = if (loginedNetwork != null && available.contains(serialize(loginedNetwork))) loginedNetwork
+      else app.cm.getAllNetworkInfo.collectFirst {
         case n: NetworkInfo if cares(n.getType) => n
       }.orNull
   }
@@ -87,6 +120,9 @@ object NetworkMonitor {
     */
   def loginStatus =
     if (instance != null && instance.loggedIn) 1 else if (listenerLegacy.loginedNetwork != null) 2 else 0
+
+  private val receiverRegistered = new AtomicBoolean
+  def onReceive(context: Context, intent: Intent) = listenerLegacy.doLogin(intent.getLongExtra(EXTRA_NETWORK_ID, -1))
 }
 
 final class NetworkMonitor extends ServicePlus {
@@ -149,16 +185,45 @@ final class NetworkMonitor extends ServicePlus {
 
   @TargetApi(21)
   class NetworkListener extends NetworkCallback {
-    private val available = new mutable.TreeSet[Network]
-    private val testing = new mutable.HashSet[Network]
+    private val available = new mutable.HashMap[Int, Network]
+    private val busy = new mutable.HashSet[Int]
     var loginedNetwork: Network = _
 
-    private def testConnection(n: Network) =
-      if (testing.synchronized(testing.add(n)) && (app.skipConnect || PortalManager.testConnection(n))) {
-        while (available.contains(n) && loginedNetwork == null && testing.synchronized(testing.contains(n)) &&
-          app.autoLoginEnabled && PortalManager.login(n) == 1) Thread.sleep(retryDelay)
-        testing.synchronized(testing.remove(n))
+    private def getNotificationId(id: Int) = (id ^ id >> 28) & 0xFFFFFFF | 0x20000000
+
+    def doLogin(id: Int): Unit = available.get(id) match {
+      case Some(n: Network) => ThrowableFuture(if (busy.synchronized(busy.add(n.hashCode))) {
+        while (available.contains(n.hashCode) && loginedNetwork == null &&
+          busy.synchronized(busy.contains(n.hashCode)) && PortalManager.login(n) == 1) Thread.sleep(retryDelay)
+        busy.synchronized(busy.remove(n.hashCode))
+      })
+      case _ =>
+    }
+    private def doLogin(n: Network) = while (available.contains(n.hashCode) && loginedNetwork == null &&
+      busy.synchronized(busy.contains(n.hashCode)) && app.autoLoginEnabled && PortalManager.login(n) == 1)
+      Thread.sleep(retryDelay)
+
+    private def testConnection(n: Network) = if (busy.synchronized(busy.add(n.hashCode))) ThrowableFuture {
+      app.serviceStatus match {
+        case 1 =>
+          if (PortalManager.testConnection(n)) {
+            if (receiverRegistered.compareAndSet(false, true))
+              app.registerReceiver(loginReceiver, new IntentFilter(ACTION_LOGIN))
+            val id = n.hashCode
+            app.nm.notify(getNotificationId(id), new NotificationCompat.Builder(app).setAutoCancel(true)
+              .setColor(ContextCompat.getColor(app, R.color.material_primary_500))
+              .setLights(ContextCompat.getColor(app, R.color.material_purple_a700), app.lightOnMs, app.lightOffMs)
+              .setSmallIcon(R.drawable.ic_device_signal_wifi_not_connected).setGroup(ACTION_LOGIN)
+              .setContentTitle(app.getString(R.string.network_available_sign_in))
+              .setContentText(app.getString(R.string.app_name)).setShowWhen(false)
+              .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN).putExtra(EXTRA_NETWORK_ID, id))).build)
+          }
+        case 2 => doLogin(n)
+        case 3 => if (PortalManager.testConnection(n)) doLogin(n)
+        case _ =>
       }
+      busy.synchronized(busy.remove(n.hashCode))
+    }
 
     def onLogin(n: Network, code: Int) {
       loginedNetwork = n
@@ -168,43 +233,51 @@ final class NetworkMonitor extends ServicePlus {
     override def onAvailable(n: Network) {
       val capabilities = app.cm.getNetworkCapabilities(n)
       if (DEBUG) Log.d(TAG, "onAvailable (%s): %s".format(n, capabilities))
-      if (available.add(n)) {
+      if (available.contains(n.hashCode)) {
+        if (Build.version < 23) busy.synchronized(busy.remove(n.hashCode))  // validated on 5.x
+      } else {
+        available(n.hashCode) = n
         if (Build.version < 23 || !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) ||
-          capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL))
-          ThrowableFuture(testConnection(n))
-      } else if (Build.version < 23) testing.synchronized(testing.remove(n))  // validated on 5.x
+          capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL)) testConnection(n)
+      }
     }
     override def onCapabilitiesChanged(n: Network, capabilities: NetworkCapabilities) {
       if (DEBUG) Log.d(TAG, "onCapabilitiesChanged (%s): %s".format(n, capabilities))
       if (Build.version >= 23 && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
-        testing.synchronized(testing.remove(n)) else {
+        busy.synchronized(busy.remove(n.hashCode)) else {
         loginedNetwork = null
-        ThrowableFuture(testConnection(n))
+        testConnection(n)
       }
     }
     override def onLost(n: Network) {
       if (DEBUG) Log.d(TAG, "onLost (%s)".format(n))
-      available.remove(n)
+      val id = n.hashCode
+      available.remove(id)
+      app.nm.cancel(getNotificationId(id))
       if (n.equals(loginedNetwork)) {
         loginedNetwork = null
         reloginThread.synchronizedNotify()
       }
     }
 
-    def preferredNetwork = if (available.contains(loginedNetwork)) loginedNetwork else available.collectFirst {
-      case n: Network => n
-    }.orNull
+    def preferredNetwork = if (loginedNetwork != null && available.contains(loginedNetwork.hashCode)) loginedNetwork
+      else available.collectFirst {
+        case (_, n: Network) => n
+      }.orNull
   }
   @TargetApi(21)
   var listener: NetworkListener = _
 
   def initBoundConnections = if (listener == null && app.boundConnectionsAvailable > 1) {
     listener = new NetworkListener
-    app.cm.requestNetwork(new NetworkRequest.Builder()
-      .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+    app.cm.requestNetwork(new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
       .addTransportType(NetworkCapabilities.TRANSPORT_BLUETOOTH)
       .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET).build, listener)
   }
+
+  private val receiverRegistered = new AtomicBoolean
+  private lazy val loginReceiver: BroadcastReceiver =
+    (_, intent) => listener.doLogin(intent.getIntExtra(EXTRA_NETWORK_ID, -1))
 
   override def onCreate {
     super.onCreate
@@ -221,6 +294,7 @@ final class NetworkMonitor extends ServicePlus {
       listener = null
     }
     reloginThread.stopRunning
+    if (receiverRegistered.compareAndSet(true, false)) app.unregisterReceiver(loginReceiver)
     instance = null
     if (DEBUG) Log.d(TAG, "Service destroyed.")
   }

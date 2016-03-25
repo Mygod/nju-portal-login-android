@@ -9,7 +9,13 @@
     <string name="settings_account_missing">Username and/or Password is missing. This app won\'t work properly.</string>
 
     <string name="settings_auth">Authorization</string>
-    <string name="settings_auth_auto_login">Auto login enabled</string>
+    <string name="settings_auth_service_status">Service status</string>
+    <string-array name="settings_auth_service_statuses">
+        <item>Automatically detect campus networks and login</item>
+        <item>Automatically login for all networks without detecting</item>
+        <item>Detect campus networks only</item>
+        <item>Disabled</item>
+    </string-array>
     <string name="settings_auth_portal_web">Open portal webpage</string>
     <string name="settings_auth_portal_web_summary">Bound connections not supported. The system may choose to use mobile
         network.</string>
@@ -63,13 +69,6 @@
     <string name="settings_notifications_login">Login/logout successfully</string>
     <string name="settings_notifications_relogin_icon">Auto relogin pending notification icon</string>
 
-    <string name="settings_speed">Speed optimizations</string>
-    <string name="settings_speed_skip_connect">Skip connection test</string>
-    <string name="settings_speed_skip_connect_summary">Login as soon as a connection is available.</string>
-    <string name="settings_speed_connect_timeout">Connect timeout</string>
-    <string name="settings_speed_login_timeout">Login timeout</string>
-    <string name="settings_speed_timeout_summary">%dms (0 = infinite)</string>
-
     <string name="settings_misc">Misc</string>
     <string name="settings_misc_update">Check for updates</string>
     <string name="settings_misc_support">FAQ &amp; Support</string>
@@ -119,6 +118,7 @@
     </plurals>
 
     <!-- NetworkMonitor & PortalManager -->
+    <string name="network_available_sign_in">Sign in to campus network</string>
     <string name="auto_relogin_active">Auto relogin pending in %dms</string>
     <string name="error_network_unavailable">No available network.</string>
     <string name="error_socket_timeout">Socket timeout.</string>

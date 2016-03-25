@@ -1,8 +1,9 @@
 package tk.mygod.portal.helper.nju
 
 import android.accounts.AccountManager
-import android.app.Application
+import android.app.{Application, NotificationManager}
 import android.content.Context
+import android.content.res.Resources
 import android.net.ConnectivityManager
 import android.os.Handler
 import android.provider.Settings
@@ -29,15 +30,19 @@ class App extends Application with ContextPlus {
     else if (Settings.System.canWrite(this)) 2 else 1 else 0
 
   lazy val cm = systemService[ConnectivityManager]
+  lazy val nm = app.systemService[NotificationManager]
   lazy val pref = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
   lazy val editor = pref.edit
 
-  def autoLoginEnabled = pref.getBoolean(AUTO_LOGIN_ENABLED, true)
+  def serviceStatus = pref.getString(SERVICE_STATUS, "3").toInt
+  def detectEnabled = (serviceStatus | 1) > 0
+  def autoLoginEnabled = (serviceStatus | 2) > 0
   def reloginDelay = pref.getInt(RELOGIN_DELAY, 0)
 
-  def skipConnect = pref.getBoolean("speed.skipConnect", false)
-  def connectTimeout = pref.getInt("speed.connectTimeout", 4000)
-  def loginTimeout = pref.getInt("speed.loginTimeout", 4000)
-
   def showToast(msg: String) = handler.post(() => makeToast(msg, Toast.LENGTH_SHORT).show)
+
+  private def readSystemInteger(key: String) =
+    getResources.getInteger(Resources.getSystem.getIdentifier(key, "integer", "android"))
+  lazy val lightOnMs = readSystemInteger("config_defaultNotificationLedOn")
+  lazy val lightOffMs = readSystemInteger("config_defaultNotificationLedOff")
 }
