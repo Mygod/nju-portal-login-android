@@ -21,9 +21,6 @@
         network.</string>
     <string name="settings_auth_login">Login</string>
     <string name="settings_auth_logout">Logout</string>
-    <string name="settings_auth_chap">Enable CHAP encryption</string>
-    <string name="settings_auth_chap_summary">For enhanced security. Disable for better performance (not
-        recommended).</string>
     <string name="settings_auth_relogin_delay">Relogin delay (experimental)</string>
     <string name="settings_auth_relogin_delay_summary">%dms (0 = disable)</string>
 

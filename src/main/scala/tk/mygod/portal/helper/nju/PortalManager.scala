@@ -35,12 +35,10 @@ object PortalManager {
   private final val DOMAIN = "p.nju.edu.cn"
   private final val TAG = "PortalManager"
   private final val STATUS = "status"
-  private final val POST_AUTH_BASE = "username=%s&password=%s"
   case class NetworkUnavailableException() extends IOException { }
   case class InvalidResponseException(response: String) extends IOException("Invalid response: " + response) { }
 
   var currentHost = "219.219.114.172"
-  def chap = app.pref.getBoolean("auth.chap", true)
   var currentUsername: String = _
   def username = app.pref.getString("account.username", "")
   def password = app.pref.getString("account.password", "")
@@ -148,31 +146,27 @@ object PortalManager {
   private def loginCore(conn: URL => URLConnection): (Int, Int) = {
     if (DEBUG) Log.d(TAG, "Logging in...")
     try {
-      val chapPassword = if (chap)
-        autoDisconnect(conn(new URL(HTTP, currentHost, "/portal_io/getchallenge")).asInstanceOf[HttpURLConnection]) { conn =>
-          setup(conn)
-          val (code, json) = parseResult(conn)
-          if (code != 0) return (1, 0)  // retry
-          val challenge = (json \ "challenge").asInstanceOf[JString].values
-          val passphrase = new Array[Byte](17)
-          passphrase(0) = Random.nextInt.toByte
-          val passphraseRaw = new mutable.ArrayBuffer[Byte]
-          passphraseRaw += passphrase(0)
-          passphraseRaw ++= password.getBytes
-          passphraseRaw ++= challenge.sliding(2, 2).map(Integer.parseInt(_, 16).toByte)
-          val digest = MessageDigest.getInstance("MD5")
-          digest.update(passphraseRaw.toArray)
-          digest.digest(passphrase, 1, 16)
-          Some(passphrase.map("%02X".format(_)).mkString, challenge)
-        } else None
+      val chapPassword = autoDisconnect(conn(new URL(HTTP, currentHost, "/portal_io/getchallenge")).asInstanceOf[HttpURLConnection]) { conn =>
+        setup(conn)
+        val (code, json) = parseResult(conn)
+        if (code != 0) return (1, 0)  // retry
+        val challenge = (json \ "challenge").asInstanceOf[JString].values
+        val passphrase = new Array[Byte](17)
+        passphrase(0) = Random.nextInt.toByte
+        val passphraseRaw = new mutable.ArrayBuffer[Byte]
+        passphraseRaw += passphrase(0)
+        passphraseRaw ++= password.getBytes
+        passphraseRaw ++= challenge.sliding(2, 2).map(Integer.parseInt(_, 16).toByte)
+        val digest = MessageDigest.getInstance("MD5")
+        digest.update(passphraseRaw.toArray)
+        digest.digest(passphrase, 1, 16)
+        "username=%s&password=%s&challenge=%s".format(username, passphrase.map("%02X".format(_)).mkString, challenge)
+      }
       autoDisconnect(conn(new URL(HTTP, currentHost, "/portal_io/login")).asInstanceOf[HttpURLConnection]) { conn =>
         setup(conn)
         conn.setDoOutput(true)
         //noinspection JavaAccessorMethodCalledAsEmptyParen
-        autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, chapPassword match {
-          case Some((password, challenge)) => (POST_AUTH_BASE + "&challenge=%s").format(username, password, challenge)
-          case None => POST_AUTH_BASE.format(username, password)
-        }))
+        autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, chapPassword))
         conn.getResponseCode match {
           case 200 =>
             val (result, _) = parseResult(conn)
