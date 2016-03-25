@@ -35,8 +35,6 @@ class App extends Application with ContextPlus {
   lazy val editor = pref.edit
 
   def serviceStatus = pref.getString(SERVICE_STATUS, "3").toInt
-  def detectEnabled = (serviceStatus | 1) > 0
-  def autoLoginEnabled = (serviceStatus | 2) > 0
   def reloginDelay = pref.getInt(RELOGIN_DELAY, 0)
 
   def showToast(msg: String) = handler.post(() => makeToast(msg, Toast.LENGTH_SHORT).show)

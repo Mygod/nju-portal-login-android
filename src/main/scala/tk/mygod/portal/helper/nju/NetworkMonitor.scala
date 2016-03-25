@@ -54,15 +54,13 @@ object NetworkMonitor extends BroadcastReceiver {
 
     def doLogin(id: Long): Unit = available.get(id) match {
       case Some(n: NetworkInfo) => ThrowableFuture(if (busy.synchronized(busy.add(serialize(n)))) {
-        while (instance != null && loginedNetwork == null && available.contains(serialize(n)) &&
-          busy.contains(serialize(n)) && PortalManager.loginLegacy(n) == 1) Thread.sleep(retryDelay)
+        doLogin(n)
         busy.synchronized(busy.remove(serialize(n)))
       })
       case _ =>
     }
     def doLogin(n: NetworkInfo) = while (instance != null && loginedNetwork == null &&
-      available.contains(serialize(n)) && app.autoLoginEnabled && PortalManager.loginLegacy(n) == 1)
-      Thread.sleep(retryDelay)
+      available.contains(serialize(n)) && PortalManager.loginLegacy(n) == 1) Thread.sleep(retryDelay)
 
     def onLogin(n: NetworkInfo, code: Int) {
       loginedNetwork = n
@@ -193,14 +191,13 @@ final class NetworkMonitor extends ServicePlus {
 
     def doLogin(id: Int): Unit = available.get(id) match {
       case Some(n: Network) => ThrowableFuture(if (busy.synchronized(busy.add(n.hashCode))) {
-        while (available.contains(n.hashCode) && loginedNetwork == null &&
-          busy.synchronized(busy.contains(n.hashCode)) && PortalManager.login(n) == 1) Thread.sleep(retryDelay)
+        doLogin(n)
         busy.synchronized(busy.remove(n.hashCode))
       })
       case _ =>
     }
     private def doLogin(n: Network) = while (available.contains(n.hashCode) && loginedNetwork == null &&
-      busy.synchronized(busy.contains(n.hashCode)) && app.autoLoginEnabled && PortalManager.login(n) == 1)
+      busy.synchronized(busy.contains(n.hashCode)) && app.serviceStatus > 0 && PortalManager.login(n) == 1)
       Thread.sleep(retryDelay)
 
     private def testConnection(n: Network) = if (busy.synchronized(busy.add(n.hashCode))) ThrowableFuture {
