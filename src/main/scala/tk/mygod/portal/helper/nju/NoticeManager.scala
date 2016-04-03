@@ -120,7 +120,6 @@ object NoticeManager {
           .setContentIntent(pending(ACTION_VIEW, notice.id)).setDeleteIntent(pending(ACTION_MARK_AS_READ, notice.id))
         if (pushedNotices.add(notice.id))
           builder.setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE)
-        if (Build.version >= 21) builder.setPriority(NotificationCompat.PRIORITY_HIGH)
         app.nm.notify(notice.id, builder.build)
       }
     })
