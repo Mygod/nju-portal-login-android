@@ -35,8 +35,9 @@ final class NoticeFragment extends CircularRevealFragment with OnRefreshListener
       this.item = item
       text1.setText(item.formattedTitle)
       val date = new Date(item.distributionTime * 1000)
-      text2.setText(getString(R.string.notice_summary, DateFormat.getDateTimeInstance(
-        DateFormat.DEFAULT, DateFormat.DEFAULT, getResources.getConfiguration.locale).format(date), item.url))
+      val summary = getString(R.string.notice_summary, DateFormat.getDateTimeInstance(
+        DateFormat.DEFAULT, DateFormat.DEFAULT, getResources.getConfiguration.locale).format(date))
+      text2.setText(if (item.url == null) summary else summary + '\n' + item.url)
       val alpha = if (item.obsolete) .5F else 1F
       val style = if (item.read) Typeface.NORMAL else Typeface.BOLD
       text1.setAlpha(alpha)
@@ -51,7 +52,7 @@ final class NoticeFragment extends CircularRevealFragment with OnRefreshListener
         text2.setTypeface(null, Typeface.NORMAL)
       }
       NoticeManager.read(item)
-      getActivity.asInstanceOf[ActivityPlus].launchUrl(item.url)
+      if (item.url != null) getActivity.asInstanceOf[ActivityPlus].launchUrl(item.url)
     }
   }
 

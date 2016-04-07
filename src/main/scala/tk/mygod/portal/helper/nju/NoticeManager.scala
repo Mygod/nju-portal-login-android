@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
 import me.leolin.shortcutbadger.ShortcutBadger
-import tk.mygod.os.Build
 import tk.mygod.portal.helper.nju.database.Notice
 import tk.mygod.util.Conversions._
 
@@ -63,8 +62,10 @@ object NoticeManager {
           } else if (!notice.read) unread += notice
         var newItem = false
         for ((_, notice) <- active) {
-          val duplicate = noticeDao.query(noticeDao.queryBuilder.where.eq(Notice.DISTRIBUTION_TIME,
-            notice.distributionTime).and.eq("title", notice.title).and.eq("url", notice.url).prepare)
+          val query = noticeDao.queryBuilder.where.eq(Notice.DISTRIBUTION_TIME, notice.distributionTime)
+            .and.eq("title", notice.title).and
+          val duplicate = noticeDao.query((if (notice.url == null) query.isNull("url") else query.eq("url", notice.url))
+            .prepare)
           if (duplicate.size > 0) {
             val result = duplicate.get(0)
             if (result.obsolete) {
@@ -105,8 +106,8 @@ object NoticeManager {
         filter.addAction(ACTION_VIEW)
         app.registerReceiver((context, intent) => {
           val notice = fetchNotice(intent.getIntExtra(EXTRA_ID, 0))
-          if (intent.getAction == ACTION_VIEW) context.startActivity(new Intent(Intent.ACTION_VIEW)
-            .setData(notice.url).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+          if (notice.url != null && intent.getAction == ACTION_VIEW) context.startActivity(
+            new Intent(Intent.ACTION_VIEW).setData(notice.url).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
           read(notice)
         }, filter)
         receiverRegistered = true

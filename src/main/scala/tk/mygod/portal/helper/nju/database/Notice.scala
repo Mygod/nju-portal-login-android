@@ -10,12 +10,16 @@ object Notice {
   final val DISTRIBUTION_TIME = "distributionTime"
 }
 
+//noinspection HashCodeUsesVar
 final class Notice {
   def this(o: Map[String, Any]) {
     this()
-    title = o("title").toString
+    title = o("title").asInstanceOf[String]
     distributionTime = o("disttime").asInstanceOf[BigInt].toLong
-    url = o("url").toString
+    o.get("url") match {
+      case Some(str: String) => url = str
+      case _ =>
+    }
   }
 
   @DatabaseField(generatedId = true)
@@ -42,5 +46,10 @@ final class Notice {
     case that: Notice => distributionTime == that.distributionTime && title == that.title && url == that.url
     case _ => false
   }
-  override def hashCode = title.toUpperCase.hashCode ^ distributionTime.hashCode ^ url.hashCode
+  override def hashCode = {
+    var result = distributionTime.hashCode
+    if (title != null) result ^= title.hashCode
+    if (url != null) result ^= url.hashCode
+    result
+  }
 }
