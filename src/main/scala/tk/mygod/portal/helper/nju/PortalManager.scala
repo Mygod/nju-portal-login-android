@@ -38,7 +38,7 @@ object PortalManager {
   case class NetworkUnavailableException() extends IOException { }
   case class InvalidResponseException(response: String) extends IOException("Invalid response: " + response) { }
 
-  var currentHost = "219.219.114.172"
+  var currentHost = DOMAIN
   var currentUsername: String = _
   def username = app.pref.getString("account.username", "")
   def password = app.pref.getString("account.password", "")
