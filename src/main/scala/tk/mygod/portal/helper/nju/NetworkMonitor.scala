@@ -92,19 +92,28 @@ object NetworkMonitor extends BroadcastReceiver {
                   new NotificationCompat.BigTextStyle(builder.setContentText(summary))
                     .setSummaryText(summary).bigText(full).build
               })
+              NoticeManager.pushUnreadNotices
             }
-          case 2 => doLogin(n)
-          case 3 => if (PortalManager.testConnectionLegacy(n)) doLogin(n)
-          case 4 => if (PortalManager.testConnectionLegacy(n)) PortalManager.queryOnlineLegacy(n) match {
-            case None => doLogin(n)
-            case Some((summary, full)) =>
-              if (receiverRegistered.compareAndSet(false, true))
-                app.registerReceiver(NetworkMonitor, new IntentFilter(ACTION_LOGIN_LEGACY))
-              val id = n.hashCode
-              app.nm.notify(getNotificationId(id), new NotificationCompat.BigTextStyle(makeLoginNotification
-                .setContentText(summary)
-                .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id))))
-                .setSummaryText(app.getString(R.string.app_name)).bigText(full).build)
+          case 2 =>
+            doLogin(n)
+            NoticeManager.pushUnreadNotices
+          case 3 => if (PortalManager.testConnectionLegacy(n)) {
+            doLogin(n)
+            NoticeManager.pushUnreadNotices
+          }
+          case 4 => if (PortalManager.testConnectionLegacy(n)) {
+            PortalManager.queryOnlineLegacy(n) match {
+              case None => doLogin(n)
+              case Some((summary, full)) =>
+                if (receiverRegistered.compareAndSet(false, true))
+                  app.registerReceiver(NetworkMonitor, new IntentFilter(ACTION_LOGIN_LEGACY))
+                val id = n.hashCode
+                app.nm.notify(getNotificationId(id), new NotificationCompat.BigTextStyle(makeLoginNotification
+                  .setContentText(summary)
+                  .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id))))
+                  .setSummaryText(app.getString(R.string.app_name)).bigText(full).build)
+            }
+            NoticeManager.pushUnreadNotices
           }
           case _ =>
         }
@@ -232,19 +241,28 @@ final class NetworkMonitor extends ServicePlus {
               case Some((summary, full)) => new NotificationCompat.BigTextStyle(builder.setContentText(summary))
                   .setSummaryText(app.getString(R.string.app_name)).bigText(full).build
             })
+            NoticeManager.pushUnreadNotices
           }
-        case 2 => doLogin(n)
-        case 3 => if (PortalManager.testConnection(n)) doLogin(n)
-        case 4 => if (PortalManager.testConnection(n)) PortalManager.queryOnline(n) match {
-          case None => doLogin(n)
-          case Some((summary, full)) =>
-            if (receiverRegistered.compareAndSet(false, true))
-              app.registerReceiver(loginReceiver, new IntentFilter(ACTION_LOGIN))
-            val id = n.hashCode
-            app.nm.notify(getNotificationId(id), new NotificationCompat.BigTextStyle(makeLoginNotification
-              .setContentText(summary)
-              .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN).putExtra(EXTRA_NETWORK_ID, id))))
-              .setSummaryText(app.getString(R.string.app_name)).bigText(full).build)
+        case 2 =>
+          doLogin(n)
+          NoticeManager.pushUnreadNotices
+        case 3 => if (PortalManager.testConnection(n)) {
+          doLogin(n)
+          NoticeManager.pushUnreadNotices
+        }
+        case 4 => if (PortalManager.testConnection(n)) {
+          PortalManager.queryOnline(n) match {
+            case None => doLogin(n)
+            case Some((summary, full)) =>
+              if (receiverRegistered.compareAndSet(false, true))
+                app.registerReceiver(loginReceiver, new IntentFilter(ACTION_LOGIN))
+              val id = n.hashCode
+              app.nm.notify(getNotificationId(id), new NotificationCompat.BigTextStyle(makeLoginNotification
+                .setContentText(summary)
+                .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN).putExtra(EXTRA_NETWORK_ID, id))))
+                .setSummaryText(app.getString(R.string.app_name)).bigText(full).build)
+          }
+          NoticeManager.pushUnreadNotices
         }
         case _ =>
       }

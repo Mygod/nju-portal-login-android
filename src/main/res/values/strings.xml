@@ -47,7 +47,7 @@
 
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_notices">View notices history</string>
-    <string name="settings_notifications_notices_sync_login">Sync notices on login</string>
+    <string name="settings_notifications_notices_sync_auto">Sync notices on campus network detected</string>
     <string name="settings_notifications_notices_sync_interval">Auto sync interval</string>
     <string name="settings_notifications_notices_sync_interval_summary">%s (disable if you login with this app very
         often)</string>

@@ -60,8 +60,8 @@
         <android.support.v7.preference.Preference android:key="notifications.notices"
                                                   android:title="@string/settings_notifications_notices"/>
         <android.support.v14.preference.SwitchPreference
-                android:key="notifications.notices.sync.login" android:defaultValue="true"
-                android:title="@string/settings_notifications_notices_sync_login"/>
+                android:key="notifications.notices.sync.auto" android:defaultValue="true"
+                android:title="@string/settings_notifications_notices_sync_auto"/>
         <tk.mygod.preference.DropDownPreference
                 android:key="notifications.notices.sync.interval" android:defaultValue="0"
                 app:entries="@array/settings_notifications_notices_sync_intervals"

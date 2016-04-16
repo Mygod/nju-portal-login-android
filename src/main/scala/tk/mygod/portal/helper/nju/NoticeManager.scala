@@ -98,7 +98,7 @@ object NoticeManager {
   private var receiverRegistered: Boolean = _
   private def pending(action: String, id: Int) =
     app.pendingBroadcast(new Intent(action).putExtra(EXTRA_ID, id).setFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY))
-  def pushUnreadNotices = if (app.pref.getBoolean("notifications.notices.sync.login", true)) {
+  def pushUnreadNotices = if (app.pref.getBoolean("notifications.notices.sync.auto", true)) {
     val notices = updateUnreadNotices()
     if (notices.nonEmpty) app.handler.post(() => {
       synchronized(if (!receiverRegistered) {

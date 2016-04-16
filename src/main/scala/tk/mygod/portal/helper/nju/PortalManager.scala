@@ -258,7 +258,6 @@ object PortalManager {
     if (code == 1 || code == 6) {
       reportNetworkConnectivity(network, true)
       NetworkMonitor.instance.listener.onLogin(network, code)
-      NoticeManager.pushUnreadNotices
     }
     result
   }
@@ -268,10 +267,7 @@ object PortalManager {
       network = NetworkMonitor.preferNetworkLegacy(n)
       _.openConnection
     })
-    if (code == 1 || code == 6) {
-      NetworkMonitor.listenerLegacy.onLogin(network, code)
-      NoticeManager.pushUnreadNotices
-    }
+    if (code == 1 || code == 6) NetworkMonitor.listenerLegacy.onLogin(network, code)
     result
   }
   def login: Int =
