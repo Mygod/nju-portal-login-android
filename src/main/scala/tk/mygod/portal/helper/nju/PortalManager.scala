@@ -23,7 +23,7 @@ import scala.util.Random
 
 /**
   * Portal manager. Supports:
-  *   Desktop v = 201510210840
+  *   Desktop v = 201604111357
   *   Mobile v = 201603011609
   *
   * To be supported:
