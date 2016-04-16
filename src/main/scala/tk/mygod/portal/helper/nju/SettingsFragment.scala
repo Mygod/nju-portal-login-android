@@ -1,9 +1,5 @@
 package tk.mygod.portal.helper.nju
 
-import java.net.InetAddress
-import java.text.DateFormat
-import java.util.Date
-
 import android.os.Bundle
 import android.support.v7.preference.Preference
 import android.util.Log
@@ -128,12 +124,9 @@ final class SettingsFragment extends ToolbarPreferenceFragment {
         case "username" => name.value2 = value.asInstanceOf[String]
         case _ => Log.e(TAG, "Unknown key in user_info: " + key)
       } else preference.setSummary(key match {
-        case "acctstarttime" => DateFormat.getDateTimeInstance.format(new Date(value.asInstanceOf[BigInt].toLong * 1000))
+        case "acctstarttime" => PortalManager.parseTime(value.asInstanceOf[BigInt])
         case "balance" => formatCurrency(value.asInstanceOf[BigInt].toInt)
-        case "useripv4" =>
-          val bytes = value.asInstanceOf[BigInt].toInt
-          InetAddress.getByAddress(Array[Byte]((bytes >>> 24 & 0xFF).toByte, (bytes >>> 16 & 0xFF).toByte,
-            (bytes >>> 8 & 0xFF).toByte, (bytes & 0xFF).toByte)).getHostAddress
+        case "useripv4" => PortalManager.parseIpv4(value.asInstanceOf[BigInt])
         case _ => value.toString
       })
     }

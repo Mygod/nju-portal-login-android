@@ -43,6 +43,13 @@ object NetworkMonitor extends BroadcastReceiver {
     network
   }
 
+  def makeLoginNotification = new NotificationCompat.Builder(app).setAutoCancel(true)
+    .setColor(ContextCompat.getColor(app, R.color.material_primary_500))
+    .setLights(ContextCompat.getColor(app, R.color.material_purple_a700), app.lightOnMs, app.lightOffMs)
+    .setSmallIcon(R.drawable.ic_device_signal_wifi_not_connected).setGroup(ACTION_LOGIN)
+    .setContentTitle(app.getString(R.string.network_available_sign_in))
+    .setContentText(app.getString(R.string.app_name)).setShowWhen(false)
+
   //noinspection ScalaDeprecation
   class NetworkListenerLegacy {
     private val available = new mutable.LongMap[NetworkInfo]
@@ -77,17 +84,28 @@ object NetworkMonitor extends BroadcastReceiver {
               if (receiverRegistered.compareAndSet(false, true))
                 app.registerReceiver(NetworkMonitor, new IntentFilter(ACTION_LOGIN_LEGACY))
               val id = serialize(n)
-              app.nm.notify(getNotificationId(id), new NotificationCompat.Builder(app).setAutoCancel(true)
-                .setColor(ContextCompat.getColor(app, R.color.material_primary_500))
-                .setLights(ContextCompat.getColor(app, R.color.material_purple_a700), app.lightOnMs, app.lightOffMs)
-                .setSmallIcon(R.drawable.ic_device_signal_wifi_not_connected).setGroup(ACTION_LOGIN_LEGACY)
-                .setContentTitle(app.getString(R.string.network_available_sign_in))
-                .setContentText(app.getString(R.string.app_name)).setShowWhen(false)
-                .setContentIntent(app.pendingBroadcast(
-                  new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id))).build)
+              val builder = makeLoginNotification
+                .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id)))
+              app.nm.notify(getNotificationId(id), PortalManager.queryOnlineLegacy(n) match {
+                case None => builder.build
+                case Some((summary, full)) =>
+                  new NotificationCompat.BigTextStyle(builder.setContentText(summary))
+                    .setSummaryText(summary).bigText(full).build
+              })
             }
           case 2 => doLogin(n)
           case 3 => if (PortalManager.testConnectionLegacy(n)) doLogin(n)
+          case 4 => if (PortalManager.testConnectionLegacy(n)) PortalManager.queryOnlineLegacy(n) match {
+            case None => doLogin(n)
+            case Some((summary, full)) =>
+              if (receiverRegistered.compareAndSet(false, true))
+                app.registerReceiver(NetworkMonitor, new IntentFilter(ACTION_LOGIN_LEGACY))
+              val id = n.hashCode
+              app.nm.notify(getNotificationId(id), new NotificationCompat.BigTextStyle(makeLoginNotification
+                .setContentText(summary)
+                .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id))))
+                .setSummaryText(app.getString(R.string.app_name)).bigText(full).build)
+          }
           case _ =>
         }
         busy.synchronized(busy.remove(serialize(n)))
@@ -207,16 +225,27 @@ final class NetworkMonitor extends ServicePlus {
             if (receiverRegistered.compareAndSet(false, true))
               app.registerReceiver(loginReceiver, new IntentFilter(ACTION_LOGIN))
             val id = n.hashCode
-            app.nm.notify(getNotificationId(id), new NotificationCompat.Builder(app).setAutoCancel(true)
-              .setColor(ContextCompat.getColor(app, R.color.material_primary_500))
-              .setLights(ContextCompat.getColor(app, R.color.material_purple_a700), app.lightOnMs, app.lightOffMs)
-              .setSmallIcon(R.drawable.ic_device_signal_wifi_not_connected).setGroup(ACTION_LOGIN)
-              .setContentTitle(app.getString(R.string.network_available_sign_in))
-              .setContentText(app.getString(R.string.app_name)).setShowWhen(false)
-              .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN).putExtra(EXTRA_NETWORK_ID, id))).build)
+            val builder = makeLoginNotification
+              .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN).putExtra(EXTRA_NETWORK_ID, id)))
+            app.nm.notify(getNotificationId(id), PortalManager.queryOnline(n) match {
+              case None => builder.build
+              case Some((summary, full)) => new NotificationCompat.BigTextStyle(builder.setContentText(summary))
+                  .setSummaryText(app.getString(R.string.app_name)).bigText(full).build
+            })
           }
         case 2 => doLogin(n)
         case 3 => if (PortalManager.testConnection(n)) doLogin(n)
+        case 4 => if (PortalManager.testConnection(n)) PortalManager.queryOnline(n) match {
+          case None => doLogin(n)
+          case Some((summary, full)) =>
+            if (receiverRegistered.compareAndSet(false, true))
+              app.registerReceiver(loginReceiver, new IntentFilter(ACTION_LOGIN))
+            val id = n.hashCode
+            app.nm.notify(getNotificationId(id), new NotificationCompat.BigTextStyle(makeLoginNotification
+              .setContentText(summary)
+              .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN).putExtra(EXTRA_NETWORK_ID, id))))
+              .setSummaryText(app.getString(R.string.app_name)).bigText(full).build)
+        }
         case _ =>
       }
       busy.synchronized(busy.remove(n.hashCode))

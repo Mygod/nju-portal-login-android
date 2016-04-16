@@ -10,7 +10,8 @@
     <string name="settings_auth">认证</string>
     <string name="settings_auth_service_status">服务状态</string>
     <string-array name="settings_auth_service_statuses">
-        <item>自动检测校园网并登录</item>
+        <item>检测到校园网以及无人在线后自动登录（不安全）</item>
+        <item>检测到校园网后自动登录</item>
         <item>对于所有网络均尝试登录</item>
         <item>仅检测校园网</item>
         <item>禁用</item>
@@ -105,6 +106,7 @@
 
     <!-- NetworkMonitor & PortalManager -->
     <string name="network_available_sign_in">登录到校园网</string>
+    <string name="network_available_sign_in_conflict">%1$s 于 %3$s 在 %2$s 登录</string>
     <string name="auto_relogin_active">将于 %d 毫秒后自动重新登录</string>
     <string name="error_socket_timeout">套接字超时。</string>
     <string name="error_network_unavailable">没有可用的连接。</string>

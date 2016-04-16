@@ -3,9 +3,11 @@ package tk.mygod.portal.helper.nju
 import java.io.IOException
 import java.net._
 import java.security.MessageDigest
+import java.text.DateFormat
+import java.util.Date
 
 import android.annotation.TargetApi
-import android.net.{Uri, Network, NetworkInfo}
+import android.net.{Network, NetworkInfo, Uri}
 import android.text.TextUtils
 import android.util.Log
 import org.json4s.ParserUtil.ParseException
@@ -35,6 +37,7 @@ object PortalManager {
   private final val DOMAIN = "p.nju.edu.cn"
   private final val TAG = "PortalManager"
   private final val STATUS = "status"
+  private final val AUTH_BASE = "username=%s&password=%s"
   case class NetworkUnavailableException() extends IOException { }
   case class InvalidResponseException(response: String) extends IOException("Invalid response: " + response) { }
 
@@ -77,9 +80,17 @@ object PortalManager {
         }
       case _ =>
     }
-    if (code != 0 && (code != 1 && code != 6 && code != 101 || app.pref.getBoolean("notifications.login", true)))
+    if (code != 0 && code != 9 &&
+      (code != 1 && code != 6 && code != 101 || app.pref.getBoolean("notifications.login", true)))
       app.showToast("#%d: %s".format(code, (json \ "reply_msg").asInstanceOf[JString].values))
     (code, json)
+  }
+
+  def parseTime(value: BigInt) = DateFormat.getDateTimeInstance.format(new Date(value.toLong * 1000))
+  def parseIpv4(value: BigInt) = {
+    val bytes = value.asInstanceOf[BigInt].toInt
+    InetAddress.getByAddress(Array[Byte]((bytes >>> 24 & 0xFF).toByte, (bytes >>> 16 & 0xFF).toByte,
+      (bytes >>> 8 & 0xFF).toByte, (bytes & 0xFF).toByte)).getHostAddress
   }
 
   /**
@@ -143,13 +154,48 @@ object PortalManager {
     if (post) conn.setRequestMethod("POST")
   }
 
+  private def queryOnlineCore(conn: URL => URLConnection): Option[(String, String)] =
+    try autoDisconnect(conn(new URL(HTTP, currentHost, "/portal_io/selfservice/bfonline/getlist"))
+      .asInstanceOf[HttpURLConnection]) { conn =>
+      setup(conn)
+      conn.setDoOutput(true)
+      //noinspection JavaAccessorMethodCalledAsEmptyParen
+      autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, AUTH_BASE.format(username, password)))
+      // TODO: Support CHAP encryption check
+      val (code, json) = parseResult(conn)
+      if ((json \ "total").asInstanceOf[JInt].values == 1) {
+        val online = (json \ "rows").asInstanceOf[JArray].arr.head.asInstanceOf[JObject]
+        val summary = app.getString(R.string.network_available_sign_in_conflict,
+          (online \ "mac").asInstanceOf[JString].values,
+          online \ "area_name" match {
+            case str: JString => str.values
+            case _ => "未知区域"
+          }, parseTime((online \ "acctstarttime").asInstanceOf[JInt].values))
+        Some(summary, summary + '\n' + app.getString(R.string.network_available_sign_in_conflict_ip,
+          parseIpv4((online \ "user_ipv4").asInstanceOf[JInt].values),
+          (online \ "user_ipv6").asInstanceOf[JString].values))
+      } else None
+    } catch {
+      case e: Exception =>
+        app.showToast(e.getMessage)
+        e.printStackTrace
+        None
+    }
+  @TargetApi(21)
+  def queryOnline(network: Network) = queryOnlineCore(network.openConnection)
+  def queryOnlineLegacy(network: NetworkInfo) = queryOnlineCore({
+    NetworkMonitor.preferNetworkLegacy(network)
+    _.openConnection
+  })
+
   private def loginCore(conn: URL => URLConnection): (Int, Int) = {
     if (DEBUG) Log.d(TAG, "Logging in...")
     try {
-      val chapPassword = autoDisconnect(conn(new URL(HTTP, currentHost, "/portal_io/getchallenge")).asInstanceOf[HttpURLConnection]) { conn =>
+      val chapPassword = autoDisconnect(
+        conn(new URL(HTTP, currentHost, "/portal_io/getchallenge")).asInstanceOf[HttpURLConnection]) { conn =>
         setup(conn)
         val (code, json) = parseResult(conn)
-        if (code != 0) return (1, 0)  // retry
+        if (code != 0) return null
         val challenge = (json \ "challenge").asInstanceOf[JString].values
         val passphrase = new Array[Byte](17)
         passphrase(0) = Random.nextInt.toByte
@@ -160,8 +206,9 @@ object PortalManager {
         val digest = MessageDigest.getInstance("MD5")
         digest.update(passphraseRaw.toArray)
         digest.digest(passphrase, 1, 16)
-        "username=%s&password=%s&challenge=%s".format(username, passphrase.map("%02X".format(_)).mkString, challenge)
+        (AUTH_BASE + "&challenge=%s").format(username, passphrase.map("%02X".format(_)).mkString, challenge)
       }
+      if (chapPassword == null) return (1, 0)
       autoDisconnect(conn(new URL(HTTP, currentHost, "/portal_io/login")).asInstanceOf[HttpURLConnection]) { conn =>
         setup(conn)
         conn.setDoOutput(true)

@@ -11,7 +11,8 @@
     <string name="settings_auth">Authorization</string>
     <string name="settings_auth_service_status">Service status</string>
     <string-array name="settings_auth_service_statuses">
-        <item>Automatically detect campus networks and login</item>
+        <item>Detect campus networks and other online devices before automatically logging in (unsafe)</item>
+        <item>Detect campus networks before automatically logging in</item>
         <item>Automatically login for all networks without detecting</item>
         <item>Detect campus networks only</item>
         <item>Disabled</item>
@@ -116,6 +117,8 @@
 
     <!-- NetworkMonitor & PortalManager -->
     <string name="network_available_sign_in">Sign in to campus network</string>
+    <string name="network_available_sign_in_conflict">%1$s logged in at %2$s since %3$s</string>
+    <string name="network_available_sign_in_conflict_ip">IP: %1$s, %2$s</string>
     <string name="auto_relogin_active">Auto relogin pending in %dms</string>
     <string name="error_network_unavailable">No available network.</string>
     <string name="error_socket_timeout">Socket timeout.</string>
