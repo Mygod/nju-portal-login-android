@@ -71,6 +71,7 @@ object NetworkMonitor extends BroadcastReceiver {
 
     def onLogin(n: NetworkInfo, code: Int) {
       loginedNetwork = n
+      app.nm.cancel(getNotificationId(serialize(n)))
       if (instance != null && n != null) instance.reloginThread.synchronizedNotify(code)
     }
 
@@ -271,6 +272,7 @@ final class NetworkMonitor extends ServicePlus {
 
     def onLogin(n: Network, code: Int) {
       loginedNetwork = n
+      app.nm.cancel(getNotificationId(n.hashCode))
       reloginThread.synchronizedNotify(code)
     }
 
