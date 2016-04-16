@@ -21,7 +21,7 @@ libraryDependencies ++= Seq(
   "com.j256.ormlite" % "ormlite-android" % "4.48",
   "me.leolin" % "ShortcutBadger" % "1.1.4",
   "org.json4s" %% "json4s-native" % "3.3.0",
-  "tk.mygod" %% "mygod-lib-android" % "1.3.11"
+  "tk.mygod" %% "mygod-lib-android" % "1.4.0-SNAPSHOT"
 )
 
 proguardOptions += "-dontwarn com.thoughtworks.**"
