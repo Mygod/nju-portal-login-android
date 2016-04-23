@@ -5,6 +5,7 @@ import android.app.{Application, NotificationManager}
 import android.content.Context
 import android.content.res.Resources
 import android.net.ConnectivityManager
+import android.net.wifi.WifiManager
 import android.os.Handler
 import android.provider.Settings
 import android.widget.Toast
@@ -30,7 +31,8 @@ class App extends Application with ContextPlus {
     else if (Settings.System.canWrite(this)) 2 else 1 else 0
 
   lazy val cm = systemService[ConnectivityManager]
-  lazy val nm = app.systemService[NotificationManager]
+  lazy val nm = systemService[NotificationManager]
+  lazy val wm = systemService[WifiManager]
   lazy val pref = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
   lazy val editor = pref.edit
 

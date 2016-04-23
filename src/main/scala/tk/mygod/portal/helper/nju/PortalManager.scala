@@ -154,6 +154,18 @@ object PortalManager {
     if (post) conn.setRequestMethod("POST")
   }
 
+  private class OnlineEntry(obj: JObject) {
+    val mac = (obj \ "mac").asInstanceOf[JString].values
+    def toStrings = {
+      val summary = app.getString(R.string.network_available_sign_in_conflict, mac,
+        obj \ "area_name" match {
+          case str: JString => str.values
+          case _ => "未知区域"
+        }, parseTime((obj \ "acctstarttime").asInstanceOf[JInt].values))
+      (summary, summary + '\n' + app.getString(R.string.network_available_sign_in_conflict_ip,
+        parseIpv4((obj \ "user_ipv4").asInstanceOf[JInt].values), (obj \ "user_ipv6").asInstanceOf[JString].values))
+    }
+  }
   private def queryOnlineCore(conn: URL => URLConnection): Option[(String, String)] =
     try autoDisconnect(conn(new URL(HTTP, currentHost, "/portal_io/selfservice/bfonline/getlist"))
       .asInstanceOf[HttpURLConnection]) { conn =>
@@ -162,18 +174,12 @@ object PortalManager {
       //noinspection JavaAccessorMethodCalledAsEmptyParen
       autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, AUTH_BASE.format(username, password)))
       // TODO: Support CHAP encryption check
-      val (code, json) = parseResult(conn)
-      if ((json \ "total").asInstanceOf[JInt].values == 1) {
-        val online = (json \ "rows").asInstanceOf[JArray].arr.head.asInstanceOf[JObject]
-        val summary = app.getString(R.string.network_available_sign_in_conflict,
-          (online \ "mac").asInstanceOf[JString].values,
-          online \ "area_name" match {
-            case str: JString => str.values
-            case _ => "未知区域"
-          }, parseTime((online \ "acctstarttime").asInstanceOf[JInt].values))
-        Some(summary, summary + '\n' + app.getString(R.string.network_available_sign_in_conflict_ip,
-          parseIpv4((online \ "user_ipv4").asInstanceOf[JInt].values),
-          (online \ "user_ipv6").asInstanceOf[JString].values))
+      val (_, json) = parseResult(conn)
+      if ((json \ "total").asInstanceOf[JInt].values > 0) {
+        val mac = app.wm.getConnectionInfo.getMacAddress
+        var query = (json \ "rows").asInstanceOf[JArray].arr.map(obj => new OnlineEntry(obj.asInstanceOf[JObject]))
+        if (mac != null) query = query.filter(obj => !mac.equalsIgnoreCase(obj.mac))
+        Some(query.head.toStrings)
       } else None
     } catch {
       case e: Exception =>
