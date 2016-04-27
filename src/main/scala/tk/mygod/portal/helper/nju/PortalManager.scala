@@ -100,7 +100,7 @@ object PortalManager {
     */
   def testConnectionCore(conn: URL => URLConnection): Int = {
     try autoDisconnect(conn(new URL(HTTP, "mygod.tk", "/generate_204")).asInstanceOf[HttpURLConnection]) { conn =>
-      setup(conn, false)
+      setup(conn, null)
       conn.getInputStream
       val code = conn.getResponseCode
       if (code == 302) {
@@ -144,14 +144,19 @@ object PortalManager {
     * Setup HttpURLConnection.
     *
     * @param conn HttpURLConnection.
-    * @param post Use HTTP post.
+    * @param post Set this to null to do a get. Otherwise post what you want to post.
     */
-  def setup(conn: HttpURLConnection, post: Boolean = true) {
+  def setup(conn: HttpURLConnection, post: String = "") {
     conn.setInstanceFollowRedirects(false)
     conn.setConnectTimeout(4000)
     conn.setReadTimeout(4000)
     conn.setUseCaches(false)
-    if (post) conn.setRequestMethod("POST")
+    if (post == null) return
+    conn.setRequestMethod("POST")
+    if (post.isEmpty) return
+    conn.setDoOutput(true)
+    //noinspection JavaAccessorMethodCalledAsEmptyParen
+    autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, post))
   }
 
   private class OnlineEntry(obj: JObject) {
@@ -169,10 +174,7 @@ object PortalManager {
   private def queryOnlineCore(conn: URL => URLConnection): Option[(String, String)] =
     try autoDisconnect(conn(new URL(HTTP, currentHost, "/portal_io/selfservice/bfonline/getlist"))
       .asInstanceOf[HttpURLConnection]) { conn =>
-      setup(conn)
-      conn.setDoOutput(true)
-      //noinspection JavaAccessorMethodCalledAsEmptyParen
-      autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, AUTH_BASE.format(username, password)))
+      setup(conn, AUTH_BASE.format(username, password))
       // TODO: Support CHAP encryption check
       val (_, json) = parseResult(conn)
       if ((json \ "total").asInstanceOf[JInt].values > 0) {
@@ -216,10 +218,7 @@ object PortalManager {
       }
       if (chapPassword == null) return (1, 0)
       autoDisconnect(conn(new URL(HTTP, currentHost, "/portal_io/login")).asInstanceOf[HttpURLConnection]) { conn =>
-        setup(conn)
-        conn.setDoOutput(true)
-        //noinspection JavaAccessorMethodCalledAsEmptyParen
-        autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, chapPassword))
+        setup(conn, chapPassword)
         conn.getResponseCode match {
           case 200 =>
             val (result, _) = parseResult(conn)
