@@ -7,7 +7,7 @@ import java.text.DateFormat
 import java.util.Date
 
 import android.annotation.TargetApi
-import android.net.{Network, NetworkInfo, Uri}
+import android.net.{Network, NetworkInfo}
 import android.text.TextUtils
 import android.util.Log
 import org.json4s.ParserUtil.ParseException
@@ -41,7 +41,6 @@ object PortalManager {
   case class NetworkUnavailableException() extends IOException { }
   case class InvalidResponseException(response: String) extends IOException("Invalid response: " + response) { }
 
-  var currentHost = DOMAIN
   var currentUsername: String = _
   def username = app.pref.getString("account.username", "")
   def password = app.pref.getString("account.password", "")
@@ -57,6 +56,13 @@ object PortalManager {
     val info = app.pref.getString(STATUS, "")
     if (!info.isEmpty) listener(parse(info).asInstanceOf[JObject])
   }
+  def updateUserInfo(info: JObject) {
+    app.editor.putString(STATUS, compact(render(info))).apply
+    if (userInfoListener != null) {
+      currentUsername = (info \ "username").asInstanceOf[JString].values
+      app.handler.post(userInfoListener(info))
+    }
+  }
 
   private implicit val formats = Serialization.formats(NoTypeHints)
   private def parseResult(conn: HttpURLConnection) = {
@@ -70,17 +76,11 @@ object PortalManager {
       case i: JInt => i.values.toInt
       case _ => 0
     }
-    val info = json \ "userinfo"
-    info match {
-      case obj: JObject =>
-        app.editor.putString(STATUS, compact(render(info))).apply
-        if (userInfoListener != null) {
-          currentUsername = (obj \ "username").asInstanceOf[JString].values
-          app.handler.post(userInfoListener(obj))
-        }
+    json \ "userinfo" match {
+      case info: JObject => updateUserInfo(info)
       case _ =>
     }
-    if (code != 0 && code != 9 &&
+    if (code != 0 && code != 2 && code != 9 &&
       (code != 1 && code != 6 && code != 101 || app.pref.getBoolean("notifications.login", true)))
       app.showToast("#%d: %s".format(code, (json \ "reply_msg").asInstanceOf[JString].values))
     (code, json)
@@ -98,28 +98,19 @@ object PortalManager {
     *
     * @return 0 for success, 1 for failure, 2 for login required
     */
-  def testConnectionCore(conn: URL => URLConnection): Int = {
-    try autoDisconnect(conn(new URL(HTTP, "mygod.tk", "/generate_204")).asInstanceOf[HttpURLConnection]) { conn =>
-      setup(conn, null)
-      conn.getInputStream
-      val code = conn.getResponseCode
-      if (code == 302) {
-        val target = conn.getHeaderField("Location")
-        if (DEBUG) Log.d(TAG, "Captive portal detected: " + target)
-        val host = Uri.parse(target).getHost
-        if (isValidHost(host)) {
-          currentHost = host
-          return 2
-        }
-      } else if (code == 204 || code == 200 && conn.getContentLength == 0) return 0
+  def testConnectionCore(conn: URL => URLConnection): Int =
+    try autoDisconnect(conn(new URL(HTTP, DOMAIN, "/portal_io/getinfo")).asInstanceOf[HttpURLConnection]) { conn =>
+      setup(conn)
+      val (code, json) = parseResult(conn)
+      if (code == 0) updateUserInfo((json \ "userinfo").asInstanceOf[JObject])  // 操作成功
+      code  // 2: 无用户portal信息
     } catch {
-      case _: SocketTimeoutException | _: UnknownHostException => // ignore
+      case _: SocketTimeoutException | _: UnknownHostException => 1 // ignore
       case e: Exception =>
         app.showToast(e.getMessage)
         e.printStackTrace
+        1
     }
-    1
-  }
   @TargetApi(21)
   def testConnection(network: Network) = testConnectionCore(network.openConnection) match {
     case 0 =>
@@ -172,7 +163,7 @@ object PortalManager {
     }
   }
   private def queryOnlineCore(conn: URL => URLConnection): Option[(String, String)] =
-    try autoDisconnect(conn(new URL(HTTP, currentHost, "/portal_io/selfservice/bfonline/getlist"))
+    try autoDisconnect(conn(new URL(HTTP, DOMAIN, "/portal_io/selfservice/bfonline/getlist"))
       .asInstanceOf[HttpURLConnection]) { conn =>
       setup(conn, AUTH_BASE.format(username, password))
       // TODO: Support CHAP encryption check
@@ -200,7 +191,7 @@ object PortalManager {
     if (DEBUG) Log.d(TAG, "Logging in...")
     try {
       val chapPassword = autoDisconnect(
-        conn(new URL(HTTP, currentHost, "/portal_io/getchallenge")).asInstanceOf[HttpURLConnection]) { conn =>
+        conn(new URL(HTTP, DOMAIN, "/portal_io/getchallenge")).asInstanceOf[HttpURLConnection]) { conn =>
         setup(conn)
         val (code, json) = parseResult(conn)
         if (code != 0) return null
@@ -217,7 +208,7 @@ object PortalManager {
         (AUTH_BASE + "&challenge=%s").format(username, passphrase.map("%02X".format(_)).mkString, challenge)
       }
       if (chapPassword == null) return (1, 0)
-      autoDisconnect(conn(new URL(HTTP, currentHost, "/portal_io/login")).asInstanceOf[HttpURLConnection]) { conn =>
+      autoDisconnect(conn(new URL(HTTP, DOMAIN, "/portal_io/login")).asInstanceOf[HttpURLConnection]) { conn =>
         setup(conn, chapPassword)
         conn.getResponseCode match {
           case 200 =>
@@ -281,7 +272,7 @@ object PortalManager {
   // AnyRef is a workaround for 4.x
   def openPortalConnection[T](file: String, explicit: Boolean = true)
                              (handler: (HttpURLConnection, AnyRef) => Option[T]) = try {
-    val url = new URL(HTTP, currentHost, file)
+    val url = new URL(HTTP, DOMAIN, file)
     var n: AnyRef = null
     autoDisconnect((if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) {
       val network = NetworkMonitor.instance.listener.preferredNetwork

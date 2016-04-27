@@ -26,7 +26,7 @@ final class PortalActivity extends ToolbarActivity with TypedFindView with OnRef
   with OnMenuItemClickListener {
   import PortalActivity._
 
-  private val rootUrl = HTTP + "://" + PortalManager.currentHost
+  private val rootUrl = HTTP + "://" + PortalManager.DOMAIN
   private lazy val webView = findView(TR.webView)
   private lazy val webViewSettings = webView.getSettings
   private var mobileUA: String = _
