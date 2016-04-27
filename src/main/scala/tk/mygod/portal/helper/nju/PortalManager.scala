@@ -34,7 +34,7 @@ import scala.util.Random
   * @author Mygod
   */
 object PortalManager {
-  private final val DOMAIN = "p.nju.edu.cn"
+  final val DOMAIN = "p.nju.edu.cn"
   private final val TAG = "PortalManager"
   private final val STATUS = "status"
   private final val AUTH_BASE = "username=%s&password=%s"
