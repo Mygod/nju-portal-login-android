@@ -15,6 +15,7 @@ import tk.mygod.util.Conversions._
 
 object MainActivity {
   private val ASKED_BOUND_CONNECTION = "misc.useBoundConnections.asked"
+  val ACTION_VIEW_NOTICES = "tk.mygod.portal.helper.nju.MainActivity.VIEW_NOTICES"
 }
 
 final class MainActivity extends FragmentStackActivity with LocationObservedActivity
@@ -32,7 +33,17 @@ final class MainActivity extends FragmentStackActivity with LocationObservedActi
     app.pref.registerOnSharedPreferenceChangeListener(this)
     if (TextUtils.isEmpty(PortalManager.username) || TextUtils.isEmpty(PortalManager.password))
       makeSnackbar(R.string.settings_account_missing).show
+    processIntent(getIntent)
+    setIntent(null)
   }
+
+  private def processIntent(intent: Intent) = intent.getAction match {
+    case ACTION_VIEW_NOTICES =>
+      if (noticeFragment == null || !noticeFragment.isAdded) showNoticeFragment
+      true
+    case _ => false
+  }
+  override protected def onNewIntent(intent: Intent) = if (!processIntent(intent)) super.onNewIntent(intent)
 
   private def manageWriteSettings(dialog: DialogInterface = null, which: Int = 0) = startActivity(
     new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).setData("package:" + getPackageName))
