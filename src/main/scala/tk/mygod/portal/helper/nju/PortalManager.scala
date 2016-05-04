@@ -175,6 +175,19 @@ object PortalManager {
         Some(query.head.toStrings)
       } else None
     } catch {
+      case e: InvalidResponseException =>
+        if (DEBUG) Log.w(TAG, e.getMessage)
+        None
+      case e: SocketTimeoutException =>
+        val msg = e.getMessage
+        app.showToast(if (TextUtils.isEmpty(msg)) app.getString(R.string.error_socket_timeout) else msg)
+        None
+      case e: ConnectException =>
+        app.showToast(e.getMessage)
+        None
+      case e: UnknownHostException =>
+        app.showToast(e.getMessage)
+        None
       case e: Exception =>
         app.showToast(e.getMessage)
         e.printStackTrace
@@ -226,8 +239,8 @@ object PortalManager {
         }
       }
     } catch {
-      case e: ParserUtil.ParseException =>
-        if (DEBUG) Log.w(TAG, "Parse failed: " + e.getMessage)
+      case e: InvalidResponseException =>
+        if (DEBUG) Log.w(TAG, e.getMessage)
         (2, 0)
       case e: SocketException =>
         app.showToast(e.getMessage)
@@ -236,6 +249,9 @@ object PortalManager {
       case e: SocketTimeoutException =>
         val msg = e.getMessage
         app.showToast(if (TextUtils.isEmpty(msg)) app.getString(R.string.error_socket_timeout) else msg)
+        (1, 0)
+      case e: ConnectException =>
+        app.showToast(e.getMessage)
         (1, 0)
       case e: UnknownHostException =>
         app.showToast(e.getMessage)
