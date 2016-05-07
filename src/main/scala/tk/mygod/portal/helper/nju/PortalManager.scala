@@ -20,6 +20,7 @@ import tk.mygod.util.CloseUtils._
 import tk.mygod.util.Conversions._
 import tk.mygod.util.IOUtils
 
+import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.util.Random
 
@@ -169,10 +170,14 @@ object PortalManager {
       // TODO: Support CHAP encryption check
       val (_, json) = parseResult(conn)
       if ((json \ "total").asInstanceOf[JInt].values > 0) {
-        val mac = app.wm.getConnectionInfo.getMacAddress
-        var query = (json \ "rows").asInstanceOf[JArray].arr.map(obj => new OnlineEntry(obj.asInstanceOf[JObject]))
-        if (mac != null) query = query.filter(obj => !mac.equalsIgnoreCase(obj.mac))
-        Some(query.head.toStrings)
+        val macs = enumerationAsScalaIterator(NetworkInterface.getNetworkInterfaces).map(interface => {
+          val mac = interface.getHardwareAddress
+          if (mac == null) null
+          else "%02X:%02X:%02X:%02X:%02X:%02X".format(mac(0), mac(1), mac(2), mac(3), mac(4), mac(5))
+        }).filter(_ != null).toSet
+        val query = (json \ "rows").asInstanceOf[JArray].arr.map(obj => new OnlineEntry(obj.asInstanceOf[JObject]))
+          .filter(obj => !macs.contains(obj.mac.toUpperCase))
+        if (query.isEmpty) None else Some(query.head.toStrings)
       } else None
     } catch {
       case e: InvalidResponseException =>
