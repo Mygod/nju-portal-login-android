@@ -106,7 +106,10 @@ object PortalManager {
       if (code == 0) updateUserInfo((json \ "userinfo").asInstanceOf[JObject])  // 操作成功
       code  // 2: 无用户portal信息
     } catch {
-      case _: SocketTimeoutException | _: UnknownHostException => 1 // ignore
+      case e: InvalidResponseException =>
+        if (DEBUG) Log.w(TAG, e.getMessage)
+        1
+      case _: SocketTimeoutException | _: UnknownHostException | _: ConnectException => 1 // ignore
       case e: Exception =>
         app.showToast(e.getMessage)
         e.printStackTrace
@@ -180,9 +183,6 @@ object PortalManager {
         if (query.isEmpty) None else Some(query.head.toStrings)
       } else None
     } catch {
-      case e: InvalidResponseException =>
-        if (DEBUG) Log.w(TAG, e.getMessage)
-        None
       case e: SocketTimeoutException =>
         val msg = e.getMessage
         app.showToast(if (TextUtils.isEmpty(msg)) app.getString(R.string.error_socket_timeout) else msg)
