@@ -25,3 +25,5 @@ libraryDependencies ++= Seq(
 )
 
 proguardOptions += "-dontwarn com.thoughtworks.**"
+
+proguardVersion in Android := "5.2.1"
