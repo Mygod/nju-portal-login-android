@@ -283,8 +283,8 @@ final class NetworkMonitor extends ServicePlus {
         if (Build.version < 23) busy.synchronized(busy.remove(n.hashCode))  // validated on 5.x
       } else {
         available(n.hashCode) = n
-        if (Build.version < 23 || !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) ||
-          capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL)) testConnection(n)
+        if (Build.version < 23 || !(capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) ||
+          capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL))) testConnection(n)
       }
     }
     override def onCapabilitiesChanged(n: Network, capabilities: NetworkCapabilities) {
@@ -292,7 +292,8 @@ final class NetworkMonitor extends ServicePlus {
       if (Build.version >= 23 && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
         busy.synchronized(busy.remove(n.hashCode)) else {
         loginedNetwork = null
-        testConnection(n)
+        if (Build.version < 23 || !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL))
+          testConnection(n)
       }
     }
     override def onLost(n: Network) {
