@@ -8,6 +8,7 @@ import java.util.Date
 
 import android.annotation.TargetApi
 import android.net.{Network, NetworkInfo}
+import android.support.v4.app.NotificationCompat
 import android.text.TextUtils
 import android.util.Log
 import org.json4s.ParserUtil.ParseException
@@ -154,20 +155,23 @@ object PortalManager {
     autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, post))
   }
 
-  private class OnlineEntry(obj: JObject) {
+  class OnlineEntry(obj: JObject) {
     val mac = (obj \ "mac").asInstanceOf[JString].values
-    def toStrings = {
+    val ipv4 = parseIpv4((obj \ "user_ipv4").asInstanceOf[JInt].values)
+    val ipv6 = (obj \ "user_ipv6").asInstanceOf[JString].values
+    val ipv6Invalid = TextUtils.isEmpty(ipv6) || ipv6 == "::"
+    def makeNotification(builder: NotificationCompat.Builder) = {
       val summary = app.getString(R.string.network_available_sign_in_conflict, mac,
         obj \ "area_name" match {
           case str: JString => str.values
           case _ => "未知区域"
         }, parseTime((obj \ "acctstarttime").asInstanceOf[JInt].values))
-      val ipv6 = (obj \ "user_ipv6").asInstanceOf[JString].values
-      (summary, summary + app.getString(R.string.network_available_sign_in_conflict_ip,
-        parseIpv4((obj \ "user_ipv4").asInstanceOf[JInt].values) + (if (ipv6 == "::") "" else ", " + ipv6)))
+      new NotificationCompat.BigTextStyle(builder.setContentText(summary)).setSummaryText(summary +
+        app.getString(R.string.network_available_sign_in_conflict_ip, ipv4 + (if (ipv6Invalid) "" else ", " + ipv6)))
+        .setSummaryText(app.getString(R.string.app_name)).build()
     }
   }
-  private def queryOnlineCore(conn: URL => URLConnection): Option[(String, String)] =
+  private def queryOnlineCore(conn: URL => URLConnection): List[OnlineEntry] =
     try autoDisconnect(conn(new URL(HTTP, DOMAIN, "/portal_io/selfservice/bfonline/getlist"))
       .asInstanceOf[HttpURLConnection]) { conn =>
       setup(conn, AUTH_BASE.format(username, password))
@@ -179,25 +183,24 @@ object PortalManager {
           if (mac == null) null
           else "%02X:%02X:%02X:%02X:%02X:%02X".format(mac(0), mac(1), mac(2), mac(3), mac(4), mac(5))
         }).filter(_ != null).toSet
-        val query = (json \ "rows").asInstanceOf[JArray].arr.map(obj => new OnlineEntry(obj.asInstanceOf[JObject]))
+        (json \ "rows").asInstanceOf[JArray].arr.map(obj => new OnlineEntry(obj.asInstanceOf[JObject]))
           .filter(obj => !macs.contains(obj.mac.toUpperCase))
-        if (query.isEmpty) None else Some(query.head.toStrings)
-      } else None
+      } else List.empty[OnlineEntry]
     } catch {
       case e: SocketTimeoutException =>
         val msg = e.getMessage
         app.showToast(if (TextUtils.isEmpty(msg)) app.getString(R.string.error_socket_timeout) else msg)
-        None
+        List.empty[OnlineEntry]
       case e: ConnectException =>
         app.showToast(e.getMessage)
-        None
+        List.empty[OnlineEntry]
       case e: UnknownHostException =>
         app.showToast(e.getMessage)
-        None
+        List.empty[OnlineEntry]
       case e: Exception =>
         app.showToast(e.getMessage)
         e.printStackTrace
-        None
+        List.empty[OnlineEntry]
     }
   @TargetApi(21)
   def queryOnline(network: Network) = queryOnlineCore(network.openConnection)
