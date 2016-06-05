@@ -168,14 +168,14 @@ object PortalManager {
           case _ => "未知区域"
         }, parseTime((obj \ "acctstarttime").asInstanceOf[JInt].values))
       builder.addAction(R.drawable.ic_action_search, "MAC",
-          app.pendingBroadcast(new Intent(LookupReceiver.LOOKUP_MAC).putExtra(LookupReceiver.EXTRA_ENTRY, mac)))
+          app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getMacLookup(mac))))
         .addAction(R.drawable.ic_action_search, "IPv4",
-          app.pendingBroadcast(new Intent(LookupReceiver.LOOKUP_IP).putExtra(LookupReceiver.EXTRA_ENTRY, ipv4)))
+          app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getIpLookup(ipv4))))
       if (!ipv6Invalid) builder.addAction(R.drawable.ic_action_search, "IPv6",
-          app.pendingBroadcast(new Intent(LookupReceiver.LOOKUP_IP).putExtra(LookupReceiver.EXTRA_ENTRY, ipv6)))
-      new NotificationCompat.BigTextStyle(builder.setContentText(summary)).setSummaryText(summary +
+        app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getIpLookup(ipv6))))
+      new NotificationCompat.BigTextStyle(builder.setContentText(summary)).setSummaryText(summary).bigText(summary +
         app.getString(R.string.network_available_sign_in_conflict_ip, ipv4 + (if (ipv6Invalid) "" else ", " + ipv6)))
-        .setSummaryText(app.getString(R.string.app_name)).build()
+        .setSummaryText(app.getString(R.string.app_name)).build
     }
   }
   private def queryOnlineCore(conn: URL => URLConnection): List[OnlineEntry] =

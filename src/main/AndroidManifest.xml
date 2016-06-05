@@ -49,12 +49,6 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
-        <receiver android:name=".LookupReceiver">
-            <intent-filter>
-                <action android:name="tk.mygod.portal.helper.nju.LookupReceiver.LOOKUP_IP"/>
-                <action android:name="tk.mygod.portal.helper.nju.LookupReceiver.LOOKUP_MAC"/>
-            </intent-filter>
-        </receiver>
         <receiver android:name=".NetworkMonitorListener">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>

@@ -14,6 +14,8 @@ import com.j256.ormlite.logger.LocalLog
 import tk.mygod.content.ContextPlus
 import tk.mygod.os.Build
 
+import scala.reflect._
+
 class App extends Application with ContextPlus {
   val handler = new Handler
 
@@ -48,9 +50,13 @@ class App extends Application with ContextPlus {
   lazy val lightOnMs = readSystemInteger("config_defaultNotificationLedOn")
   lazy val lightOffMs = readSystemInteger("config_defaultNotificationLedOff")
 
-  def getEnabled[T] =
-    PackageManager.COMPONENT_ENABLED_STATE_ENABLED == pm.getComponentEnabledSetting(new ComponentName(this, classOf[T]))
-  def setEnabled[T](enabled: Boolean) = pm.setComponentEnabledSetting(new ComponentName(this, classOf[T]),
+  def getEnabled[T: ClassTag] = PackageManager.COMPONENT_ENABLED_STATE_ENABLED ==
+    pm.getComponentEnabledSetting(new ComponentName(this, classTag[T].runtimeClass))
+  def setEnabled[T: ClassTag](enabled: Boolean) = pm.setComponentEnabledSetting(
+    new ComponentName(this, classTag[T].runtimeClass),
     if (enabled) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
     PackageManager.DONT_KILL_APP)
+
+  def getIpLookup(ip: CharSequence) = "https://ipinfo.io/" + ip
+  def getMacLookup(mac: CharSequence) = "http://www.coffer.com/mac_find/?string=" + mac
 }

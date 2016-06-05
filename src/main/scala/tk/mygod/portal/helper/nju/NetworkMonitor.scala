@@ -253,8 +253,8 @@ final class NetworkMonitor extends ServicePlus {
               if (receiverRegistered.compareAndSet(false, true))
                 app.registerReceiver(loginReceiver, new IntentFilter(ACTION_LOGIN))
               val id = n.hashCode
-              entry.makeNotification(makeLoginNotification
-                .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN).putExtra(EXTRA_NETWORK_ID, id))))
+              app.nm.notify(getNotificationId(id), entry.makeNotification(makeLoginNotification
+                .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN).putExtra(EXTRA_NETWORK_ID, id)))))
           }
           NoticeManager.pushUnreadNotices
         }
