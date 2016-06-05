@@ -162,8 +162,9 @@ object PortalManager {
           case str: JString => str.values
           case _ => "未知区域"
         }, parseTime((obj \ "acctstarttime").asInstanceOf[JInt].values))
-      (summary, summary + '\n' + app.getString(R.string.network_available_sign_in_conflict_ip,
-        parseIpv4((obj \ "user_ipv4").asInstanceOf[JInt].values), (obj \ "user_ipv6").asInstanceOf[JString].values))
+      val ipv6 = (obj \ "user_ipv6").asInstanceOf[JString].values
+      (summary, summary + app.getString(R.string.network_available_sign_in_conflict_ip,
+        parseIpv4((obj \ "user_ipv4").asInstanceOf[JInt].values) + (if (ipv6 == "::") "" else ", " + ipv6)))
     }
   }
   private def queryOnlineCore(conn: URL => URLConnection): Option[(String, String)] =
