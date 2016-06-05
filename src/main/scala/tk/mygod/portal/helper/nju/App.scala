@@ -2,7 +2,8 @@ package tk.mygod.portal.helper.nju
 
 import android.accounts.AccountManager
 import android.app.{Application, NotificationManager}
-import android.content.Context
+import android.content.{ComponentName, Context}
+import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
@@ -32,6 +33,7 @@ class App extends Application with ContextPlus {
 
   lazy val cm = systemService[ConnectivityManager]
   lazy val nm = systemService[NotificationManager]
+  lazy val pm = getPackageManager
   lazy val wm = systemService[WifiManager]
   lazy val pref = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
   lazy val editor = pref.edit
@@ -45,4 +47,10 @@ class App extends Application with ContextPlus {
     getResources.getInteger(Resources.getSystem.getIdentifier(key, "integer", "android"))
   lazy val lightOnMs = readSystemInteger("config_defaultNotificationLedOn")
   lazy val lightOffMs = readSystemInteger("config_defaultNotificationLedOff")
+
+  def getEnabled[T] =
+    PackageManager.COMPONENT_ENABLED_STATE_ENABLED == pm.getComponentEnabledSetting(new ComponentName(this, classOf[T]))
+  def setEnabled[T](enabled: Boolean) = pm.setComponentEnabledSetting(new ComponentName(this, classOf[T]),
+    if (enabled) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+    PackageManager.DONT_KILL_APP)
 }

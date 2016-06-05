@@ -100,7 +100,11 @@ final class SettingsFragment extends ToolbarPreferenceFragment {
     if (available > 1) {
       portalWeb.setSummary(R.string.settings_auth_portal_web_summary)
       if (NetworkMonitor.instance != null) NetworkMonitor.instance.initBoundConnections
-    } else portalWeb.setSummary(null)
+      app.setEnabled[NetworkMonitorListener](false)
+    } else {
+      portalWeb.setSummary(null)
+      app.setEnabled[NetworkMonitorListener](app.serviceStatus > 0)
+    }
   }
 
   override def onDisplayPreferenceDialog(preference: Preference) = preference match {

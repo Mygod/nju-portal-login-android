@@ -2,7 +2,6 @@ package tk.mygod.portal.helper.nju
 
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.content._
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
 import android.support.v14.preference.PreferenceFragment
@@ -67,12 +66,12 @@ final class MainActivity extends FragmentStackActivity with LocationObservedActi
 
   override def onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) = key match {
     case SERVICE_STATUS => if (app.serviceStatus > 0) {
-      getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[NetworkMonitorListener]),
-        PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
+      app.setEnabled[BootReceiver](true)
+      app.setEnabled[NetworkMonitorListener](true)
       startNetworkMonitor
     } else {
-      getPackageManager.setComponentEnabledSetting(new ComponentName(this, classOf[NetworkMonitorListener]),
-        PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
+      app.setEnabled[BootReceiver](false)
+      app.setEnabled[NetworkMonitorListener](false)
       stopService(serviceIntent)
     }
     case RELOGIN_DELAY => if (NetworkMonitor.instance != null) NetworkMonitor.instance.reloginThread.interrupt
