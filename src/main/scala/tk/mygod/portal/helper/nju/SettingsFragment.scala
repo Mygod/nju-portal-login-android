@@ -63,7 +63,7 @@ final class SettingsFragment extends ToolbarPreferenceFragment {
     findPreference("status.useripv4").setOnPreferenceClickListener(displayIpInfo)
     findPreference("status.useripv6").setOnPreferenceClickListener(displayIpInfo)
     findPreference("status.mac").setOnPreferenceClickListener(p => {
-      activity.launchUrl("http://www.coffer.com/mac_find/?string=" + p.getSummary)
+      activity.launchUrl(LookupReceiver.getMacLookup(p.getSummary))
       true
     })
 
@@ -138,7 +138,7 @@ final class SettingsFragment extends ToolbarPreferenceFragment {
   }
 
   private def displayIpInfo(preference: Preference) = {
-    activity.launchUrl("https://ipinfo.io/" + preference.getSummary)
+    activity.launchUrl(LookupReceiver.getIpLookup(preference.getSummary))
     true
   }
 

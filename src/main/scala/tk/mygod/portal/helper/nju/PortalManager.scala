@@ -7,6 +7,7 @@ import java.text.DateFormat
 import java.util.Date
 
 import android.annotation.TargetApi
+import android.content.Intent
 import android.net.{Network, NetworkInfo}
 import android.support.v4.app.NotificationCompat
 import android.text.TextUtils
@@ -166,6 +167,12 @@ object PortalManager {
           case str: JString => str.values
           case _ => "未知区域"
         }, parseTime((obj \ "acctstarttime").asInstanceOf[JInt].values))
+      builder.addAction(R.drawable.ic_action_search, "MAC",
+          app.pendingBroadcast(new Intent(LookupReceiver.LOOKUP_MAC).putExtra(LookupReceiver.EXTRA_ENTRY, mac)))
+        .addAction(R.drawable.ic_action_search, "IPv4",
+          app.pendingBroadcast(new Intent(LookupReceiver.LOOKUP_IP).putExtra(LookupReceiver.EXTRA_ENTRY, ipv4)))
+      if (!ipv6Invalid) builder.addAction(R.drawable.ic_action_search, "IPv6",
+          app.pendingBroadcast(new Intent(LookupReceiver.LOOKUP_IP).putExtra(LookupReceiver.EXTRA_ENTRY, ipv6)))
       new NotificationCompat.BigTextStyle(builder.setContentText(summary)).setSummaryText(summary +
         app.getString(R.string.network_available_sign_in_conflict_ip, ipv4 + (if (ipv6Invalid) "" else ", " + ipv6)))
         .setSummaryText(app.getString(R.string.app_name)).build()
