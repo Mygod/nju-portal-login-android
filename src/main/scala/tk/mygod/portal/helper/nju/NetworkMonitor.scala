@@ -104,13 +104,11 @@ object NetworkMonitor extends BroadcastReceiver {
           }
           case 4 => if (PortalManager.testConnectionLegacy(n)) {
             PortalManager.queryOnlineLegacy(n).headOption match {
-              case None => doLogin(n)
-              case Some(entry) =>
-                if (receiverRegistered.compareAndSet(false, true))
-                  app.registerReceiver(NetworkMonitor, new IntentFilter(ACTION_LOGIN_LEGACY))
-                val id = n.hashCode
-                app.nm.notify(getNotificationId(id), entry.makeNotification(makeLoginNotification.setContentIntent(
-                  app.pendingBroadcast(new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id)))))
+              case None => PortalManager.queryOnlineLegacy(n).headOption match {
+                case None => doLogin(n) // double check
+                case Some(entry) => pushNotification(n, entry)
+              }
+              case Some(entry) => pushNotification(n, entry)
             }
             NoticeManager.pushUnreadNotices
           }
@@ -118,6 +116,13 @@ object NetworkMonitor extends BroadcastReceiver {
         }
         busy.synchronized(busy.remove(serialize(n)))
       }
+    }
+    private def pushNotification(n: NetworkInfo, entry: PortalManager.OnlineEntry) {
+      if (receiverRegistered.compareAndSet(false, true))
+        app.registerReceiver(NetworkMonitor, new IntentFilter(ACTION_LOGIN_LEGACY))
+      val id = n.hashCode
+      app.nm.notify(getNotificationId(id), entry.makeNotification(makeLoginNotification.setContentIntent(
+        app.pendingBroadcast(new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id)))))
     }
 
     def onLost(n: NetworkInfo) {
@@ -250,19 +255,24 @@ final class NetworkMonitor extends ServicePlus {
         }
         case 4 => if (PortalManager.testConnection(n)) {
           PortalManager.queryOnline(n).headOption match {
-            case None => doLogin(n)
-            case Some(entry) =>
-              if (receiverRegistered.compareAndSet(false, true))
-                app.registerReceiver(loginReceiver, new IntentFilter(ACTION_LOGIN))
-              val id = n.hashCode
-              app.nm.notify(getNotificationId(id), entry.makeNotification(makeLoginNotification
-                .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN).putExtra(EXTRA_NETWORK_ID, id)))))
+            case None => PortalManager.queryOnline(n).headOption match {
+              case None => doLogin(n) // double check
+              case Some(entry) => pushNotification(n, entry)
+            }
+            case Some(entry) => pushNotification(n, entry)
           }
           NoticeManager.pushUnreadNotices
         }
         case _ =>
       }
       busy.synchronized(busy.remove(n.hashCode))
+    }
+    private def pushNotification(n: Network, entry: PortalManager.OnlineEntry) {
+      if (receiverRegistered.compareAndSet(false, true))
+        app.registerReceiver(loginReceiver, new IntentFilter(ACTION_LOGIN))
+      val id = n.hashCode
+      app.nm.notify(getNotificationId(id), entry.makeNotification(makeLoginNotification
+        .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN).putExtra(EXTRA_NETWORK_ID, id)))))
     }
     private def getCapabilities(capabilities: NetworkCapabilities) =
       networkCapabilities.get(capabilities).asInstanceOf[Long]
