@@ -117,12 +117,13 @@ object NoticeManager {
         val builder = new NotificationCompat.Builder(app).setAutoCancel(true)
           .setColor(ContextCompat.getColor(app, R.color.material_primary_500))
           .setLights(ContextCompat.getColor(app, R.color.material_purple_a700), app.lightOnMs, app.lightOffMs)
-          .setSmallIcon(R.drawable.ic_action_announcement).setGroup(ACTION_VIEW).setContentText(notice.url)
+          .setSmallIcon(R.drawable.ic_action_announcement).setGroup(ACTION_VIEW)
           .setContentTitle(notice.formattedTitle).setWhen(notice.distributionTime * 1000)
           .setContentIntent(pending(ACTION_VIEW, notice.id)).setDeleteIntent(pending(ACTION_MARK_AS_READ, notice.id))
         if (pushedNotices.add(notice.id))
           builder.setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE)
-        app.nm.notify(notice.id, builder.build)
+        app.nm.notify(notice.id, if (notice.url == null) builder.build
+          else new NotificationCompat.BigTextStyle(builder.setContentText(notice.url)).bigText(notice.url).build)
       }
     })
   }
