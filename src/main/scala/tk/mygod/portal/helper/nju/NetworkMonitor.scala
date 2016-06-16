@@ -23,6 +23,8 @@ object NetworkMonitor extends BroadcastReceiver {
   private final val ACTION_LOGIN_LEGACY = "tk.mygod.portal.helper.nju.NetworkMonitor.ACTION_LOGIN_LEGACY"
   private final val EXTRA_NETWORK_ID = "tk.mygod.portal.helper.nju.NetworkMonitor.EXTRA_NETWORK_ID"
 
+  private lazy val networkCapabilities = classOf[NetworkCapabilities].getDeclaredField("mNetworkCapabilities")
+
   var instance: NetworkMonitor = _
 
   def cares(network: Int) =
@@ -207,14 +209,14 @@ final class NetworkMonitor extends ServicePlus {
 
   @TargetApi(21)
   class NetworkListener extends NetworkCallback {
-    private val available = new mutable.HashMap[Int, Network]
+    private val available = new mutable.HashMap[Int, (Network, Long)]
     private val busy = new mutable.HashSet[Int]
     var loginedNetwork: Network = _
 
     private def getNotificationId(id: Int) = (id ^ id >> 28) & 0xFFFFFFF | 0x20000000
 
     def doLogin(id: Int): Unit = available.get(id) match {
-      case Some(n: Network) => ThrowableFuture(if (busy.synchronized(busy.add(n.hashCode))) {
+      case Some((n, _)) => ThrowableFuture(if (busy.synchronized(busy.add(n.hashCode))) {
         doLogin(n)
         busy.synchronized(busy.remove(n.hashCode))
       })
@@ -262,6 +264,8 @@ final class NetworkMonitor extends ServicePlus {
       }
       busy.synchronized(busy.remove(n.hashCode))
     }
+    private def getCapabilities(capabilities: NetworkCapabilities) =
+      networkCapabilities.get(capabilities).asInstanceOf[Long]
 
     def onLogin(n: Network, code: Int) {
       loginedNetwork = n
@@ -275,13 +279,16 @@ final class NetworkMonitor extends ServicePlus {
       if (available.contains(n.hashCode)) {
         if (Build.version < 23) busy.synchronized(busy.remove(n.hashCode))  // validated on 5.x
       } else {
-        available(n.hashCode) = n
+        available(n.hashCode) = (n, getCapabilities(capabilities))
         if (Build.version < 23 || !(capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) ||
           capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL))) testConnection(n)
       }
     }
     override def onCapabilitiesChanged(n: Network, capabilities: NetworkCapabilities) {
       if (DEBUG) Log.d(TAG, "onCapabilitiesChanged (%s): %s".format(n, capabilities))
+      val newCapabilities = getCapabilities(capabilities)
+      if (available(n.hashCode)._2 == newCapabilities) return
+      available(n.hashCode) = (n, newCapabilities)
       if (Build.version >= 23 && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
         busy.synchronized(busy.remove(n.hashCode)) else {
         loginedNetwork = null
@@ -302,7 +309,7 @@ final class NetworkMonitor extends ServicePlus {
 
     def preferredNetwork = if (loginedNetwork != null && available.contains(loginedNetwork.hashCode)) loginedNetwork
       else available.collectFirst {
-        case (_, n: Network) => n
+        case (_, (n, _)) => n
       }.orNull
   }
   @TargetApi(21)
