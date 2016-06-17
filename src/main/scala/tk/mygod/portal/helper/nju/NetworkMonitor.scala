@@ -23,7 +23,11 @@ object NetworkMonitor extends BroadcastReceiver {
   private final val ACTION_LOGIN_LEGACY = "tk.mygod.portal.helper.nju.NetworkMonitor.ACTION_LOGIN_LEGACY"
   private final val EXTRA_NETWORK_ID = "tk.mygod.portal.helper.nju.NetworkMonitor.EXTRA_NETWORK_ID"
 
-  private lazy val networkCapabilities = classOf[NetworkCapabilities].getDeclaredField("mNetworkCapabilities")
+  private lazy val networkCapabilities = {
+    val result = classOf[NetworkCapabilities].getDeclaredField("mNetworkCapabilities")
+    result.setAccessible(true)
+    result
+  }
 
   var instance: NetworkMonitor = _
 
