@@ -173,9 +173,8 @@ object PortalManager {
           app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getIpLookup(ipv4))))
       if (!ipv6Invalid) builder.addAction(R.drawable.ic_action_search, "IPv6",
         app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getIpLookup(ipv6))))
-      new NotificationCompat.BigTextStyle(builder.setContentText(summary)).bigText(summary +
-        app.getString(R.string.network_available_sign_in_conflict_ip, ipv4 + (if (ipv6Invalid) "" else ", " + ipv6)))
-        .setSummaryText(app.getString(R.string.app_name)).build
+      new NotificationCompat.BigTextStyle(builder.setContentText(summary)).bigText(summary + app
+        .getString(R.string.network_available_sign_in_conflict_ip, ipv4 + (if (ipv6Invalid) "" else ", " + ipv6))).build
     }
   }
   private def queryOnlineCore(conn: URL => URLConnection): List[OnlineEntry] =

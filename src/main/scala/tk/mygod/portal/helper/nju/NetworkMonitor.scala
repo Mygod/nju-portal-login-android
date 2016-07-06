@@ -53,8 +53,7 @@ object NetworkMonitor extends BroadcastReceiver {
     .setColor(ContextCompat.getColor(app, R.color.material_primary_500))
     .setLights(ContextCompat.getColor(app, R.color.material_purple_a700), app.lightOnMs, app.lightOffMs)
     .setSmallIcon(R.drawable.ic_device_signal_wifi_not_connected).setGroup(ACTION_LOGIN)
-    .setContentTitle(app.getString(R.string.network_available_sign_in))
-    .setContentText(app.getString(R.string.app_name)).setShowWhen(false)
+    .setContentTitle(app.getString(R.string.network_available_sign_in)).setShowWhen(false)
 
   //noinspection ScalaDeprecation
   class NetworkListenerLegacy {
