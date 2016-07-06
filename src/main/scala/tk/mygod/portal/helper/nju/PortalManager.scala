@@ -156,6 +156,24 @@ object PortalManager {
     autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, post))
   }
 
+  def chapPassword(conn: URL => URLConnection): String = autoDisconnect(
+    conn(new URL(HTTP, DOMAIN, "/portal_io/getchallenge")).asInstanceOf[HttpURLConnection]) { conn =>
+    setup(conn)
+    val (code, json) = parseResult(conn)
+    if (code != 0) return null
+    val challenge = (json \ "challenge").asInstanceOf[JString].values
+    val passphrase = new Array[Byte](17)
+    passphrase(0) = Random.nextInt.toByte
+    val passphraseRaw = new mutable.ArrayBuffer[Byte]
+    passphraseRaw += passphrase(0)
+    passphraseRaw ++= password.getBytes
+    passphraseRaw ++= challenge.sliding(2, 2).map(Integer.parseInt(_, 16).toByte)
+    val digest = MessageDigest.getInstance("MD5")
+    digest.update(passphraseRaw.toArray)
+    digest.digest(passphrase, 1, 16)
+    (AUTH_BASE + "&challenge=%s").format(username, passphrase.map("%02X".format(_)).mkString, challenge)
+  }
+
   class OnlineEntry(obj: JObject) {
     val mac = (obj \ "mac").asInstanceOf[JString].values
     val ipv4 = parseIpv4((obj \ "user_ipv4").asInstanceOf[JInt].values)
@@ -177,11 +195,10 @@ object PortalManager {
         .getString(R.string.network_available_sign_in_conflict_ip, ipv4 + (if (ipv6Invalid) "" else ", " + ipv6))).build
     }
   }
-  private def queryOnlineCore(conn: URL => URLConnection): List[OnlineEntry] =
-    try autoDisconnect(conn(new URL(HTTP, DOMAIN, "/portal_io/selfservice/bfonline/getlist"))
+  private def queryOnlineCore(connector: URL => URLConnection): List[OnlineEntry] =
+    try autoDisconnect(connector(new URL(HTTP, DOMAIN, "/portal_io/selfservice/bfonline/getlist"))
       .asInstanceOf[HttpURLConnection]) { conn =>
-      setup(conn, AUTH_BASE.format(username, password))
-      // TODO: Support CHAP encryption check
+      setup(conn, chapPassword(connector))
       val (_, json) = parseResult(conn)
       if ((json \ "total").asInstanceOf[JInt].values > 0) {
         val macs = enumerationAsScalaIterator(NetworkInterface.getNetworkInterfaces).map(interface => {
@@ -218,26 +235,10 @@ object PortalManager {
   private def loginCore(conn: URL => URLConnection): (Int, Int) = {
     if (DEBUG) Log.d(TAG, "Logging in...")
     try {
-      val chapPassword = autoDisconnect(
-        conn(new URL(HTTP, DOMAIN, "/portal_io/getchallenge")).asInstanceOf[HttpURLConnection]) { conn =>
-        setup(conn)
-        val (code, json) = parseResult(conn)
-        if (code != 0) return null
-        val challenge = (json \ "challenge").asInstanceOf[JString].values
-        val passphrase = new Array[Byte](17)
-        passphrase(0) = Random.nextInt.toByte
-        val passphraseRaw = new mutable.ArrayBuffer[Byte]
-        passphraseRaw += passphrase(0)
-        passphraseRaw ++= password.getBytes
-        passphraseRaw ++= challenge.sliding(2, 2).map(Integer.parseInt(_, 16).toByte)
-        val digest = MessageDigest.getInstance("MD5")
-        digest.update(passphraseRaw.toArray)
-        digest.digest(passphrase, 1, 16)
-        (AUTH_BASE + "&challenge=%s").format(username, passphrase.map("%02X".format(_)).mkString, challenge)
-      }
-      if (chapPassword == null) return (1, 0)
+      val password = chapPassword(conn)
+      if (password == null) return (1, 0)
       autoDisconnect(conn(new URL(HTTP, DOMAIN, "/portal_io/login")).asInstanceOf[HttpURLConnection]) { conn =>
-        setup(conn, chapPassword)
+        setup(conn, password)
         conn.getResponseCode match {
           case 200 =>
             val (result, _) = parseResult(conn)
