@@ -3,7 +3,6 @@ package tk.mygod.portal.helper.nju
 import java.text.DateFormat
 import java.util.Date
 
-import android.app.Activity
 import android.graphics.Typeface
 import android.os.Bundle
 import android.support.v4.widget.SwipeRefreshLayout
@@ -11,18 +10,18 @@ import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
 import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, RecyclerView}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.TextView
-import tk.mygod.app.{ActivityPlus, CircularRevealFragment, ToolbarTypedFindView}
-import tk.mygod.portal.helper.nju.TypedResource._
+import tk.mygod.app.{CircularRevealActivity, ToolbarActivity}
 import tk.mygod.portal.helper.nju.database.Notice
 import tk.mygod.util.Conversions._
 
 /**
   * @author Mygod
   */
-final class NoticeFragment extends CircularRevealFragment with OnRefreshListener {
+final class NoticeActivity extends ToolbarActivity with CircularRevealActivity with OnRefreshListener
+  with TypedFindView {
   private final class NoticeViewHolder(view: View) extends RecyclerView.ViewHolder(view) with View.OnClickListener {
     {
-      val typedArray = getActivity.obtainStyledAttributes(Array(android.R.attr.selectableItemBackground))
+      val typedArray = obtainStyledAttributes(Array(android.R.attr.selectableItemBackground))
       view.setBackgroundResource(typedArray.getResourceId(0, 0))
       typedArray.recycle
     }
@@ -52,7 +51,7 @@ final class NoticeFragment extends CircularRevealFragment with OnRefreshListener
         text2.setTypeface(null, Typeface.NORMAL)
       }
       NoticeManager.read(item)
-      if (item.url != null) getActivity.asInstanceOf[ActivityPlus].launchUrl(item.url)
+      if (item.url != null) launchUrl(item.url)
     }
   }
 
@@ -67,25 +66,19 @@ final class NoticeFragment extends CircularRevealFragment with OnRefreshListener
   private var swiper: SwipeRefreshLayout = _
   private val adapter = new NoticeAdapter
 
-  override def layout = R.layout.fragment_notices
-  override def onViewCreated(view: View, savedInstanceState: Bundle) = {
-    super.onViewCreated(view, savedInstanceState)
-    configureToolbar(R.string.notices)
-    setNavigationIcon(ToolbarTypedFindView.BACK)
-    swiper = view.findView(TR.swiper)
+  override protected def onCreate(savedInstanceState: Bundle) = {
+    super.onCreate(savedInstanceState)
+    setContentView(R.layout.activity_notices)
+    configureToolbar()
+    setNavigationIcon()
+    swiper = findView(TR.swiper)
     swiper.setColorSchemeResources(R.color.material_accent_500, R.color.material_primary_500)
     swiper.setOnRefreshListener(this)
     adapter.notices = NoticeManager.fetchAllNotices.toArray
-    val notices = view.findView(TR.notices)
-    notices.setLayoutManager(new LinearLayoutManager(getActivity))
+    val notices = findView(TR.notices)
+    notices.setLayoutManager(new LinearLayoutManager(this))
     notices.setItemAnimator(new DefaultItemAnimator)
     notices.setAdapter(adapter)
-  }
-
-  override def onAttach(activity: Activity) {
-    //noinspection ScalaDeprecation
-    super.onAttach(activity)
-    activity.asInstanceOf[MainActivity].noticeFragment = this
   }
 
   override def onResume {
@@ -99,10 +92,10 @@ final class NoticeFragment extends CircularRevealFragment with OnRefreshListener
     ThrowableFuture {
       NoticeManager.updateUnreadNotices()
       adapter.notices = NoticeManager.fetchAllNotices.toArray
-      runOnUiThread {
+      runOnUiThread(() => {
         adapter.notifyDataSetChanged
         swiper.setRefreshing(false)
-      }
+      })
     }
   }
 }

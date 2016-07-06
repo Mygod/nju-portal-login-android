@@ -1,10 +1,11 @@
 package tk.mygod.portal.helper.nju
 
+import android.app.ActivityOptions
 import android.os.Bundle
 import android.support.v7.preference.Preference
 import android.util.Log
-import android.view.View
 import org.json4s.JObject
+import tk.mygod.app.CircularRevealActivity
 import tk.mygod.net.UpdateManager
 import tk.mygod.portal.helper.nju.util.DualFormatter
 import tk.mygod.preference._
@@ -19,24 +20,20 @@ object SettingsFragment {
   preferenceGetId.setAccessible(true)
 }
 
-final class SettingsFragment extends ToolbarPreferenceFragment {
+final class SettingsFragment extends PreferenceFragmentPlus {
   import SettingsFragment._
 
   private lazy val activity = getActivity.asInstanceOf[MainActivity]
   private lazy val portalWeb = findPreference("auth.portalWeb")
   private lazy val useBoundConnections = findPreference("misc.useBoundConnections")
 
-  override def onViewCreated(view: View, savedInstanceState: Bundle) {
-    super.onViewCreated(view, savedInstanceState)
-    configureToolbar
-  }
-
   override def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
     getPreferenceManager.setSharedPreferencesName(PREF_NAME)
     addPreferencesFromResource(R.xml.settings)
 
     portalWeb.setOnPreferenceClickListener(_ => {
-      startActivity(activity.intent[PortalActivity])
+      startActivity(CircularRevealActivity.putLocation(activity.intent[PortalActivity], activity.getLocationOnScreen),
+        ActivityOptions.makeSceneTransitionAnimation(activity).toBundle)
       true
     })
 
@@ -68,7 +65,8 @@ final class SettingsFragment extends ToolbarPreferenceFragment {
     })
 
     findPreference("notifications.notices").setOnPreferenceClickListener(_ => {
-      activity.showNoticeFragment
+      startActivity(CircularRevealActivity.putLocation(activity.intent[NoticeActivity], activity.getLocationOnScreen),
+        ActivityOptions.makeSceneTransitionAnimation(activity).toBundle)
       false
     })
 
