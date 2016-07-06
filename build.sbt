@@ -27,9 +27,6 @@ libraryDependencies ++= Seq(
   "tk.mygod" %% "mygod-lib-android" % "2.0.0-SNAPSHOT"
 )
 
-proguardOptions ++= Seq(
-  "-dontwarn com.thoughtworks.**",
-  "-keep class android.support.v7.preference.PreferenceViewHolder { <init>(...); }"
-)
+proguardOptions += "-dontwarn com.thoughtworks.**"
 
 proguardVersion in Android := "5.2.1"
