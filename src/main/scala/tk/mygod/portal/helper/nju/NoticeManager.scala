@@ -120,6 +120,7 @@ object NoticeManager {
           .setSmallIcon(R.drawable.ic_action_announcement).setGroup(ACTION_VIEW)
           .setContentTitle(notice.formattedTitle).setWhen(notice.distributionTime * 1000)
           .setContentIntent(pending(ACTION_VIEW, notice.id)).setDeleteIntent(pending(ACTION_MARK_AS_READ, notice.id))
+          .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
         if (pushedNotices.add(notice.id))
           builder.setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE)
         app.nm.notify(notice.id, if (notice.url == null) builder.build

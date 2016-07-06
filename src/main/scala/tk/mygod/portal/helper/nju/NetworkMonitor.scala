@@ -53,7 +53,8 @@ object NetworkMonitor extends BroadcastReceiver {
     .setColor(ContextCompat.getColor(app, R.color.material_primary_500))
     .setLights(ContextCompat.getColor(app, R.color.material_purple_a700), app.lightOnMs, app.lightOffMs)
     .setSmallIcon(R.drawable.ic_device_signal_wifi_not_connected).setGroup(ACTION_LOGIN)
-    .setContentTitle(app.getString(R.string.network_available_sign_in)).setShowWhen(false)
+    .setContentTitle(app.getString(R.string.network_available_sign_in))
+    .setShowWhen(false).setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 
   //noinspection ScalaDeprecation
   class NetworkListenerLegacy {
@@ -159,7 +160,7 @@ final class NetworkMonitor extends ServicePlus {
 
   private lazy val notificationBuilder = new NotificationCompat.Builder(this)
     .setColor(ContextCompat.getColor(this, R.color.material_primary_500)).setContentIntent(pendingIntent[MainActivity])
-    .setSmallIcon(R.drawable.ic_av_timer)
+    .setSmallIcon(R.drawable.ic_av_timer).setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
   class ReloginThread extends Thread {
     @volatile private var running = true
     @volatile private var isInactive = true

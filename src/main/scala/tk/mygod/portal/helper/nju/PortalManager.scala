@@ -162,6 +162,7 @@ object PortalManager {
     val ipv6 = (obj \ "user_ipv6").asInstanceOf[JString].values
     val ipv6Invalid = TextUtils.isEmpty(ipv6) || ipv6 == "::"
     def makeNotification(builder: NotificationCompat.Builder) = {
+      val public = builder.build  // build public version before adding private information
       val summary = app.getString(R.string.network_available_sign_in_conflict, mac,
         obj \ "area_name" match {
           case str: JString => str.values
@@ -173,7 +174,8 @@ object PortalManager {
           app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getIpLookup(ipv4))))
       if (!ipv6Invalid) builder.addAction(R.drawable.ic_action_search, "IPv6",
         app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getIpLookup(ipv6))))
-      new NotificationCompat.BigTextStyle(builder.setContentText(summary)).bigText(summary + app
+      new NotificationCompat.BigTextStyle(builder.setContentText(summary).setPublicVersion(public)
+          .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)).bigText(summary + app
         .getString(R.string.network_available_sign_in_conflict_ip, ipv4 + (if (ipv6Invalid) "" else ", " + ipv6))).build
     }
   }
