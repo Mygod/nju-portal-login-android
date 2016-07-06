@@ -2,7 +2,7 @@ import android.Keys._
 
 android.Plugin.androidBuild
 
-platformTarget in Android := "android-23"
+platformTarget in Android := "android-24"
 
 name := "nju-portal-login-android"
 
@@ -14,16 +14,22 @@ scalacOptions ++= Seq("-target:jvm-1.6", "-Xexperimental")
 
 shrinkResources in Android := true
 
+resConfigs in Android := Seq("zh")
+
+useSupportVectors
+
 resolvers += Resolver.sonatypeRepo("public")
 
 libraryDependencies ++= Seq(
-  "com.j256.ormlite" % "ormlite-core" % "4.48",
   "com.j256.ormlite" % "ormlite-android" % "4.48",
   "me.leolin" % "ShortcutBadger" % "1.1.5",
   "org.json4s" %% "json4s-native" % "3.3.0",
-  "tk.mygod" %% "mygod-lib-android" % "1.4.2"
+  "tk.mygod" %% "mygod-lib-android" % "2.0.0-SNAPSHOT"
 )
 
-proguardOptions += "-dontwarn com.thoughtworks.**"
+proguardOptions ++= Seq(
+  "-dontwarn com.thoughtworks.**",
+  "-keep class android.support.v7.preference.PreferenceViewHolder { <init>(...); }"
+)
 
 proguardVersion in Android := "5.2.1"

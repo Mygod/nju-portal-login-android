@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="tk.mygod.portal.helper.nju"
           android:versionCode="396" android:versionName="3.1.4">
-    <uses-sdk android:minSdkVersion="16" android:targetSdkVersion="23" />
+    <uses-sdk android:minSdkVersion="16" android:targetSdkVersion="24" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
@@ -20,8 +20,18 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity android:name=".NoticeActivity"
+                  android:label="@string/notices"
+                  android:launchMode="singleTask"
+                  android:parentActivityName=".MainActivity"
+        />
         <activity android:name=".PortalActivity" android:exported="true" android:label="@string/portal_activity_url"
                   android:launchMode="singleTask"/>
+        <activity android:name=".UsageActivity"
+                  android:label="@string/settings_status_usage_title"
+                  android:launchMode="singleTask"
+                  android:parentActivityName=".MainActivity"
+        />
         <activity android:name=".ShortcutActivity" android:label="@string/login_logout" android:noHistory="true"
                   android:theme="@android:style/Theme.NoDisplay" android:excludeFromRecents="true">
             <intent-filter>

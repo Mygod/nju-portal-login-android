@@ -8,7 +8,7 @@ import android.support.v7.widget.Toolbar.OnMenuItemClickListener
 import android.util.Base64
 import android.view.MenuItem
 import android.webkit.{CookieManager, WebView, WebViewClient}
-import tk.mygod.app.ToolbarActivity
+import tk.mygod.app.{CircularRevealActivity, ToolbarActivity}
 import tk.mygod.os.Build
 import tk.mygod.util.Conversions._
 import tk.mygod.util.MetricsUtils
@@ -22,7 +22,7 @@ object PortalActivity {
   private final val ENABLE_CHAP = "globalVar.auth_type='chap'"
 }
 
-final class PortalActivity extends ToolbarActivity with TypedFindView with OnRefreshListener
+final class PortalActivity extends ToolbarActivity with CircularRevealActivity with TypedFindView with OnRefreshListener
   with OnMenuItemClickListener {
   import PortalActivity._
 
@@ -38,8 +38,8 @@ final class PortalActivity extends ToolbarActivity with TypedFindView with OnRef
     manager.setAcceptCookie(true)
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_webview)
-    configureToolbar(R.drawable.ic_navigation_close)
-    setNavigationIcon(R.drawable.ic_close)
+    configureToolbar()
+    setNavigationIcon(R.drawable.ic_navigation_close)
     toolbar.setTitle(rootUrl)
     toolbar.inflateMenu(R.menu.activity_webview)
     toolbar.setOnMenuItemClickListener(this)

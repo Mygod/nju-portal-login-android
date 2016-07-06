@@ -73,7 +73,7 @@ object PortalManager {
     val resultStr = IOUtils.readAllText(conn.getInputStream())
     if (DEBUG) Log.v(TAG, resultStr)
     val json = try parse(resultStr) catch {
-      case e: ParseException => throw new InvalidResponseException(resultStr)
+      case e: ParseException => throw InvalidResponseException(resultStr)
     }
     val code = json \ "reply_code" match {
       case i: JInt => i.values.toInt

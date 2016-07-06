@@ -3,19 +3,16 @@ package tk.mygod.portal.helper.nju
 import java.text.DecimalFormat
 
 import android.os.Bundle
-import android.support.v14.preference.PreferenceFragment
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
 import android.util.Log
-import android.view.View
-import tk.mygod.app.ToolbarTypedFindView
+import tk.mygod.app.{CircularRevealActivity, ToolbarActivity}
 import tk.mygod.portal.helper.nju.util.DualFormatter
-import tk.mygod.preference.ToolbarPreferenceFragment
 
 /**
   * @author Mygod
   */
-object SettingsUsageFragment {
+object UsageActivity {
   private final val TAG = "SettingsUsageFragment"
   private final val NUMBER_FORMAT = "#%s"
   private final val UNEXPECTED_PAIR = "Unexpected pair found in volume: (%s, %s)"
@@ -24,29 +21,24 @@ object SettingsUsageFragment {
   private val largeFormat = new DecimalFormat(",###")
 }
 
-final class SettingsUsageFragment extends ToolbarPreferenceFragment with OnRefreshListener {
-  import SettingsUsageFragment._
+class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnRefreshListener with TypedFindView {
+  import UsageActivity._
 
-  def setRootKey(rootKey: String) {
-    val args = new Bundle
-    args.putString(PreferenceFragment.ARG_PREFERENCE_ROOT, rootKey)
-    setArguments(args)
-  }
-  override def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) =
-    setPreferencesFromResource(R.xml.settings, rootKey)
-
-  override def layout = R.layout.fragment_usage
+  private var fragment: UsageFragment = _
   private var swiper: SwipeRefreshLayout = _
-  override def onViewCreated(view: View, savedInstanceState: Bundle) {
-    super.onViewCreated(view, savedInstanceState)
-    configureToolbar(R.string.settings_status_usage_title)
-    setNavigationIcon(ToolbarTypedFindView.BACK)
-    swiper = view.findViewById(R.id.preference_holder).asInstanceOf[SwipeRefreshLayout]
+
+  override protected def onCreate(savedInstanceState: Bundle) {
+    super.onCreate(savedInstanceState)
+    setContentView(R.layout.activity_usage)
+    configureToolbar()
+    setNavigationIcon()
+    fragment = getFragmentManager.findFragmentById(android.R.id.content).asInstanceOf[UsageFragment]
+    swiper = findView(TR.swiper)
     swiper.setColorSchemeResources(R.color.material_accent_500, R.color.material_primary_500)
     swiper.setOnRefreshListener(this)
   }
 
-  override def onResume {
+  override protected def onResume {
     super.onResume
     refresh()
   }
@@ -72,13 +64,13 @@ final class SettingsUsageFragment extends ToolbarPreferenceFragment with OnRefre
         app.showToast(e.getMessage)
         None
     }) match {
-      case Some(result) => runOnUiThread {
+      case Some(result) => runOnUiThread(() => {
         val user = new DualFormatter(format2 = NUMBER_FORMAT)
         val monthId = new DualFormatter(format2 = NUMBER_FORMAT)
         val service = new DualFormatter(format2 = NUMBER_FORMAT)
         val time = new DualFormatter(format2 = "~%s")
         for ((key, value) <- result.values) {
-          val preference = findPreference("status.usage." + key)
+          val preference = fragment.findPreference("status.usage." + key)
           if (preference == null) key match {
             case "username" => user.value1 = value.toString
             case "user_id" => user.value2 = value.toString
@@ -114,13 +106,13 @@ final class SettingsUsageFragment extends ToolbarPreferenceFragment with OnRefre
               else "%s %s (%s %s)".format(smallFormat.format(n), units(i), largeFormat.format(size), bytes)
           })
         }
-        findPreference("status.usage.user").setSummary(user.toString)
-        findPreference("status.usage.monthId").setSummary(monthId.toString)
-        findPreference("status.usage.service").setSummary(service.toString)
-        findPreference("status.usage.time").setSummary(time.toString)
+        fragment.findPreference("status.usage.user").setSummary(user.toString)
+        fragment.findPreference("status.usage.monthId").setSummary(monthId.toString)
+        fragment.findPreference("status.usage.service").setSummary(service.toString)
+        fragment.findPreference("status.usage.time").setSummary(time.toString)
         swiper.setRefreshing(false)
-      }
-      case None => runOnUiThread(exit())
+      })
+      case None => runOnUiThread(supportFinishAfterTransition)
     })
   }
 
