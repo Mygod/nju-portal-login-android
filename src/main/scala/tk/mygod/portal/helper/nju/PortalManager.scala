@@ -18,7 +18,6 @@ import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization
 import tk.mygod.os.Build
 import tk.mygod.portal.helper.nju.database.Notice
-import tk.mygod.portal.helper.nju.preference.MacAddressPreference
 import tk.mygod.util.CloseUtils._
 import tk.mygod.util.Conversions._
 import tk.mygod.util.IOUtils
@@ -161,13 +160,12 @@ object PortalManager {
     val ipv4 = parseIpv4((obj \ "user_ipv4").asInstanceOf[JInt].values)
     val ipv6 = (obj \ "user_ipv6").asInstanceOf[JString].values
     val ipv6Invalid = TextUtils.isEmpty(ipv6) || ipv6 == "::"
-    def makeNotification(builder: NotificationCompat.Builder) = {
+    def makeNotification(builder: NotificationCompat.Builder, ignoreIntent: Intent) = {
       val public = builder.build  // build public version before adding private information
-      val summary = app.getString(R.string.network_available_sign_in_conflict, mac,
-        obj \ "area_name" match {
-          case str: JString => str.values
-          case _ => "未知区域"
-        }, parseTime((obj \ "acctstarttime").asInstanceOf[JInt].values))
+      val summary = app.getString(R.string.network_available_sign_in_conflict, mac, obj \ "area_name" match {
+        case str: JString => str.values
+        case _ => "未知区域"
+      }, parseTime((obj \ "acctstarttime").asInstanceOf[JInt].values))
       val search = app.getString(R.string.network_available_sign_in_conflict_search)
       builder.addAction(R.drawable.ic_action_search, search.format("MAC"),
           app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getMacLookup(mac))))
@@ -175,6 +173,9 @@ object PortalManager {
           app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getIpLookup(ipv4))))
       if (!ipv6Invalid) builder.addAction(R.drawable.ic_action_search, search.format("IPv4"),
         app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getIpLookup(ipv6))))
+      builder.addAction(R.drawable.ic_content_archive,
+        app.getString(R.string.network_available_sign_in_conflict_ignore_mac),
+        app.pendingBroadcast(ignoreIntent.putExtra(IgnoreMacListener.EXTRA_MAC, mac)))
       new NotificationCompat.BigTextStyle(builder.setContentText(summary).setPublicVersion(public)
           .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)).bigText(summary + app
         .getString(R.string.network_available_sign_in_conflict_ip, ipv4 + (if (ipv6Invalid) "" else ", " + ipv6))).build
@@ -187,9 +188,9 @@ object PortalManager {
       // TODO: Support CHAP encryption check
       val (_, json) = parseResult(conn)
       if ((json \ "total").asInstanceOf[JInt].values > 0) {
-        val macs = app.pref.getString("misc.localMac", MacAddressPreference.default).split("\n").toSet
+        val macs = app.localMacs
         (json \ "rows").asInstanceOf[JArray].arr.map(obj => new OnlineEntry(obj.asInstanceOf[JObject]))
-          .filter(obj => !macs.contains(obj.mac.toUpperCase))
+          .filter(obj => !macs.contains(obj.mac.toLowerCase))
       } else List.empty[OnlineEntry]
     } catch {
       case e: SocketTimeoutException =>

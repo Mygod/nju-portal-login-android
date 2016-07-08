@@ -3,7 +3,8 @@ package tk.mygod.portal.helper.nju
 import java.util.concurrent.atomic.AtomicBoolean
 
 import android.annotation.TargetApi
-import android.content.{BroadcastReceiver, Context, Intent, IntentFilter}
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import android.content._
 import android.net.ConnectivityManager.NetworkCallback
 import android.net._
 import android.support.v4.app.NotificationCompat
@@ -16,7 +17,7 @@ import tk.mygod.util.Conversions._
 import scala.collection.mutable
 import scala.util.Random
 
-object NetworkMonitor extends BroadcastReceiver {
+object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeListener {
   private final val TAG = "NetworkMonitor"
   private final val THREAD_TAG = TAG + "#reloginThread"
   private final val ACTION_LOGIN = "tk.mygod.portal.helper.nju.NetworkMonitor.ACTION_LOGIN"
@@ -81,6 +82,8 @@ object NetworkMonitor extends BroadcastReceiver {
       if (instance != null && n != null) instance.reloginThread.synchronizedNotify(code)
     }
 
+    def reevaluate =
+      if (app.serviceStatus > 0 && app.boundConnectionsAvailable < 2) for ((id, n) <- available) onAvailable(n)
     def onAvailable(n: NetworkInfo) {
       available += (serialize(n), n)
       if (app.serviceStatus > 0 && app.boundConnectionsAvailable < 2 &&
@@ -93,9 +96,11 @@ object NetworkMonitor extends BroadcastReceiver {
               val id = serialize(n)
               val builder = makeLoginNotification
                 .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id)))
-              app.nm.notify(getNotificationId(id), PortalManager.queryOnlineLegacy(n).headOption match {
+              val nid = getNotificationId(id)
+              app.nm.notify(nid, PortalManager.queryOnlineLegacy(n).headOption match {
                 case None => builder.build
-                case Some(entry) => entry.makeNotification(builder)
+                case Some(entry) => entry.makeNotification(builder, new Intent(IgnoreMacListener.ACTION_IGNORE_LEGACY)
+                  .putExtra(IgnoreMacListener.EXTRA_NOTIFICATION_ID, nid))
               })
               NoticeManager.pushUnreadNotices
             }
@@ -113,8 +118,11 @@ object NetworkMonitor extends BroadcastReceiver {
                 if (receiverRegistered.compareAndSet(false, true))
                   app.registerReceiver(NetworkMonitor, new IntentFilter(ACTION_LOGIN_LEGACY))
                 val id = n.hashCode
-                app.nm.notify(getNotificationId(id), entry.makeNotification(makeLoginNotification.setContentIntent(
-                  app.pendingBroadcast(new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id)))))
+                val nid = getNotificationId(id)
+                app.nm.notify(nid, entry.makeNotification(makeLoginNotification.setContentIntent(
+                  app.pendingBroadcast(new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id))),
+                  new Intent(IgnoreMacListener.ACTION_IGNORE_LEGACY)
+                    .putExtra(IgnoreMacListener.EXTRA_NOTIFICATION_ID, nid)))
             }
             NoticeManager.pushUnreadNotices
           }
@@ -151,9 +159,12 @@ object NetworkMonitor extends BroadcastReceiver {
 
   private val receiverRegistered = new AtomicBoolean
   def onReceive(context: Context, intent: Intent) = listenerLegacy.doLogin(intent.getLongExtra(EXTRA_NETWORK_ID, -1))
+
+  def onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) =
+    if (key == LOCAL_MAC && loginStatus <= 0) listenerLegacy.reevaluate
 }
 
-final class NetworkMonitor extends ServicePlus {
+final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeListener {
   import NetworkMonitor._
 
   private def loggedIn = listener != null && app.boundConnectionsAvailable > 1 && listener.loginedNetwork != null
@@ -239,9 +250,11 @@ final class NetworkMonitor extends ServicePlus {
             val id = n.hashCode
             val builder = makeLoginNotification
               .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN).putExtra(EXTRA_NETWORK_ID, id)))
-            app.nm.notify(getNotificationId(id), PortalManager.queryOnline(n).headOption match {
+            val nid = getNotificationId(id)
+            app.nm.notify(nid, PortalManager.queryOnline(n).headOption match {
               case None => builder.build
-              case Some(entry) => entry.makeNotification(builder)
+              case Some(entry) => entry.makeNotification(builder, new Intent(IgnoreMacListener.ACTION_IGNORE)
+                .putExtra(IgnoreMacListener.EXTRA_NOTIFICATION_ID, nid))
             })
             NoticeManager.pushUnreadNotices
           }
@@ -259,8 +272,10 @@ final class NetworkMonitor extends ServicePlus {
               if (receiverRegistered.compareAndSet(false, true))
                 app.registerReceiver(loginReceiver, new IntentFilter(ACTION_LOGIN))
               val id = n.hashCode
-              app.nm.notify(getNotificationId(id), entry.makeNotification(makeLoginNotification
-                .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN).putExtra(EXTRA_NETWORK_ID, id)))))
+              val nid = getNotificationId(id)
+              app.nm.notify(nid, entry.makeNotification(makeLoginNotification
+                .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN).putExtra(EXTRA_NETWORK_ID, id))),
+                new Intent(IgnoreMacListener.ACTION_IGNORE).putExtra(IgnoreMacListener.EXTRA_NOTIFICATION_ID, nid)))
           }
           NoticeManager.pushUnreadNotices
         }
@@ -277,6 +292,7 @@ final class NetworkMonitor extends ServicePlus {
       reloginThread.synchronizedNotify(code)
     }
 
+    def reevaluate = for ((id, (n, c)) <- available) testConnection(n)
     override def onAvailable(n: Network) {
       val capabilities = app.cm.getNetworkCapabilities(n)
       if (DEBUG) Log.d(TAG, "onAvailable (%s): %s".format(n, capabilities))
@@ -288,7 +304,7 @@ final class NetworkMonitor extends ServicePlus {
           capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL))) testConnection(n)
       }
     }
-    override def onCapabilitiesChanged(n: Network, capabilities: NetworkCapabilities) {
+    override def onCapabilitiesChanged(n: Network, capabilities: NetworkCapabilities = null) {
       if (DEBUG) Log.d(TAG, "onCapabilitiesChanged (%s): %s".format(n, capabilities))
       val newCapabilities = getCapabilities(capabilities)
       if (available(n.hashCode)._2 == newCapabilities) return
@@ -334,19 +350,24 @@ final class NetworkMonitor extends ServicePlus {
     super.onCreate
     initBoundConnections
     reloginThread.start
+    app.pref.registerOnSharedPreferenceChangeListener(this)
     instance = this
     if (DEBUG) Log.d(TAG, "Service created.")
   }
 
   override def onDestroy {
-    super.onDestroy
+    instance = null
+    app.pref.unregisterOnSharedPreferenceChangeListener(this)
     if (listener != null) {
       app.cm.unregisterNetworkCallback(listener)
       listener = null
     }
     reloginThread.stopRunning
     if (receiverRegistered.compareAndSet(true, false)) app.unregisterReceiver(loginReceiver)
-    instance = null
+    super.onDestroy
     if (DEBUG) Log.d(TAG, "Service destroyed.")
   }
+
+  def onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) =
+    if (key == LOCAL_MAC && loginStatus <= 0) listener.reevaluate
 }

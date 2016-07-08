@@ -35,6 +35,11 @@ final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeLi
       makeSnackbar(R.string.settings_account_missing).show
   }
 
+  override protected def onDestroy {
+    app.pref.unregisterOnSharedPreferenceChangeListener(this)
+    super.onDestroy
+  }
+
   private def manageWriteSettings(dialog: DialogInterface = null, which: Int = 0) = startActivity(
     new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).setData("package:" + getPackageName))
   def testBoundConnections(requested: Boolean = false) = app.boundConnectionsAvailable match {

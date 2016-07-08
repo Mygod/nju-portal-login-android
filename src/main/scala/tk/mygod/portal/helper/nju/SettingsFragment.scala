@@ -1,6 +1,8 @@
 package tk.mygod.portal.helper.nju
 
 import android.app.ActivityOptions
+import android.content.SharedPreferences
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
 import android.support.v7.preference.Preference
 import android.util.Log
@@ -21,7 +23,7 @@ object SettingsFragment {
   preferenceGetId.setAccessible(true)
 }
 
-final class SettingsFragment extends PreferenceFragmentPlus {
+final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPreferenceChangeListener {
   import SettingsFragment._
 
   private lazy val activity = getActivity.asInstanceOf[MainActivity]
@@ -31,6 +33,8 @@ final class SettingsFragment extends PreferenceFragmentPlus {
   override def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
     getPreferenceManager.setSharedPreferencesName(PREF_NAME)
     addPreferencesFromResource(R.xml.settings)
+
+    app.pref.registerOnSharedPreferenceChangeListener(this)
 
     portalWeb.setOnPreferenceClickListener(_ => {
       startActivity(CircularRevealActivity.putLocation(activity.intent[PortalActivity], activity.getLocationOnScreen),
@@ -116,6 +120,7 @@ final class SettingsFragment extends PreferenceFragmentPlus {
 
   override def onDestroy {
     PortalManager.setUserInfoListener(null)
+    app.pref.unregisterOnSharedPreferenceChangeListener(this)
     super.onDestroy
   }
 
@@ -145,5 +150,11 @@ final class SettingsFragment extends PreferenceFragmentPlus {
   private def humorous(preference: Preference) = {
     makeToast(R.string.coming_soon).show
     true
+  }
+
+  private lazy val localMac = findPreference(LOCAL_MAC).asInstanceOf[MacAddressPreference]
+  def onSharedPreferenceChanged(pref: SharedPreferences, key: String) = key match {
+    case LOCAL_MAC => localMac.setText(pref.getString(LOCAL_MAC, null))
+    case _ =>
   }
 }

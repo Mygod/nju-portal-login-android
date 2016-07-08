@@ -59,6 +59,13 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
+        <receiver android:name=".IgnoreMacListener"
+                  android:exported="false">
+            <intent-filter>
+                <action android:name="tk.mygod.portal.helper.nju.IgnoreMacListener.ACTION_IGNORE"/>
+                <action android:name="tk.mygod.portal.helper.nju.IgnoreMacListener.ACTION_IGNORE_LEGACY"/>
+            </intent-filter>
+        </receiver>
         <receiver android:name=".NetworkMonitorListener">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>

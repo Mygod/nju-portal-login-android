@@ -13,6 +13,7 @@ import android.widget.Toast
 import com.j256.ormlite.logger.LocalLog
 import tk.mygod.content.ContextPlus
 import tk.mygod.os.Build
+import tk.mygod.portal.helper.nju.preference.MacAddressPreference
 
 import scala.reflect._
 
@@ -49,6 +50,8 @@ class App extends Application with ContextPlus {
     getResources.getInteger(Resources.getSystem.getIdentifier(key, "integer", "android"))
   lazy val lightOnMs = readSystemInteger("config_defaultNotificationLedOn")
   lazy val lightOffMs = readSystemInteger("config_defaultNotificationLedOff")
+
+  def localMacs = pref.getString(LOCAL_MAC, MacAddressPreference.default).split("\n").map(_.toLowerCase).toSet
 
   def getEnabled[T: ClassTag] = PackageManager.COMPONENT_ENABLED_STATE_ENABLED ==
     pm.getComponentEnabledSetting(new ComponentName(this, classTag[T].runtimeClass))
