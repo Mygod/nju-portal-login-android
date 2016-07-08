@@ -168,11 +168,12 @@ object PortalManager {
           case str: JString => str.values
           case _ => "未知区域"
         }, parseTime((obj \ "acctstarttime").asInstanceOf[JInt].values))
-      builder.addAction(R.drawable.ic_action_search, "MAC",
+      val search = app.getString(R.string.network_available_sign_in_conflict_search)
+      builder.addAction(R.drawable.ic_action_search, search.format("MAC"),
           app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getMacLookup(mac))))
-        .addAction(R.drawable.ic_action_search, "IPv4",
+        .addAction(R.drawable.ic_action_search, search.format("IPv4"),
           app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getIpLookup(ipv4))))
-      if (!ipv6Invalid) builder.addAction(R.drawable.ic_action_search, "IPv6",
+      if (!ipv6Invalid) builder.addAction(R.drawable.ic_action_search, search.format("IPv4"),
         app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getIpLookup(ipv6))))
       new NotificationCompat.BigTextStyle(builder.setContentText(summary).setPublicVersion(public)
           .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)).bigText(summary + app

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="network_available_sign_in_conflict_search">Search %s</string>
+</resources>
