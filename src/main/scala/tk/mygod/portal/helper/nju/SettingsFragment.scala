@@ -7,6 +7,7 @@ import android.util.Log
 import org.json4s.JObject
 import tk.mygod.app.CircularRevealActivity
 import tk.mygod.net.UpdateManager
+import tk.mygod.portal.helper.nju.preference.{MacAddressPreference, MacAddressPreferenceDialogFragment}
 import tk.mygod.portal.helper.nju.util.DualFormatter
 import tk.mygod.preference._
 import tk.mygod.util.Conversions._
@@ -106,9 +107,10 @@ final class SettingsFragment extends PreferenceFragmentPlus {
   }
 
   override def onDisplayPreferenceDialog(preference: Preference) = preference match {
-    case _: EditTextPreference => displayPreferenceDialog(new EditTextPreferenceDialogFragment(preference.getKey))
+    case _: MacAddressPreference => displayPreferenceDialog(preference.getKey, new MacAddressPreferenceDialogFragment)
+    case _: EditTextPreference => displayPreferenceDialog(preference.getKey, new EditTextPreferenceDialogFragment)
     case _: NumberPickerPreference =>
-      displayPreferenceDialog(new NumberPickerPreferenceDialogFragment(preference.getKey))
+      displayPreferenceDialog(preference.getKey, new NumberPickerPreferenceDialogFragment)
     case _ => super.onDisplayPreferenceDialog(preference)
   }
 

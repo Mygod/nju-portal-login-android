@@ -2,8 +2,12 @@
 <android.support.v7.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
                                                 xmlns:app="http://schemas.android.com/apk/res-auto">
     <android.support.v7.preference.PreferenceCategory android:title="@string/settings_account">
-        <tk.mygod.preference.EditTextPreference android:key="account.username" android:title="Username"
-                                                android:summary="%s"/>
+        <tk.mygod.preference.EditTextPreference
+                android:key="account.username"
+                android:title="Username"
+                android:summary="%s"
+                android:inputType="text"
+        />
         <tk.mygod.preference.EditTextPreference android:key="account.password" android:title="Password"
                                                 android:inputType="textPassword" android:summary="%s"/>
     </android.support.v7.preference.PreferenceCategory>
@@ -75,6 +79,13 @@
                                                          android:defaultValue="true"/>
     </android.support.v7.preference.PreferenceCategory>
     <android.support.v7.preference.PreferenceCategory android:title="@string/settings_misc">
+        <tk.mygod.portal.helper.nju.preference.MacAddressPreference
+                android:key="misc.localMac"
+                android:title="@string/settings_misc_local_mac_address"
+                android:summary="@string/settings_misc_local_mac_address_summary"
+                android:inputType="textMultiLine"
+                android:scrollbars="vertical"
+        />
         <android.support.v7.preference.Preference android:key="misc.useBoundConnections"
                                                   android:title="@string/bound_connections"/>
         <android.support.v7.preference.Preference android:key="misc.update"

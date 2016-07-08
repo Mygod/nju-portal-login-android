@@ -65,6 +65,10 @@
     <string name="settings_notifications_relogin_icon">自动重新登录通知图标</string>
 
     <string name="settings_misc">其他</string>
+    <string name="settings_misc_local_mac_address">本地 MAC 地址</string>
+    <string name="settings_misc_local_mac_address_summary">使用本地 MAC
+        地址的在线设备会在检测是否有其他设备登录时被自动忽略。</string>
+    <string name="settings_misc_local_mac_address_auto_detect">自动检测</string>
     <string name="settings_misc_update">检查更新</string>
     <string name="settings_misc_support">常见问题与支持</string>
     <string name="settings_misc_support_url" formatted="false">https://github.com/Mygod/nju-portal-login-android/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E6%94%AF%E6%8C%81</string>
@@ -76,10 +80,6 @@
     <string name="settings_notices_2">本应用不会收集或传输你和你的设备的信息和隐私。</string>
 
     <!-- MainActivity/SettingsFragment -->
-    <string name="su_success">操作成功，重启后生效。</string>
-    <string name="su_fail">操作失败。(#%d)</string>
-    <string name="su_fail_msg">操作失败：(#%1$d) %2$s</string>
-
     <string name="bound_connections">使用绑定连接</string>
     <string name="bound_connections_title">使用绑定连接？</string>
     <string name="bound_connections_message">绑定连接通过强制流量通过某连接来实现打开移动数据时也能登录。</string>
