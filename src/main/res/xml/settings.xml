@@ -80,6 +80,12 @@
         />
     </tk.mygod.preference.PreferenceCategory>
     <tk.mygod.preference.PreferenceCategory android:title="@string/settings_notifications">
+        <android.support.v14.preference.SwitchPreference
+                android:key="notifications.alert.balance"
+                android:defaultValue="true"
+                android:title="@string/settings_notifications_alert_balance"
+                android:summary="@string/settings_notifications_alert_balance_summary"
+        />
         <android.support.v14.preference.SwitchPreference android:key="notifications.login" android:defaultValue="true"
                                                          android:title="@string/settings_notifications_login"/>
         <android.support.v14.preference.SwitchPreference android:key="notifications.reloginIcon"

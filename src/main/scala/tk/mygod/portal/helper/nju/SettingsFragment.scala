@@ -4,6 +4,7 @@ import android.app.ActivityOptions
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
+import android.preference.SwitchPreference
 import android.support.v7.preference.Preference
 import android.util.Log
 import org.json4s.JObject
@@ -27,8 +28,8 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
   import SettingsFragment._
 
   private lazy val activity = getActivity.asInstanceOf[MainActivity]
-  private lazy val portalWeb = findPreference("auth.portalWeb")
-  private lazy val useBoundConnections = findPreference("misc.useBoundConnections")
+  private var portalWeb: Preference = _
+  private var useBoundConnections: Preference = _
 
   override def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
     getPreferenceManager.setSharedPreferencesName(PREF_NAME)
@@ -36,6 +37,7 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
 
     app.pref.registerOnSharedPreferenceChangeListener(this)
 
+    portalWeb = findPreference("auth.portalWeb")
     portalWeb.setOnPreferenceClickListener(_ => {
       startActivity(CircularRevealActivity.putLocation(activity.intent[PortalActivity], activity.getLocationOnScreen),
         ActivityOptions.makeSceneTransitionAnimation(activity).toBundle)
@@ -75,6 +77,7 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
       false
     })
 
+    useBoundConnections = findPreference("misc.useBoundConnections")
     useBoundConnections.setOnPreferenceClickListener(_ => activity.testBoundConnections(true))
     findPreference("misc.update").setOnPreferenceClickListener(_ => {
       UpdateManager.check(activity, "https://github.com/Mygod/nju-portal-login-android/releases", app.handler)
@@ -134,7 +137,7 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
         case _ => Log.e(TAG, "Unknown key in user_info: " + key)
       } else preference.setSummary(key match {
         case "acctstarttime" => PortalManager.parseTime(value.asInstanceOf[BigInt])
-        case "balance" => formatCurrency(value.asInstanceOf[BigInt].toInt)
+        case BalanceManager.KEY_BALANCE => BalanceManager.formatCurrency(value.asInstanceOf[BigInt].toInt)
         case "useripv4" => PortalManager.parseIpv4(value.asInstanceOf[BigInt])
         case _ => value.toString
       })
@@ -152,9 +155,11 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
     true
   }
 
-  private lazy val localMac = findPreference(LOCAL_MAC).asInstanceOf[MacAddressPreference]
+  private lazy val localMac = findPreference(NetworkMonitor.LOCAL_MAC).asInstanceOf[MacAddressPreference]
+  private lazy val alertBalanceEnabled = findPreference(BalanceManager.ENABLED).asInstanceOf[SwitchPreference]
   def onSharedPreferenceChanged(pref: SharedPreferences, key: String) = key match {
-    case LOCAL_MAC => localMac.setText(pref.getString(LOCAL_MAC, null))
+    case BalanceManager.ENABLED => alertBalanceEnabled.setChecked(pref.getBoolean(key, true))
+    case NetworkMonitor.LOCAL_MAC => localMac.setText(pref.getString(key, null))
     case _ =>
   }
 }

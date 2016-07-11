@@ -12,6 +12,7 @@ import android.support.v4.content.ContextCompat
 import android.util.Log
 import tk.mygod.app.ServicePlus
 import tk.mygod.os.Build
+import tk.mygod.portal.helper.nju.preference.MacAddressPreference
 import tk.mygod.util.Conversions._
 
 import scala.collection.mutable
@@ -23,6 +24,9 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
   private final val ACTION_LOGIN = "tk.mygod.portal.helper.nju.NetworkMonitor.ACTION_LOGIN"
   private final val ACTION_LOGIN_LEGACY = "tk.mygod.portal.helper.nju.NetworkMonitor.ACTION_LOGIN_LEGACY"
   private final val EXTRA_NETWORK_ID = "tk.mygod.portal.helper.nju.NetworkMonitor.EXTRA_NETWORK_ID"
+  final val LOCAL_MAC = "misc.localMac"
+
+  def localMacs = app.pref.getString(LOCAL_MAC, MacAddressPreference.default).split("\n").map(_.toLowerCase).toSet
 
   private lazy val networkCapabilities = {
     val result = classOf[NetworkCapabilities].getDeclaredField("mNetworkCapabilities")
@@ -50,10 +54,10 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
     network
   }
 
-  def makeLoginNotification = new NotificationCompat.Builder(app).setAutoCancel(true)
+  def loginNotificationBuilder = new NotificationCompat.Builder(app).setAutoCancel(true)
     .setColor(ContextCompat.getColor(app, R.color.material_primary_500))
     .setLights(ContextCompat.getColor(app, R.color.material_purple_a700), app.lightOnMs, app.lightOffMs)
-    .setSmallIcon(R.drawable.ic_device_signal_wifi_not_connected).setGroup(ACTION_LOGIN)
+    .setSmallIcon(R.drawable.ic_device_signal_wifi_statusbar_not_connected).setGroup(ACTION_LOGIN)
     .setContentTitle(app.getString(R.string.network_available_sign_in))
     .setShowWhen(false).setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 
@@ -94,7 +98,7 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
               if (receiverRegistered.compareAndSet(false, true))
                 app.registerReceiver(NetworkMonitor, new IntentFilter(ACTION_LOGIN_LEGACY))
               val id = serialize(n)
-              val builder = makeLoginNotification
+              val builder = loginNotificationBuilder
                 .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id)))
               val nid = getNotificationId(id)
               app.nm.notify(nid, PortalManager.queryOnlineLegacy(n).headOption match {
@@ -119,7 +123,7 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
                   app.registerReceiver(NetworkMonitor, new IntentFilter(ACTION_LOGIN_LEGACY))
                 val id = n.hashCode
                 val nid = getNotificationId(id)
-                app.nm.notify(nid, entry.makeNotification(makeLoginNotification.setContentIntent(
+                app.nm.notify(nid, entry.makeNotification(loginNotificationBuilder.setContentIntent(
                   app.pendingBroadcast(new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id))),
                   new Intent(IgnoreMacListener.ACTION_IGNORE_LEGACY)
                     .putExtra(IgnoreMacListener.EXTRA_NOTIFICATION_ID, nid)))
@@ -248,7 +252,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
             if (receiverRegistered.compareAndSet(false, true))
               app.registerReceiver(loginReceiver, new IntentFilter(ACTION_LOGIN))
             val id = n.hashCode
-            val builder = makeLoginNotification
+            val builder = loginNotificationBuilder
               .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN).putExtra(EXTRA_NETWORK_ID, id)))
             val nid = getNotificationId(id)
             app.nm.notify(nid, PortalManager.queryOnline(n).headOption match {
@@ -273,7 +277,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
                 app.registerReceiver(loginReceiver, new IntentFilter(ACTION_LOGIN))
               val id = n.hashCode
               val nid = getNotificationId(id)
-              app.nm.notify(nid, entry.makeNotification(makeLoginNotification
+              app.nm.notify(nid, entry.makeNotification(loginNotificationBuilder
                 .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN).putExtra(EXTRA_NETWORK_ID, id))),
                 new Intent(IgnoreMacListener.ACTION_IGNORE).putExtra(IgnoreMacListener.EXTRA_NOTIFICATION_ID, nid)))
           }

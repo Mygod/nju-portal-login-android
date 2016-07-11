@@ -85,14 +85,7 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
               if (value.toString != "0") UNEXPECTED_PAIR.format(key, value)
             case _ => Log.e(TAG, "Unknown key in volume: " + key)
           } else preference.setSummary(key match {
-            case "total_refer_ipv4" =>
-              val refer = value.asInstanceOf[BigInt].toInt
-              if (refer == 0) formatCurrency(0)
-              else if (refer <= 600) "%1$s - %1$s = %2$s".format(formatCurrency(refer), formatCurrency(0))
-              else if (refer <= 2600)
-                "%s - %s = %s".format(formatCurrency(refer), formatCurrency(600), formatCurrency(refer - 600))
-              else "%s - %s - %s = %s"
-                .format(formatCurrency(refer), formatCurrency(600), formatCurrency(refer - 2600), formatCurrency(2000))
+            case BalanceManager.KEY_USAGE => BalanceManager.check(value.asInstanceOf[BigInt]).toString
             case _ =>
               val size = value.asInstanceOf[BigInt]
               var n = size.toDouble
@@ -116,7 +109,7 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
     })
   }
 
-  def formatTime(totalSecs: Int) = {
+  private def formatTime(totalSecs: Int) = {
     var result: String = null
     def prepend(s: String) = if (result == null) result = s else result = s + ' ' + result
     val secs = totalSecs % 60

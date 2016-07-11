@@ -15,7 +15,7 @@ object IgnoreMacListener {
 class IgnoreMacListener extends BroadcastReceiver {
   override def onReceive(context: Context, intent: Intent) {
     app.nm.cancel(intent.getIntExtra(IgnoreMacListener.EXTRA_NOTIFICATION_ID, -1))
-    app.editor.putString(LOCAL_MAC,
-      (app.localMacs + intent.getStringExtra(IgnoreMacListener.EXTRA_MAC)).mkString("\n")).apply
+    app.editor.putString(NetworkMonitor.LOCAL_MAC,
+      (NetworkMonitor.localMacs + intent.getStringExtra(IgnoreMacListener.EXTRA_MAC)).mkString("\n")).apply
   }
 }

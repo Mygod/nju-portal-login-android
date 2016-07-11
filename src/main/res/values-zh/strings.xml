@@ -63,6 +63,8 @@
     </string-array>
 
     <string name="settings_notifications">通知</string>
+    <string name="settings_notifications_alert_balance">账户余额不足时警告</string>
+    <string name="settings_notifications_alert_balance_summary">当你的账户余额不足以维持本月使用时会有通知。</string>
     <string name="settings_notifications_login">登录/登出成功</string>
     <string name="settings_notifications_relogin_icon">自动重新登录通知图标</string>
 
@@ -96,6 +98,9 @@
     <plurals name="bytes">
         <item quantity="other">字节</item>
     </plurals>
+    <plurals name="days">
+        <item quantity="other">天</item>
+    </plurals>
     <plurals name="hours">
         <item quantity="other">小时</item>
     </plurals>
@@ -113,6 +118,14 @@
     <string name="auto_relogin_active">将于 %d 毫秒后自动重新登录</string>
     <string name="error_socket_timeout">套接字超时。</string>
     <string name="error_network_unavailable">没有可用的连接。</string>
+
+    <!-- BalanceManager -->
+    <string name="alert_balance_insufficient">余额不足</string>
+    <string name="alert_balance_insufficient_details">余额不足：%s</string>
+    <string name="alert_balance_insufficient_later">请尽快充值，否则将在约 %s内无法登录。</string>
+    <string name="alert_balance_insufficient_soon">请尽快充值，否则将无法登录。</string>
+    <string name="alert_balance_insufficient_action_mute_month">此月不再提醒</string>
+    <string name="alert_balance_insufficient_action_mute_forever">不再提醒</string>
 
     <!-- NoticeFragment & NoticeManager -->
     <string name="notices">通知公告历史</string>

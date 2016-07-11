@@ -54,9 +54,14 @@ object PortalManager {
   private var userInfoListener: JObject => Any = _
   def setUserInfoListener(listener: JObject => Any) {
     userInfoListener = listener
-    if (listener == null) return
+    if (listener != null) getUserInfo match {
+      case Some(info) => listener(info)
+      case _ =>
+    }
+  }
+  def getUserInfo = {
     val info = app.pref.getString(STATUS, "")
-    if (!info.isEmpty) listener(parse(info).asInstanceOf[JObject])
+    if (info.isEmpty) None else Some(parse(info).asInstanceOf[JObject])
   }
   def updateUserInfo(info: JObject) {
     app.editor.putString(STATUS, compact(render(info))).apply
@@ -78,8 +83,11 @@ object PortalManager {
       case i: JInt => i.values.toInt
       case _ => 0
     }
+    // TODO: balance insufficient code?
     json \ "userinfo" match {
-      case info: JObject => updateUserInfo(info)
+      case info: JObject =>
+        updateUserInfo(info)
+        BalanceManager.check(info)
       case _ =>
     }
     if (code != 0 && code != 2 && code != 9 &&
@@ -161,7 +169,8 @@ object PortalManager {
     val ipv6 = (obj \ "user_ipv6").asInstanceOf[JString].values
     val ipv6Invalid = TextUtils.isEmpty(ipv6) || ipv6 == "::"
     def makeNotification(builder: NotificationCompat.Builder, ignoreIntent: Intent) = {
-      val public = builder.build  // build public version before adding private information
+      if (Build.version >= 21)
+        builder.setPublicVersion(builder.build).setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
       val summary = app.getString(R.string.network_available_sign_in_conflict, mac, obj \ "area_name" match {
         case str: JString => str.values
         case _ => "未知区域"
@@ -176,8 +185,7 @@ object PortalManager {
       builder.addAction(R.drawable.ic_content_archive,
         app.getString(R.string.network_available_sign_in_conflict_ignore_mac),
         app.pendingBroadcast(ignoreIntent.putExtra(IgnoreMacListener.EXTRA_MAC, mac)))
-      new NotificationCompat.BigTextStyle(builder.setContentText(summary).setPublicVersion(public)
-          .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)).bigText(summary + app
+      new NotificationCompat.BigTextStyle(builder.setContentText(summary)).bigText(summary + app
         .getString(R.string.network_available_sign_in_conflict_ip, ipv4 + (if (ipv6Invalid) "" else ", " + ipv6))).build
     }
   }
@@ -188,7 +196,7 @@ object PortalManager {
       // TODO: Support CHAP encryption check
       val (_, json) = parseResult(conn)
       if ((json \ "total").asInstanceOf[JInt].values > 0) {
-        val macs = app.localMacs
+        val macs = NetworkMonitor.localMacs
         (json \ "rows").asInstanceOf[JArray].arr.map(obj => new OnlineEntry(obj.asInstanceOf[JObject]))
           .filter(obj => !macs.contains(obj.mac.toLowerCase))
       } else List.empty[OnlineEntry]

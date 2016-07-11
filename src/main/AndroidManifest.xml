@@ -54,6 +54,13 @@
             <meta-data android:name="android.content.SyncAdapter" android:resource="@xml/syncadapter"/>
         </service>
         <service android:name=".NetworkMonitor"/>
+        <receiver android:name=".BalanceManager"
+                  android:exported="false">
+            <intent-filter>
+                <action android:name="tk.mygod.portal.helper.nju.BalanceManager.MUTE_MONTH"/>
+                <action android:name="tk.mygod.portal.helper.nju.BalanceManager.MUTE_FOREVER"/>
+            </intent-filter>
+        </receiver>
         <receiver android:name=".BootReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>

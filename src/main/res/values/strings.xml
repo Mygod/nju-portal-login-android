@@ -65,6 +65,9 @@
     </string-array>
 
     <string name="settings_notifications">Notifications</string>
+    <string name="settings_notifications_alert_balance">Alert on low balance</string>
+    <string name="settings_notifications_alert_balance_summary">You will be notified if you don\'t have sufficient
+        balance for this month.</string>
     <string name="settings_notifications_login">Login/logout successfully</string>
     <string name="settings_notifications_relogin_icon">Auto relogin pending notification icon</string>
 
@@ -103,6 +106,10 @@
         <item quantity="one">Byte</item>
         <item quantity="other">Bytes</item>
     </plurals>
+    <plurals name="days">
+        <item quantity="one">day</item>
+        <item quantity="other">days</item>
+    </plurals>
     <plurals name="hours">
         <item quantity="one">hour</item>
         <item quantity="other">hours</item>
@@ -125,6 +132,14 @@
     <string name="auto_relogin_active">Auto relogin pending in %dms</string>
     <string name="error_network_unavailable">No available network.</string>
     <string name="error_socket_timeout">Socket timeout.</string>
+
+    <!-- BalanceManager -->
+    <string name="alert_balance_insufficient">Insufficient balance</string>
+    <string name="alert_balance_insufficient_details">Insufficient balance: %s</string>
+    <string name="alert_balance_insufficient_later">Recharge or you might lose Internet connection in %s.</string>
+    <string name="alert_balance_insufficient_soon">Recharge immediately or you might lose Internet connection.</string>
+    <string name="alert_balance_insufficient_action_mute_month">Mute for this month</string>
+    <string name="alert_balance_insufficient_action_mute_forever">Mute forever</string>
 
     <!-- NoticeFragment & NoticeManager -->
     <string name="notices">Notices history</string>
