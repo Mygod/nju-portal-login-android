@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v7.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
                                                 xmlns:app="http://schemas.android.com/apk/res-auto">
-    <android.support.v7.preference.PreferenceCategory android:title="@string/settings_account">
+    <tk.mygod.preference.PreferenceCategory android:title="@string/settings_account">
         <tk.mygod.preference.EditTextPreference
                 android:key="account.username"
                 android:title="Username"
@@ -10,12 +10,15 @@
         />
         <tk.mygod.preference.EditTextPreference android:key="account.password" android:title="Password"
                                                 android:inputType="textPassword" android:summary="%s"/>
-    </android.support.v7.preference.PreferenceCategory>
-    <android.support.v7.preference.PreferenceCategory android:title="@string/settings_auth">
-        <tk.mygod.preference.DropDownPreference android:key="auth.serviceStatus" android:defaultValue="3"
+    </tk.mygod.preference.PreferenceCategory>
+    <tk.mygod.preference.PreferenceCategory android:title="@string/settings_auth">
+        <tk.mygod.preference.DropDownPreference android:key="auth.serviceStatus"
+                                                android:defaultValue="3"
                                                 android:title="@string/settings_auth_service_status"
-                                                app:entries="@array/settings_auth_service_statuses" android:summary="%s"
-                                                app:entryValues="@array/settings_auth_service_status_values"/>
+                                                android:summary="%s"
+                                                android:entries="@array/settings_auth_service_statuses"
+                                                android:entryValues="@array/settings_auth_service_status_values"
+        />
         <android.support.v7.preference.Preference android:key="auth.login"
                                                   android:title="@string/settings_auth_login"/>
         <android.support.v7.preference.Preference android:key="auth.logout"
@@ -25,8 +28,8 @@
         <tk.mygod.preference.NumberPickerPreference android:key="auth.reloginDelay"
                                                     android:title="@string/settings_auth_relogin_delay"
                                                     android:summary="@string/settings_auth_relogin_delay_summary"/>
-    </android.support.v7.preference.PreferenceCategory>
-    <android.support.v7.preference.PreferenceCategory android:title="@string/settings_status">
+    </tk.mygod.preference.PreferenceCategory>
+    <tk.mygod.preference.PreferenceCategory android:title="@string/settings_status">
         <android.support.v7.preference.Preference android:key="status.name"
                                                   android:title="@string/settings_status_name"/>
         <android.support.v7.preference.Preference android:key="status.service_name"
@@ -59,8 +62,8 @@
             <android.support.v7.preference.Preference android:key="status.usage.total_refer_ipv4"
                                                       android:title="@string/settings_status_usage_refer"/>
         </android.support.v7.preference.PreferenceScreen>
-    </android.support.v7.preference.PreferenceCategory>
-    <android.support.v7.preference.PreferenceCategory android:title="Notifications">
+    </tk.mygod.preference.PreferenceCategory>
+    <tk.mygod.preference.PreferenceCategory android:title="Notifications">
         <android.support.v7.preference.Preference android:key="notifications.notices"
                                                   android:title="@string/settings_notifications_notices"/>
         <android.support.v14.preference.SwitchPreference
@@ -77,8 +80,8 @@
         <android.support.v14.preference.SwitchPreference android:key="notifications.reloginIcon"
                                                          android:title="@string/settings_notifications_relogin_icon"
                                                          android:defaultValue="true"/>
-    </android.support.v7.preference.PreferenceCategory>
-    <android.support.v7.preference.PreferenceCategory android:title="@string/settings_misc">
+    </tk.mygod.preference.PreferenceCategory>
+    <tk.mygod.preference.PreferenceCategory android:title="@string/settings_misc">
         <tk.mygod.portal.helper.nju.preference.MacAddressPreference
                 android:key="misc.localMac"
                 android:title="@string/settings_misc_local_mac_address"
@@ -94,9 +97,9 @@
                                                   android:title="@string/settings_misc_support"/>
         <android.support.v7.preference.Preference android:key="misc.logcat"
                                                   android:title="@string/settings_misc_logcat"/>
-    </android.support.v7.preference.PreferenceCategory>
-    <android.support.v7.preference.PreferenceCategory android:title="@string/settings_notices">
+    </tk.mygod.preference.PreferenceCategory>
+    <tk.mygod.preference.PreferenceCategory android:title="@string/settings_notices">
         <android.support.v7.preference.Preference android:summary="@string/settings_notices_1"/>
         <android.support.v7.preference.Preference android:summary="@string/settings_notices_2"/>
-    </android.support.v7.preference.PreferenceCategory>
+    </tk.mygod.preference.PreferenceCategory>
 </android.support.v7.preference.PreferenceScreen>
