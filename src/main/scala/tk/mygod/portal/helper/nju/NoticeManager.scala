@@ -20,7 +20,7 @@ import scala.collection.mutable.ArrayBuffer
 object NoticeManager {
   import tk.mygod.portal.helper.nju.database.DatabaseManager.noticeDao
 
-  final val SYNC_INTERVAL = "notifications.notices.sync.interval"
+  final val SYNC_INTERVAL = "notices.sync.interval"
   private final val ACTION_MARK_AS_READ = "tk.mygod.portal.helper.nju.NoticeManager.MARK_AS_READ"
   private final val ACTION_VIEW = "tk.mygod.portal.helper.nju.NoticeManager.VIEW"
   private final val EXTRA_ID = "ID"
@@ -98,7 +98,7 @@ object NoticeManager {
   private var receiverRegistered: Boolean = _
   private def pending(action: String, id: Int) =
     app.pendingBroadcast(new Intent(action).putExtra(EXTRA_ID, id).setFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY))
-  def pushUnreadNotices = if (app.pref.getBoolean("notifications.notices.sync.auto", true)) {
+  def pushUnreadNotices = if (app.pref.getBoolean("notices.sync.auto", true)) {
     val notices = updateUnreadNotices()
     if (notices.nonEmpty) app.handler.post(() => {
       synchronized(if (!receiverRegistered) {

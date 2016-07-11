@@ -43,12 +43,12 @@
     <string name="settings_status_usage_time">在线时间</string>
     <string name="settings_status_usage_refer">理论费用</string>
 
-    <string name="settings_notifications">通知</string>
-    <string name="settings_notifications_notices">查看通知公告历史</string>
-    <string name="settings_notifications_notices_sync_auto">检测到校园网时同步通知公告</string>
-    <string name="settings_notifications_notices_sync_interval">自动同步间隔</string>
-    <string name="settings_notifications_notices_sync_interval_summary">%s（若经常使用此应用登录则可禁用此项）</string>
-    <string-array name="settings_notifications_notices_sync_intervals">
+    <string name="settings_notices">通知公告</string>
+    <string name="settings_notices_history">查看历史</string>
+    <string name="settings_notices_sync_auto">检测到校园网时自动同步</string>
+    <string name="settings_notices_sync_interval">自动同步间隔</string>
+    <string name="settings_notices_sync_interval_summary">%s（若经常使用此应用登录则可禁用此项）</string>
+    <string-array name="settings_notices_sync_intervals">
         <item>从不</item>
         <item>1 分钟</item>
         <item>5 分钟</item>
@@ -61,6 +61,8 @@
         <item>12 小时</item>
         <item>24 小时</item>
     </string-array>
+
+    <string name="settings_notifications">通知</string>
     <string name="settings_notifications_login">登录/登出成功</string>
     <string name="settings_notifications_relogin_icon">自动重新登录通知图标</string>
 
@@ -75,9 +77,9 @@
     <string name="settings_misc_support_tip">提示：若需要帮助，请点击常见问题与支持。</string>
     <string name="settings_misc_logcat">导出日志</string>
 
-    <string name="settings_notices">提醒</string>
-    <string name="settings_notices_1">本应用使用南大认证 API，但并未受过南京大学官方承认或批准。</string>
-    <string name="settings_notices_2">本应用不会收集或传输你和你的设备的信息和隐私。</string>
+    <string name="settings_privacy_policy">隐私政策</string>
+    <string name="settings_privacy_policy_1">本应用使用南大认证 API，但并未受过南京大学官方承认或批准。</string>
+    <string name="settings_privacy_policy_2">本应用不会收集或传输你和你的设备的信息和隐私。</string>
 
     <!-- MainActivity/SettingsFragment -->
     <string name="bound_connections">使用绑定连接</string>

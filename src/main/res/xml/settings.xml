@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v7.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-                                                xmlns:app="http://schemas.android.com/apk/res-auto">
+>
     <tk.mygod.preference.PreferenceCategory android:title="@string/settings_account">
         <tk.mygod.preference.EditTextPreference
                 android:key="account.username"
@@ -63,18 +63,23 @@
                                                       android:title="@string/settings_status_usage_refer"/>
         </android.support.v7.preference.PreferenceScreen>
     </tk.mygod.preference.PreferenceCategory>
-    <tk.mygod.preference.PreferenceCategory android:title="Notifications">
-        <android.support.v7.preference.Preference android:key="notifications.notices"
-                                                  android:title="@string/settings_notifications_notices"/>
-        <android.support.v14.preference.SwitchPreference
-                android:key="notifications.notices.sync.auto" android:defaultValue="true"
-                android:title="@string/settings_notifications_notices_sync_auto"/>
-        <tk.mygod.preference.DropDownPreference
-                android:key="notifications.notices.sync.interval" android:defaultValue="0"
-                app:entries="@array/settings_notifications_notices_sync_intervals"
-                app:entryValues="@array/settings_notifications_notices_sync_interval_values"
-                android:title="@string/settings_notifications_notices_sync_interval"
-                android:summary="@string/settings_notifications_notices_sync_interval_summary"/>
+    <tk.mygod.preference.PreferenceCategory android:title="@string/settings_notices">
+        <android.support.v7.preference.Preference android:key="notices.history"
+                                                  android:title="@string/settings_notices_history"
+        />
+        <android.support.v14.preference.SwitchPreference android:key="notices.sync.auto"
+                                                         android:defaultValue="true"
+                                                         android:title="@string/settings_notices_sync_auto"
+        />
+        <tk.mygod.preference.DropDownPreference android:key="notices.sync.interval"
+                                                android:defaultValue="0"
+                                                android:entries="@array/settings_notices_sync_intervals"
+                                                android:entryValues="@array/settings_notices_sync_interval_values"
+                                                android:title="@string/settings_notices_sync_interval"
+                                                android:summary="@string/settings_notices_sync_interval_summary"
+        />
+    </tk.mygod.preference.PreferenceCategory>
+    <tk.mygod.preference.PreferenceCategory android:title="@string/settings_notifications">
         <android.support.v14.preference.SwitchPreference android:key="notifications.login" android:defaultValue="true"
                                                          android:title="@string/settings_notifications_login"/>
         <android.support.v14.preference.SwitchPreference android:key="notifications.reloginIcon"
@@ -98,8 +103,8 @@
         <android.support.v7.preference.Preference android:key="misc.logcat"
                                                   android:title="@string/settings_misc_logcat"/>
     </tk.mygod.preference.PreferenceCategory>
-    <tk.mygod.preference.PreferenceCategory android:title="@string/settings_notices">
-        <android.support.v7.preference.Preference android:summary="@string/settings_notices_1"/>
-        <android.support.v7.preference.Preference android:summary="@string/settings_notices_2"/>
+    <tk.mygod.preference.PreferenceCategory android:title="@string/settings_privacy_policy">
+        <android.support.v7.preference.Preference android:summary="@string/settings_privacy_policy_1"/>
+        <android.support.v7.preference.Preference android:summary="@string/settings_privacy_policy_2"/>
     </tk.mygod.preference.PreferenceCategory>
 </android.support.v7.preference.PreferenceScreen>

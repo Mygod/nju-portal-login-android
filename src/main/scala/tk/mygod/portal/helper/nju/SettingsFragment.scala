@@ -69,7 +69,7 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
       true
     })
 
-    findPreference("notifications.notices").setOnPreferenceClickListener(_ => {
+    findPreference("notices.history").setOnPreferenceClickListener(_ => {
       startActivity(CircularRevealActivity.putLocation(activity.intent[NoticeActivity], activity.getLocationOnScreen),
         ActivityOptions.makeSceneTransitionAnimation(activity).toBundle)
       false

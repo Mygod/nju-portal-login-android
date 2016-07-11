@@ -45,13 +45,12 @@
     <string name="settings_status_usage_time">Online time</string>
     <string name="settings_status_usage_refer">Theoretical fees</string>
 
-    <string name="settings_notifications">Notifications</string>
-    <string name="settings_notifications_notices">View notices history</string>
-    <string name="settings_notifications_notices_sync_auto">Sync notices on campus network detected</string>
-    <string name="settings_notifications_notices_sync_interval">Auto sync interval</string>
-    <string name="settings_notifications_notices_sync_interval_summary">%s (disable if you login with this app very
-        often)</string>
-    <string-array name="settings_notifications_notices_sync_intervals">
+    <string name="settings_notices">Notices</string>
+    <string name="settings_notices_history">View history</string>
+    <string name="settings_notices_sync_auto">Sync on campus network detected</string>
+    <string name="settings_notices_sync_interval">Auto sync interval</string>
+    <string name="settings_notices_sync_interval_summary">%s (disable if you login with this app very often)</string>
+    <string-array name="settings_notices_sync_intervals">
         <item>Never</item>
         <item>1 minute</item>
         <item>5 minutes</item>
@@ -64,6 +63,8 @@
         <item>12 hours</item>
         <item>24 hours</item>
     </string-array>
+
+    <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_login">Login/logout successfully</string>
     <string name="settings_notifications_relogin_icon">Auto relogin pending notification icon</string>
 
@@ -79,10 +80,10 @@
     <string name="settings_misc_support_tip">Tip: If you need help, click FAQ &amp; Support.</string>
     <string name="settings_misc_logcat">Export logcat</string>
 
-    <string name="settings_notices">Notices</string>
-    <string name="settings_notices_1">This application uses NJU portal\'s API and is not endorsed or certified by
+    <string name="settings_privacy_policy">Privacy Policy</string>
+    <string name="settings_privacy_policy_1">This application uses NJU portal\'s API and is not endorsed or certified by
         Nanjing University.</string>
-    <string name="settings_notices_2">No personal or private information about you or your device is collected or
+    <string name="settings_privacy_policy_2">No personal or private information about you or your device is collected or
         transmitted by this app.</string>
 
     <!-- MainActivity/SettingsFragment -->
