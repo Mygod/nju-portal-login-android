@@ -7,7 +7,7 @@ import android.content.{BroadcastReceiver, Context, Intent}
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationCompat.BigTextStyle
 import android.support.v4.content.ContextCompat
-import org.json4s.JsonAST.JObject
+import org.json4s.{JInt, JObject}
 
 /**
   * This object takes care of your balance!
@@ -85,7 +85,7 @@ object BalanceManager {
 
   def check(info: JObject): Unit = if (enabled && needsChecking)
     PortalManager.queryVolume match {
-      case Some(result) => check((result \ KEY_USAGE).asInstanceOf[BigInt], info, true, true)
+      case Some(result) => check((result \ KEY_USAGE).asInstanceOf[JInt].values, info, true, true)
       case _ =>
     }
   def check(refer: BigInt): Usage = {
@@ -94,7 +94,7 @@ object BalanceManager {
   }
   private def check(refer: BigInt, info: JObject, enabled: Boolean, needsChecking: Boolean) = {
     val usage = new Usage(refer.toInt)
-    val balance = (info \ KEY_BALANCE).asInstanceOf[BigInt].toInt
+    val balance = (info \ KEY_BALANCE).asInstanceOf[JInt].values.toInt
     if (enabled)  // always check for negative balance
       if (balance < 0) notify(balance) else if (needsChecking)
         if (balance < usage.monthChargeLimit) {
