@@ -1,5 +1,3 @@
-import android.Keys._
-
 android.Plugin.androidBuild
 
 platformTarget in Android := "android-24"
@@ -12,7 +10,9 @@ javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
 
 scalacOptions ++= Seq("-target:jvm-1.6", "-Xexperimental")
 
-shrinkResources in Android := true
+shrinkResources := true
+
+typedViewHolders := false
 
 resConfigs in Android := Seq("zh")
 
@@ -31,4 +31,4 @@ proguardCache := Seq()
 
 proguardOptions += "-dontwarn com.thoughtworks.**"
 
-proguardVersion in Android := "5.2.1"
+proguardVersion := "5.2.1"
