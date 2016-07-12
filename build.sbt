@@ -27,6 +27,8 @@ libraryDependencies ++= Seq(
   "tk.mygod" %% "mygod-lib-android" % "2.0.0-SNAPSHOT"
 )
 
+proguardCache := Seq()
+
 proguardOptions += "-dontwarn com.thoughtworks.**"
 
 proguardVersion in Android := "5.2.1"
