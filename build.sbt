@@ -22,6 +22,7 @@ resolvers += Resolver.sonatypeRepo("public")
 
 libraryDependencies ++= Seq(
   "com.j256.ormlite" % "ormlite-android" % "4.48",
+  "eu.chainfire" % "libsuperuser" % "1.0.0.201602271131",
   "me.leolin" % "ShortcutBadger" % "1.1.6",
   "org.json4s" %% "json4s-native" % "3.4.0",
   "tk.mygod" %% "mygod-lib-android" % "2.0.0-SNAPSHOT"

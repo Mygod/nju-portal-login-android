@@ -14,7 +14,7 @@ class MacAddressPreferenceDialogFragment extends EditTextPreferenceDialogFragmen
   override def onPrepareDialogBuilder(builder: Builder) {
     super.onPrepareDialogBuilder(builder)
     if (Build.version < 24) builder.setNeutralButton(R.string.settings_misc_local_mac_address_auto_detect, ((_, _) => {
-      val value = MacAddressPreference.default
+      val value = MacAddressPreference.default(false)
       if (preference.callChangeListener(value)) preference.setText(value)
     }): DialogInterface.OnClickListener)
   }

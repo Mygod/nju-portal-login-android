@@ -26,7 +26,7 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
   private final val EXTRA_NETWORK_ID = "tk.mygod.portal.helper.nju.NetworkMonitor.EXTRA_NETWORK_ID"
   final val LOCAL_MAC = "misc.localMac"
 
-  def localMacs = app.pref.getString(LOCAL_MAC, MacAddressPreference.default).split("\n").map(_.toLowerCase).toSet
+  def localMacs = app.pref.getString(LOCAL_MAC, MacAddressPreference.default()).split("\n").map(_.toLowerCase).toSet
 
   private lazy val networkCapabilities = {
     val result = classOf[NetworkCapabilities].getDeclaredField("mNetworkCapabilities")
