@@ -1,10 +1,10 @@
 package tk.mygod.portal.helper.nju
 
-import android.app.ActivityOptions
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
 import android.preference.SwitchPreference
+import android.support.v4.app.ActivityOptionsCompat
 import android.support.v7.preference.Preference
 import android.util.Log
 import org.json4s.JObject
@@ -40,7 +40,7 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
     portalWeb = findPreference("auth.portalWeb")
     portalWeb.setOnPreferenceClickListener(_ => {
       startActivity(CircularRevealActivity.putLocation(activity.intent[PortalActivity], activity.getLocationOnScreen),
-        ActivityOptions.makeSceneTransitionAnimation(activity).toBundle)
+        ActivityOptionsCompat.makeSceneTransitionAnimation(activity).toBundle)
       true
     })
 
@@ -73,7 +73,7 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
 
     findPreference("notices.history").setOnPreferenceClickListener(_ => {
       startActivity(CircularRevealActivity.putLocation(activity.intent[NoticeActivity], activity.getLocationOnScreen),
-        ActivityOptions.makeSceneTransitionAnimation(activity).toBundle)
+        ActivityOptionsCompat.makeSceneTransitionAnimation(activity).toBundle)
       false
     })
 

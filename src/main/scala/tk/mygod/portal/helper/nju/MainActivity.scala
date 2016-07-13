@@ -1,12 +1,12 @@
 package tk.mygod.portal.helper.nju
 
-import android.app.ActivityOptions
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.content._
 import android.os.Bundle
 import android.provider.Settings
 import android.support.v14.preference.PreferenceFragment
 import android.support.v14.preference.PreferenceFragment.OnPreferenceStartScreenCallback
+import android.support.v4.app.ActivityOptionsCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.preference.PreferenceScreen
 import android.text.TextUtils
@@ -79,7 +79,7 @@ final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeLi
 
   def onPreferenceStartScreen(fragment: PreferenceFragment, screen: PreferenceScreen) = {
     startActivity(CircularRevealActivity.putLocation(intent[UsageActivity], getLocationOnScreen),
-      ActivityOptions.makeSceneTransitionAnimation(this).toBundle)
+      ActivityOptionsCompat.makeSceneTransitionAnimation(this).toBundle)
     true
   }
 }
