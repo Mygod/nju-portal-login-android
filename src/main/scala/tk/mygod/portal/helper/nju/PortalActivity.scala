@@ -87,7 +87,7 @@ final class PortalActivity extends ToolbarActivity with CircularRevealActivity w
       true
     case R.id.action_browser =>
       launchUrl(rootUrl)
-      finish
+      supportFinishAfterTransition()
       true
     case _ => false
   }
