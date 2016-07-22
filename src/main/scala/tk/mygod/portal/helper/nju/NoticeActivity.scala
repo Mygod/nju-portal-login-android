@@ -87,7 +87,7 @@ final class NoticeActivity extends ToolbarActivity with CircularRevealActivity w
     NoticeManager.cancelAllNotices
   }
 
-  def onRefresh {
+  def onRefresh = if (!swiper.isRefreshing) {
     swiper.setRefreshing(true)
     ThrowableFuture {
       NoticeManager.updateUnreadNotices()
