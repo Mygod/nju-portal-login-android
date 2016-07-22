@@ -67,7 +67,8 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
     findPreference("status.useripv4").setOnPreferenceClickListener(displayIpInfo)
     findPreference("status.useripv6").setOnPreferenceClickListener(displayIpInfo)
     findPreference("status.mac").setOnPreferenceClickListener(p => {
-      activity.launchUrl(app.getMacLookup(p.getSummary))
+      val mac = p.getSummary
+      if (mac != null) activity.launchUrl(app.getMacLookup(mac))
       true
     })
 
@@ -146,7 +147,8 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
   }
 
   private def displayIpInfo(preference: Preference) = {
-    activity.launchUrl(app.getIpLookup(preference.getSummary))
+    val ip = preference.getSummary
+    if (ip != null) activity.launchUrl(app.getIpLookup(ip))
     true
   }
 
