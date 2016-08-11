@@ -1,6 +1,6 @@
 android.Plugin.androidBuild
 
-platformTarget in Android := "android-24"
+platformTarget := "android-24"
 
 name := "nju-portal-login-android"
 
@@ -14,11 +14,11 @@ shrinkResources := true
 
 typedViewHolders := false
 
-resConfigs in Android := Seq("zh")
+resConfigs := Seq("zh")
 
 useSupportVectors
 
-resolvers += Resolver.sonatypeRepo("public")
+resolvers ++= Seq(Resolver.jcenterRepo, Resolver.sonatypeRepo("public"))
 
 libraryDependencies ++= Seq(
   "com.j256.ormlite" % "ormlite-android" % "4.48",

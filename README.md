@@ -1,4 +1,9 @@
 # Portal Login Helper for NJU
+
+[<img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png' height='80'/>](https://play.google.com/store/apps/details?id=tk.mygod.portal.helper.nju&utm_source=global_co&utm_medium=prtnr&utm_content=Mar2515&utm_campaign=PartBadge&pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1)
+
+[![Build Status](https://api.travis-ci.org/Mygod/nju-portal-login-android.svg)](https://travis-ci.org/Mygod/nju-portal-login-android)
+
 This app is designed for Nanjing University users to login into [p.nju.edu.cn](http://p.nju.edu.cn) automatically and
 conveniently with your Android device. However it can be easily modified to adapt to other network portals.
 
@@ -6,18 +11,19 @@ This application uses NJU portal's API and is not endorsed or certified by Nanji
 
 No personal or private information about you or your device is collected or transmitted by this app.
 
-[<img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png' height='80'/>](https://play.google.com/store/apps/details?id=tk.mygod.portal.helper.nju&utm_source=global_co&utm_medium=prtnr&utm_content=Mar2515&utm_campaign=PartBadge&pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1)
-
 ## Dependencies
+
 * Android Support Repository
 * SBT
 
 ## Building
+
 First, create a `local.properties` following [this guide](https://github.com/pfn/android-sdk-plugin#usage). Then:
 
     sbt clean android:packageRelease
 
 ## Alternatives
+
 DISCLAIMER: I don't own these projects. YOU are choosing to use these projects, and if you point your finger at me for
 anything gone wrong, I will laugh at you.
 
