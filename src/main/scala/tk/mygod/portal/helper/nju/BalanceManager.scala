@@ -66,9 +66,6 @@ object BalanceManager {
       .setContentTitle(app.getString(R.string.alert_balance_insufficient))
       .setShowWhen(true)
     builder.setPublicVersion(builder.build)
-      .addAction(R.drawable.ic_social_notifications_off,
-        app.getString(R.string.alert_balance_insufficient_action_mute_month),
-        app.pendingBroadcast(ACTION_MUTE_MONTH))
       .setContentTitle(app.getString(R.string.alert_balance_insufficient_details, formatCurrency(balance)))
     val text = if (summary == null) app.getText(R.string.alert_balance_insufficient_soon) else {
       builder.addAction(R.drawable.ic_social_notifications_off,
