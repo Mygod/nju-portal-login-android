@@ -5,6 +5,7 @@ import java.net._
 import java.security.MessageDigest
 import java.text.DateFormat
 import java.util.Date
+import java.util.concurrent.TimeUnit
 
 import android.annotation.TargetApi
 import android.content.Intent
@@ -97,7 +98,8 @@ object PortalManager {
     (code, json)
   }
 
-  def parseTime(value: BigInt) = DateFormat.getDateTimeInstance.format(new Date(value.toLong * 1000))
+  def parseTimeString(value: BigInt) =
+    DateFormat.getDateTimeInstance.format(new Date(TimeUnit.SECONDS.toMillis(value.toLong)))
   def parseIpv4(value: BigInt) = {
     val bytes = value.asInstanceOf[BigInt].toInt
     InetAddress.getByAddress(Array[Byte]((bytes >>> 24 & 0xFF).toByte, (bytes >>> 16 & 0xFF).toByte,
@@ -175,7 +177,7 @@ object PortalManager {
       val summary = app.getString(R.string.network_available_sign_in_conflict, mac, obj \ "area_name" match {
         case str: JString => str.values
         case _ => "未知区域"
-      }, parseTime((obj \ "acctstarttime").asInstanceOf[JInt].values))
+      }, parseTimeString((obj \ BalanceManager.KEY_ACTIVITY_START_TIME).asInstanceOf[JInt].values))
       val search = app.getString(R.string.network_available_sign_in_conflict_search)
       builder.addAction(R.drawable.ic_action_search, search.format("MAC"),
           app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getMacLookup(mac))))

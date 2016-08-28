@@ -137,7 +137,7 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
         case "username" => name.value2 = value.asInstanceOf[String]
         case _ => Log.e(TAG, "Unknown key in user_info: " + key)
       } else preference.setSummary(key match {
-        case "acctstarttime" => PortalManager.parseTime(value.asInstanceOf[BigInt])
+        case BalanceManager.KEY_ACTIVITY_START_TIME => PortalManager.parseTimeString(value.asInstanceOf[BigInt])
         case BalanceManager.KEY_BALANCE => BalanceManager.formatCurrency(value.asInstanceOf[BigInt].toInt)
         case "useripv4" => PortalManager.parseIpv4(value.asInstanceOf[BigInt])
         case _ => value.toString

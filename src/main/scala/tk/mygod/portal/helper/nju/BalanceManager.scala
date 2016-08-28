@@ -1,7 +1,8 @@
 package tk.mygod.portal.helper.nju
 
 import java.text.DecimalFormat
-import java.util.Calendar
+import java.util.concurrent.TimeUnit
+import java.util.{Calendar, Date}
 
 import android.content.{BroadcastReceiver, Context, Intent}
 import android.support.v4.app.NotificationCompat
@@ -38,6 +39,7 @@ object BalanceManager {
 
   private final val ACTION_MUTE_MONTH = "tk.mygod.portal.helper.nju.BalanceManager.MUTE_MONTH"
   private final val ACTION_MUTE_FOREVER = "tk.mygod.portal.helper.nju.BalanceManager.MUTE_FOREVER"
+  final val KEY_ACTIVITY_START_TIME = "acctstarttime"
   final val KEY_BALANCE = "balance"
   final val KEY_USAGE = "total_refer_ipv4"
   final val ENABLED = "notifications.alert.balance"
@@ -97,15 +99,21 @@ object BalanceManager {
         if (balance < usage.monthChargeLimit) {
           var length: String = null
           def prepend(s: String) = if (length == null) length = s else length = s + ' ' + length
-          val time = usage.remainingTime(balance)
-          val mins = time * 3 % 60
-          if (mins != 0) prepend(mins + " " + app.getResources.getQuantityString(R.plurals.minutes, mins))
-          var hrs = time / 20
-          val days = hrs / 24
-          hrs %= 24
-          if (hrs != 0) prepend(hrs + " " + app.getResources.getQuantityString(R.plurals.hours, hrs))
-          if (days != 0) prepend(days + " " + app.getResources.getQuantityString(R.plurals.days, days))
-          notify(balance, app.getString(R.string.alert_balance_insufficient_later, length))
+          var time = ((info \ KEY_ACTIVITY_START_TIME).asInstanceOf[JInt].values.toLong + // total remaining seconds
+            180 * usage.remainingTime(balance) - TimeUnit.MILLISECONDS.toSeconds(new Date().getTime)).toInt
+          if (time > 0) {
+            val secs = time % 60
+            time /= 60
+            if (secs != 0) prepend(secs + " " + app.getResources.getQuantityString(R.plurals.seconds, secs))
+            val mins = time % 60
+            time /= 60
+            if (mins != 0) prepend(mins + " " + app.getResources.getQuantityString(R.plurals.minutes, mins))
+            val hrs = time % 24
+            val days = time / 24
+            if (hrs != 0) prepend(hrs + " " + app.getResources.getQuantityString(R.plurals.hours, hrs))
+            if (days != 0) prepend(days + " " + app.getResources.getQuantityString(R.plurals.days, days))
+            notify(balance, app.getString(R.string.alert_balance_insufficient_later, length))
+          } else notify(balance, app.getText(R.string.alert_balance_insufficient_soon))
         } else lastMonth(currentMonth)
     usage
   }
