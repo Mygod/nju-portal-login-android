@@ -60,26 +60,27 @@ object BalanceManager {
   private def needsChecking = lastMonth < currentMonth
 
   private def notify(balance: Int, summary: CharSequence = null) = {
+    var text = app.getText(R.string.alert_balance_insufficient_soon)
     val builder = new NotificationCompat.Builder(app)
       .setAutoCancel(true)
       .setColor(ContextCompat.getColor(app, R.color.material_primary_500))
       .setLights(ContextCompat.getColor(app, R.color.material_purple_a700), app.lightOnMs, app.lightOffMs)
       .setSmallIcon(R.drawable.ic_action_credit_card)
       .setContentTitle(app.getString(R.string.alert_balance_insufficient))
+      .setContentText(text)
       .setShowWhen(true)
     builder.setPublicVersion(builder.build)
       .setContentTitle(app.getString(R.string.alert_balance_insufficient_details, formatCurrency(balance)))
-    val text = if (summary == null) app.getText(R.string.alert_balance_insufficient_soon) else {
-      builder.addAction(R.drawable.ic_social_notifications_off,
-        app.getString(R.string.alert_balance_insufficient_action_mute_month),
-        app.pendingBroadcast(ACTION_MUTE_MONTH))
-      summary
+    if (summary != null) {
+      builder.setContentText(summary)
+        .addAction(R.drawable.ic_social_notifications_off,
+          app.getString(R.string.alert_balance_insufficient_action_mute_month),
+          app.pendingBroadcast(ACTION_MUTE_MONTH))
+      text = summary
     }
-    app.nm.notify(0, new BigTextStyle(builder.setContentText(text)
-      .addAction(R.drawable.ic_social_notifications_off,
-        app.getString(R.string.alert_balance_insufficient_action_mute_forever),
-        app.pendingBroadcast(ACTION_MUTE_FOREVER))
-    ).bigText(text).build())
+    app.nm.notify(0, new BigTextStyle(builder.addAction(R.drawable.ic_social_notifications_off,
+      app.getString(R.string.alert_balance_insufficient_action_mute_forever),
+      app.pendingBroadcast(ACTION_MUTE_FOREVER))).bigText(text).build())
   }
 
   def check(info: JObject): Unit = if (enabled && needsChecking)
@@ -113,7 +114,7 @@ object BalanceManager {
             if (hr != 0) prepend(hr + " " + app.getResources.getQuantityString(R.plurals.hours, hr))
             if (days != 0) prepend(days + " " + app.getResources.getQuantityString(R.plurals.days, days))
             notify(balance, app.getString(R.string.alert_balance_insufficient_later, length))
-          } else notify(balance, app.getText(R.string.alert_balance_insufficient_soon))
+          } else notify(balance, app.getString(R.string.alert_balance_insufficient_soon))
         } else lastMonth(currentMonth)
     usage
   }
