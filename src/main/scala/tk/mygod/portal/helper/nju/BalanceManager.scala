@@ -102,15 +102,15 @@ object BalanceManager {
           var time = ((info \ KEY_ACTIVITY_START_TIME).asInstanceOf[JInt].values.toLong + // total remaining seconds
             180 * usage.remainingTime(balance) - TimeUnit.MILLISECONDS.toSeconds(new Date().getTime)).toInt
           if (time > 0) {
-            val secs = time % 60
+            val sec = time % 60
             time /= 60
-            if (secs != 0) prepend(secs + " " + app.getResources.getQuantityString(R.plurals.seconds, secs))
-            val mins = time % 60
+            if (sec != 0) prepend(sec + " " + app.getResources.getQuantityString(R.plurals.seconds, sec))
+            val min = time % 60
             time /= 60
-            if (mins != 0) prepend(mins + " " + app.getResources.getQuantityString(R.plurals.minutes, mins))
-            val hrs = time % 24
+            if (min != 0) prepend(min + " " + app.getResources.getQuantityString(R.plurals.minutes, min))
+            val hr = time % 24
             val days = time / 24
-            if (hrs != 0) prepend(hrs + " " + app.getResources.getQuantityString(R.plurals.hours, hrs))
+            if (hr != 0) prepend(hr + " " + app.getResources.getQuantityString(R.plurals.hours, hr))
             if (days != 0) prepend(days + " " + app.getResources.getQuantityString(R.plurals.days, days))
             notify(balance, app.getString(R.string.alert_balance_insufficient_later, length))
           } else notify(balance, app.getText(R.string.alert_balance_insufficient_soon))
