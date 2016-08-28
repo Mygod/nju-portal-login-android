@@ -73,7 +73,7 @@ object PortalManager {
   }
 
   private implicit val formats = Serialization.formats(NoTypeHints)
-  private def parseResult(conn: HttpURLConnection) = {
+  private def parseResult(conn: HttpURLConnection, login: Boolean = false) = {
     //noinspection JavaAccessorMethodCalledAsEmptyParen
     val resultStr = IOUtils.readAllText(conn.getInputStream())
     if (DEBUG) Log.v(TAG, resultStr)
@@ -89,7 +89,8 @@ object PortalManager {
     json \ "userinfo" match {
       case info: JObject =>
         updateUserInfo(info)
-        BalanceManager.check(info)
+        if (login && code == 1) app.handler.postDelayed(() => BalanceManager.check(info), 1000) // first login
+        else app.handler.post(() => BalanceManager.check(info))
       case _ =>
     }
     if (code != 0 && code != 2 && code != 9 &&
@@ -251,7 +252,7 @@ object PortalManager {
         setup(conn, chapPassword)
         conn.getResponseCode match {
           case 200 =>
-            val (result, _) = parseResult(conn)
+            val (result, _) = parseResult(conn, true)
             (if (result == 3 || result == 8) 2 else 0, result)
           case 502 =>
             app.showToast("无可用服务器资源!")

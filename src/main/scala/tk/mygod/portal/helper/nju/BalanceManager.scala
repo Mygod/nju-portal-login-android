@@ -84,10 +84,10 @@ object BalanceManager {
   }
 
   def check(info: JObject): Unit = if (enabled && needsChecking)
-    PortalManager.queryVolume match {
+    ThrowableFuture(PortalManager.queryVolume match {
       case Some(result) => check((result \ KEY_USAGE).asInstanceOf[JInt].values, info, true, true)
       case _ =>
-    }
+    })
   def check(refer: BigInt): Usage = {
     val enabled = this.enabled
     check(refer, PortalManager.getUserInfo.get, enabled, enabled && needsChecking)
