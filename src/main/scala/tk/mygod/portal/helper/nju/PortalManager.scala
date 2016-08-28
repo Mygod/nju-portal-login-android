@@ -79,6 +79,7 @@ object PortalManager {
     val json = try parse(resultStr) catch {
       case e: ParseException => throw InvalidResponseException(resultStr)
     }
+    if (!json.isInstanceOf[JObject]) throw InvalidResponseException(resultStr)
     val code = json \ "reply_code" match {
       case i: JInt => i.values.toInt
       case _ => 0
