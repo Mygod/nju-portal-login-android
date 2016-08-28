@@ -313,12 +313,11 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
       val newCapabilities = getCapabilities(capabilities)
       if (available(n.hashCode)._2 == newCapabilities) return
       available(n.hashCode) = (n, newCapabilities)
-      if (Build.version >= 23 && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
-        busy.synchronized(busy.remove(n.hashCode)) else {
-        loginedNetwork = null
-        if (Build.version < 23 || capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL))
-          testConnection(n)
-      }
+      if (Build.version >= 23) {
+        if (capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
+          busy.synchronized(busy.remove(n.hashCode))
+        else if (capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL)) testConnection(n)
+      } else testConnection(n)
     }
     override def onLost(n: Network) {
       if (DEBUG) Log.d(TAG, "onLost (%s)".format(n))
