@@ -13,7 +13,6 @@ package object nju {
   final val HTTP = "http"
   final val PREF_NAME = "pref"
   final val SERVICE_STATUS = "auth.serviceStatus"
-  final val RELOGIN_DELAY = "auth.reloginDelay"
 
   def ThrowableFuture[T](f: => T) = Future(f) onFailure {
     case e: PortalManager.NetworkUnavailableException =>

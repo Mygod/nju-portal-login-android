@@ -22,8 +22,6 @@
         network.</string>
     <string name="settings_auth_login">Login</string>
     <string name="settings_auth_logout">Logout</string>
-    <string name="settings_auth_relogin_delay">Relogin delay (experimental)</string>
-    <string name="settings_auth_relogin_delay_summary">%dms (0 = disable)</string>
 
     <string name="settings_status">Status</string>
     <string name="settings_status_name">Name</string>
@@ -69,7 +67,6 @@
     <string name="settings_notifications_alert_balance_summary">You will be notified if you don\'t have sufficient
         balance for this month.</string>
     <string name="settings_notifications_login">Login/logout successfully</string>
-    <string name="settings_notifications_relogin_icon">Auto relogin pending notification icon</string>
 
     <string name="settings_misc">Misc</string>
     <string name="settings_misc_local_mac_address">Local MAC addresses</string>
@@ -80,7 +77,6 @@
     <string name="settings_misc_support">FAQ &amp; Support</string>
     <string name="settings_misc_support_url">
         https://github.com/Mygod/nju-portal-login-android/wiki/FAQ-&amp;-Support</string>
-    <string name="settings_misc_support_tip">Tip: If you need help, click FAQ &amp; Support.</string>
     <string name="settings_misc_logcat">Export logcat</string>
 
     <string name="settings_privacy_policy">Privacy Policy</string>
@@ -129,7 +125,6 @@
     <string name="network_available_sign_in_conflict_ip">\nIP: %s</string>
     <string name="network_available_sign_in_conflict_search">%s</string>
     <string name="network_available_sign_in_conflict_ignore_mac">Ignore this MAC</string>
-    <string name="auto_relogin_active">Auto relogin pending in %dms</string>
     <string name="error_network_unavailable">No available network.</string>
     <string name="error_socket_timeout">Socket timeout.</string>
 

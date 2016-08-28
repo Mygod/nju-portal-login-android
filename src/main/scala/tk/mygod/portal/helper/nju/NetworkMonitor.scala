@@ -13,14 +13,12 @@ import android.util.Log
 import tk.mygod.app.ServicePlus
 import tk.mygod.os.Build
 import tk.mygod.portal.helper.nju.preference.MacAddressPreference
-import tk.mygod.util.Conversions._
 
 import scala.collection.mutable
 import scala.util.Random
 
 object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeListener {
   private final val TAG = "NetworkMonitor"
-  private final val THREAD_TAG = TAG + "#reloginThread"
   private final val ACTION_LOGIN = "tk.mygod.portal.helper.nju.NetworkMonitor.ACTION_LOGIN"
   private final val ACTION_LOGIN_LEGACY = "tk.mygod.portal.helper.nju.NetworkMonitor.ACTION_LOGIN_LEGACY"
   private final val EXTRA_NETWORK_ID = "tk.mygod.portal.helper.nju.NetworkMonitor.EXTRA_NETWORK_ID"
@@ -83,7 +81,6 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
     def onLogin(n: NetworkInfo, code: Int) {
       loginedNetwork = n
       app.nm.cancel(getNotificationId(serialize(n)))
-      if (instance != null && n != null) instance.reloginThread.synchronizedNotify(code)
     }
 
     def reevaluate =
@@ -140,10 +137,7 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
       val id = serialize(n)
       available.remove(id)
       app.nm.cancel(getNotificationId(id))
-      if (loginedNetwork != null && id == serialize(loginedNetwork)) {
-        loginedNetwork = null
-        if (instance != null) instance.reloginThread.synchronizedNotify()
-      }
+      if (loginedNetwork != null && id == serialize(loginedNetwork)) loginedNetwork = null
     }
 
     def preferredNetwork = if (loginedNetwork != null && available.contains(serialize(loginedNetwork))) loginedNetwork
@@ -172,59 +166,6 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
   import NetworkMonitor._
 
   private def loggedIn = listener != null && app.boundConnectionsAvailable > 1 && listener.loginedNetwork != null
-
-  private lazy val notificationBuilder = new NotificationCompat.Builder(this)
-    .setColor(ContextCompat.getColor(this, R.color.material_primary_500)).setContentIntent(pendingIntent[MainActivity])
-    .setSmallIcon(R.drawable.ic_av_timer).setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-  class ReloginThread extends Thread {
-    @volatile private var running = true
-    @volatile private var isInactive = true
-
-    def stopRunning {
-      running = false
-      interrupt
-    }
-    def synchronizedNotify(code: Int = 1) = code match {
-      case 1 => synchronized(notify)  // login / logout / connection lost
-      case 6 => if (isInactive && PortalManager.username == PortalManager.currentUsername) synchronized(notify)
-      case _ =>                       // ignore
-    }
-
-    private def inactive {
-      app.handler.post(stopForeground(true))
-      isInactive = true
-      synchronized(wait)
-    }
-    override def run = while (running) try if (loginStatus == 0) inactive else app.reloginDelay match {
-      case 0 => inactive
-      case delay =>
-        isInactive = false
-        notificationBuilder.setWhen(System.currentTimeMillis)
-          .setContentTitle(getString(R.string.auto_relogin_active, delay: Integer))
-          .setPriority(if (app.pref.getBoolean("notifications.reloginIcon", true))
-            NotificationCompat.PRIORITY_DEFAULT else NotificationCompat.PRIORITY_MIN)
-        app.handler.post(startForeground(-1, notificationBuilder.build))
-        if (DEBUG) Log.v(THREAD_TAG, "Waiting %dms...".format(delay))
-        synchronized(wait(delay))
-        if (DEBUG) Log.v(THREAD_TAG, "Timed out or notified.")
-        loginStatus match {
-          case 0 => inactive
-          case 1 =>
-            val network = listener.loginedNetwork
-            PortalManager.logout
-            Thread.sleep(2000)
-            PortalManager.login(network)
-          case 2 =>
-            val network = listenerLegacy.loginedNetwork
-            PortalManager.logout
-            Thread.sleep(2000)
-            PortalManager.loginLegacy(network)
-        }
-    } catch {
-      case ignore: InterruptedException => if (DEBUG) Log.v(THREAD_TAG, "Interrupted.")
-    }
-  }
-  val reloginThread = new ReloginThread
 
   @TargetApi(21)
   class NetworkListener extends NetworkCallback {
@@ -293,7 +234,6 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
     def onLogin(n: Network, code: Int) {
       loginedNetwork = n
       app.nm.cancel(getNotificationId(n.hashCode))
-      reloginThread.synchronizedNotify(code)
     }
 
     def reevaluate = for ((id, (n, c)) <- available) testConnection(n)
@@ -324,10 +264,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
       val id = n.hashCode
       available.remove(id)
       app.nm.cancel(getNotificationId(id))
-      if (n.equals(loginedNetwork)) {
-        loginedNetwork = null
-        reloginThread.synchronizedNotify()
-      }
+      if (n.equals(loginedNetwork)) loginedNetwork = null
     }
 
     def preferredNetwork = if (loginedNetwork != null && available.contains(loginedNetwork.hashCode)) loginedNetwork
@@ -352,7 +289,6 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
   override def onCreate {
     super.onCreate
     initBoundConnections
-    reloginThread.start
     app.pref.registerOnSharedPreferenceChangeListener(this)
     instance = this
     if (DEBUG) Log.d(TAG, "Service created.")
@@ -365,7 +301,6 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
       app.cm.unregisterNetworkCallback(listener)
       listener = null
     }
-    reloginThread.stopRunning
     if (receiverRegistered.compareAndSet(true, false)) app.unregisterReceiver(loginReceiver)
     super.onDestroy
     if (DEBUG) Log.d(TAG, "Service destroyed.")

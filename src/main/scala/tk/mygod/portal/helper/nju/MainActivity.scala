@@ -70,7 +70,6 @@ final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeLi
       app.setEnabled[NetworkMonitorListener](false)
       stopService(serviceIntent)
     }
-    case RELOGIN_DELAY => if (NetworkMonitor.instance != null) NetworkMonitor.instance.reloginThread.interrupt
     case NoticeManager.SYNC_INTERVAL => NoticeManager.updatePeriodicSync
     case _ => // ignore
   }

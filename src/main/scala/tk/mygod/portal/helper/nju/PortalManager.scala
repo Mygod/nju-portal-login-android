@@ -345,10 +345,8 @@ object PortalManager {
       if (app.boundConnectionsAvailable > 1 && network != null)
         reportNetworkConnectivity(network.asInstanceOf[Network], false)
       NetworkMonitor.listenerLegacy.loginedNetwork = null
-      if (NetworkMonitor.instance != null) {
-        if (NetworkMonitor.instance.listener != null) NetworkMonitor.instance.listener.loginedNetwork = null
-        NetworkMonitor.instance.reloginThread.synchronizedNotify()
-      }
+      if (NetworkMonitor.instance != null && NetworkMonitor.instance.listener != null)
+        NetworkMonitor.instance.listener.loginedNetwork = null
       Some()
     } else None
   }.nonEmpty

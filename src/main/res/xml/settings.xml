@@ -25,9 +25,6 @@
                                                   android:title="@string/settings_auth_logout"/>
         <android.support.v7.preference.Preference android:key="auth.portalWeb"
                                                   android:title="@string/settings_auth_portal_web"/>
-        <tk.mygod.preference.NumberPickerPreference android:key="auth.reloginDelay"
-                                                    android:title="@string/settings_auth_relogin_delay"
-                                                    android:summary="@string/settings_auth_relogin_delay_summary"/>
     </tk.mygod.preference.PreferenceCategory>
     <tk.mygod.preference.PreferenceCategory android:title="@string/settings_status">
         <android.support.v7.preference.Preference android:key="status.name"
@@ -88,9 +85,6 @@
         />
         <android.support.v14.preference.SwitchPreference android:key="notifications.login" android:defaultValue="true"
                                                          android:title="@string/settings_notifications_login"/>
-        <android.support.v14.preference.SwitchPreference android:key="notifications.reloginIcon"
-                                                         android:title="@string/settings_notifications_relogin_icon"
-                                                         android:defaultValue="true"/>
     </tk.mygod.preference.PreferenceCategory>
     <tk.mygod.preference.PreferenceCategory android:title="@string/settings_misc">
         <tk.mygod.portal.helper.nju.preference.MacAddressPreference

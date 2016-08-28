@@ -52,13 +52,6 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
       ThrowableFuture(PortalManager.logout)
       true
     })
-    findPreference("auth.reloginDelay").setOnPreferenceClickListener(_ => {
-      if (app.pref.getBoolean(SUPPORT_TIP, true)) {
-        makeToast(R.string.settings_misc_support_tip).show
-        app.editor.putBoolean(SUPPORT_TIP, false).commit
-      }
-      false
-    })
 
     PortalManager.setUserInfoListener(userInfoUpdated)
     findPreference("status.service_name").setOnPreferenceClickListener(humorous)
