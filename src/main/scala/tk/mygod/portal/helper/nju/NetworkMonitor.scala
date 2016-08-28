@@ -304,8 +304,8 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
         if (Build.version < 23) busy.synchronized(busy.remove(n.hashCode))  // validated on 5.x
       } else {
         available(n.hashCode) = (n, getCapabilities(capabilities))
-        if (Build.version < 23 || !(capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) ||
-          capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL))) testConnection(n)
+        if (Build.version < 23 || capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL) ||
+          !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) testConnection(n)
       }
     }
     override def onCapabilitiesChanged(n: Network, capabilities: NetworkCapabilities = null) {
@@ -316,7 +316,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
       if (Build.version >= 23 && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
         busy.synchronized(busy.remove(n.hashCode)) else {
         loginedNetwork = null
-        if (Build.version < 23 || !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL))
+        if (Build.version < 23 || capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL))
           testConnection(n)
       }
     }
