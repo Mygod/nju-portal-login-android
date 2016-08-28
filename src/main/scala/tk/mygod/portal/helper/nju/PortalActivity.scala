@@ -52,8 +52,7 @@ final class PortalActivity extends ToolbarActivity with CircularRevealActivity w
     webView.setWebViewClient(new WebViewClient {
       override def onPageFinished(view: WebView, url: String) {
         swiper.setRefreshing(false)
-        if (Build.version >= 19) webView.evaluateJavascript(ENABLE_CHAP, null)
-        else webView.loadUrl("javascript:" + ENABLE_CHAP)
+        webView.evaluateJavascript(ENABLE_CHAP, null)
       }
       override def onPageStarted(view: WebView, url: String, favicon: Bitmap) = swiper.setRefreshing(true)
       override def shouldOverrideUrlLoading(view: WebView, url: String) = {
