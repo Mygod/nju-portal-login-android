@@ -59,7 +59,8 @@ object BalanceManager {
   }
   private def needsChecking = lastMonth < currentMonth
 
-  private def notify(balance: Int, summary: CharSequence = null) = {
+  def cancelNotification() = app.nm.cancel(0)
+  def pushNotification(balance: Int, summary: CharSequence = null) = {
     var text = app.getText(R.string.alert_balance_insufficient_soon)
     val builder = new NotificationCompat.Builder(app)
       .setAutoCancel(true)
@@ -96,7 +97,7 @@ object BalanceManager {
     val usage = new Usage(refer.toInt)
     val balance = (info \ KEY_BALANCE).asInstanceOf[JInt].values.toInt
     if (enabled)  // always check for negative balance
-      if (balance < 0) notify(balance) else if (needsChecking)
+      if (balance < 0) pushNotification(balance) else if (needsChecking)
         if (balance < usage.monthChargeLimit) {
           var length: String = null
           def prepend(s: String) = if (length == null) length = s else length = s + ' ' + length
@@ -113,8 +114,8 @@ object BalanceManager {
             val days = time / 24
             if (hr != 0) prepend(hr + " " + app.getResources.getQuantityString(R.plurals.hours, hr))
             if (days != 0) prepend(days + " " + app.getResources.getQuantityString(R.plurals.days, days))
-            notify(balance, app.getString(R.string.alert_balance_insufficient_later, length))
-          } else notify(balance, app.getString(R.string.alert_balance_insufficient_soon))
+            pushNotification(balance, app.getString(R.string.alert_balance_insufficient_later, length))
+          } else pushNotification(balance, app.getString(R.string.alert_balance_insufficient_soon))
         } else lastMonth(currentMonth)
     usage
   }

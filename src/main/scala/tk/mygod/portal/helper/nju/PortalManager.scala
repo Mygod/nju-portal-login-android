@@ -252,8 +252,11 @@ object PortalManager {
         setup(conn, chapPassword)
         conn.getResponseCode match {
           case 200 =>
-            val (result, _) = parseResult(conn, true)
-            (if (result == 3 || result == 8) 2 else 0, result)
+            val (result, obj) = parseResult(conn, true)
+            if (result == 3) {
+              if ((obj \ "reply_msg").toString.startsWith("E011 ")) BalanceManager.cancelNotification() // no more balance
+              (2, result)
+            } else (if (result == 8) 2 else 0, result)
           case 502 =>
             app.showToast("无可用服务器资源!")
             (1, 0)
