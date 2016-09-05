@@ -95,7 +95,7 @@ object PortalManager {
     }
     if (code != 0 && code != 2 && code != 9 &&
       (code != 1 && code != 6 && code != 101 || app.pref.getBoolean("notifications.login", true)))
-      app.showToast("#%d: %s".format(code, (json \ "reply_msg").asInstanceOf[JString].values))
+      app.showToast((json \ "reply_msg").asInstanceOf[JString].values)
     (code, json)
   }
 
