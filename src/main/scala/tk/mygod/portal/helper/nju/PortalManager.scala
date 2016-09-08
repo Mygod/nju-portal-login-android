@@ -184,7 +184,7 @@ object PortalManager {
           app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getMacLookup(mac))))
         .addAction(R.drawable.ic_action_search, search.format("IPv4"),
           app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getIpLookup(ipv4))))
-      if (!ipv6Invalid) builder.addAction(R.drawable.ic_action_search, search.format("IPv4"),
+      if (!ipv6Invalid) builder.addAction(R.drawable.ic_action_search, search.format("IPv6"),
         app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getIpLookup(ipv6))))
       builder.addAction(R.drawable.ic_content_archive,
         app.getString(R.string.network_available_sign_in_conflict_ignore_mac),
