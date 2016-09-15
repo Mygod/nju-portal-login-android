@@ -90,6 +90,7 @@ object NoticeManager {
 
   def read(notice: Notice) {
     notice.read = true
+    app.nm.cancel(notice.id)
     noticeDao.update(notice)
     updateUnreadCount
   }
@@ -128,7 +129,6 @@ object NoticeManager {
       }
     })
   }
-  def cancelAllNotices = for (notice <- pushedNotices) app.nm.cancel(notice)
 }
 
 final class NoticeManager extends Service {
