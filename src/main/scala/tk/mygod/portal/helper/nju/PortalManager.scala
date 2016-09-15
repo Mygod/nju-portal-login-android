@@ -7,7 +7,7 @@ import java.text.DateFormat
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
-import android.annotation.TargetApi
+import android.annotation.{SuppressLint, TargetApi}
 import android.content.Intent
 import android.net.{Network, NetworkInfo}
 import android.support.v4.app.NotificationCompat
@@ -316,6 +316,7 @@ object PortalManager {
     if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) login(null) else loginLegacy()
 
   // AnyRef is a workaround for 4.x
+  @SuppressLint(Array("NewApi"))
   def openPortalConnection[T](file: String, explicit: Boolean = true)
                              (handler: (HttpURLConnection, AnyRef) => Option[T]) = try {
     val url = new URL(HTTP, DOMAIN, file)
@@ -342,6 +343,7 @@ object PortalManager {
       None
   }
 
+  @SuppressLint(Array("NewApi"))
   def logout = openPortalConnection[Unit]("/portal_io/logout") { (conn, network) =>
     setup(conn)
     if (parseResult(conn)._1 == 101) {

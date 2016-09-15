@@ -2,7 +2,7 @@ package tk.mygod.portal.helper.nju
 
 import java.util.concurrent.atomic.AtomicBoolean
 
-import android.annotation.TargetApi
+import android.annotation.{SuppressLint, TargetApi}
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.content._
 import android.net.ConnectivityManager.NetworkCallback
@@ -165,6 +165,7 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
 final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeListener {
   import NetworkMonitor._
 
+  @SuppressLint(Array("NewApi"))
   private def loggedIn = listener != null && app.boundConnectionsAvailable > 1 && listener.loginedNetwork != null
 
   @TargetApi(21)
@@ -275,6 +276,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
   @TargetApi(21)
   var listener: NetworkListener = _
 
+  @SuppressLint(Array("NewApi"))
   def initBoundConnections = if (listener == null && app.boundConnectionsAvailable > 1) {
     listener = new NetworkListener
     app.cm.requestNetwork(new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
@@ -294,6 +296,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
     if (DEBUG) Log.d(TAG, "Service created.")
   }
 
+  @SuppressLint(Array("NewApi"))
   override def onDestroy {
     instance = null
     app.pref.unregisterOnSharedPreferenceChangeListener(this)
@@ -306,6 +309,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
     if (DEBUG) Log.d(TAG, "Service destroyed.")
   }
 
+  @SuppressLint(Array("NewApi"))
   def onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) =
-    if (key == LOCAL_MAC && loginStatus <= 0) listener.reevaluate
+    if (listener != null && key == LOCAL_MAC && loginStatus <= 0) listener.reevaluate
 }

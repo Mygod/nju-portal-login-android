@@ -123,7 +123,7 @@
     <string name="network_available_sign_in">Sign in to campus network</string>
     <string name="network_available_sign_in_conflict">%1$s logged in at %2$s since %3$s</string>
     <string name="network_available_sign_in_conflict_ip">\nIP: %s</string>
-    <string name="network_available_sign_in_conflict_search">%s</string>
+    <string name="network_available_sign_in_conflict_search">%s?</string>
     <string name="network_available_sign_in_conflict_ignore_mac">Ignore this MAC</string>
     <string name="error_network_unavailable">No available network.</string>
     <string name="error_socket_timeout">Socket timeout.</string>

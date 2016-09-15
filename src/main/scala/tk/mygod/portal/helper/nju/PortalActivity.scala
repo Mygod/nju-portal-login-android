@@ -1,5 +1,6 @@
 package tk.mygod.portal.helper.nju
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
@@ -33,6 +34,7 @@ final class PortalActivity extends ToolbarActivity with CircularRevealActivity w
   private lazy val desktopUA = mobileUA.replaceAll("; Android .+?(?=[;)])", "").replaceAll(" Mobile", "")
   private lazy val desktopSiteMenu = toolbar.getMenu.findItem(R.id.action_desktop_site)
 
+  @SuppressLint(Array("NewApi"))
   override protected def onCreate(savedInstanceState: Bundle) {
     val manager = CookieManager.getInstance
     manager.setAcceptCookie(true)
