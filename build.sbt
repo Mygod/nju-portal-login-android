@@ -25,7 +25,7 @@ libraryDependencies ++= Seq(
   "eu.chainfire" % "libsuperuser" % "1.0.0.201607041850",
   "me.leolin" % "ShortcutBadger" % "1.1.6",
   "org.json4s" %% "json4s-native" % "3.4.0",
-  "tk.mygod" %% "mygod-lib-android" % "3.0.0"
+  "tk.mygod" %% "mygod-lib-android" % "3.0.1-SNAPSHOT"
 )
 
 proguardCache := Seq()
