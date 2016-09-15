@@ -24,7 +24,8 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
   private final val EXTRA_NETWORK_ID = "tk.mygod.portal.helper.nju.NetworkMonitor.EXTRA_NETWORK_ID"
   final val LOCAL_MAC = "misc.localMac"
 
-  def localMacs = app.pref.getString(LOCAL_MAC, MacAddressPreference.default()).split("\n").map(_.toLowerCase).toSet
+  def localMacs = app.pref.getString(LOCAL_MAC, MacAddressPreference.default()).split("\n").map(_.toLowerCase)
+    .filter(_ != null).toSet
 
   private lazy val networkCapabilities = {
     val result = classOf[NetworkCapabilities].getDeclaredField("mNetworkCapabilities")
@@ -52,7 +53,7 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
     network
   }
 
-  def loginNotificationBuilder = new NotificationCompat.Builder(app).setAutoCancel(true)
+  def loginNotificationBuilder = new NotificationCompat.Builder(app)
     .setColor(ContextCompat.getColor(app, R.color.material_primary_500))
     .setLights(ContextCompat.getColor(app, R.color.material_purple_a700), app.lightOnMs, app.lightOffMs)
     .setSmallIcon(R.drawable.ic_device_signal_wifi_statusbar_not_connected).setGroup(ACTION_LOGIN)
@@ -95,13 +96,16 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
               if (receiverRegistered.compareAndSet(false, true))
                 app.registerReceiver(NetworkMonitor, new IntentFilter(ACTION_LOGIN_LEGACY))
               val id = serialize(n)
-              val builder = loginNotificationBuilder
-                .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id)))
               val nid = getNotificationId(id)
               app.nm.notify(nid, PortalManager.queryOnlineLegacy(n).headOption match {
-                case None => builder.build
-                case Some(entry) => entry.makeNotification(builder, new Intent(IgnoreMacListener.ACTION_IGNORE_LEGACY)
-                  .putExtra(IgnoreMacListener.EXTRA_NOTIFICATION_ID, nid))
+                case None => loginNotificationBuilder
+                  .setContentIntent(
+                    app.pendingBroadcast(new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id)))
+                  .setAutoCancel(true)
+                  .build()
+                case Some(entry) => entry.makeNotification(new Intent(OnlineEntryActivity.ACTION_SHOW_LEGACY)
+                  .putExtra(OnlineEntryActivity.EXTRA_NETWORK_ID, id)
+                  .putExtra(OnlineEntryActivity.EXTRA_NOTIFICATION_ID, nid))
               })
               NoticeManager.pushUnreadNotices
             }
@@ -120,10 +124,9 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
                   app.registerReceiver(NetworkMonitor, new IntentFilter(ACTION_LOGIN_LEGACY))
                 val id = n.hashCode
                 val nid = getNotificationId(id)
-                app.nm.notify(nid, entry.makeNotification(loginNotificationBuilder.setContentIntent(
-                  app.pendingBroadcast(new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id))),
-                  new Intent(IgnoreMacListener.ACTION_IGNORE_LEGACY)
-                    .putExtra(IgnoreMacListener.EXTRA_NOTIFICATION_ID, nid)))
+                app.nm.notify(nid, entry.makeNotification(new Intent(OnlineEntryActivity.ACTION_SHOW_LEGACY)
+                  .putExtra(OnlineEntryActivity.EXTRA_NETWORK_ID, id)
+                  .putExtra(OnlineEntryActivity.EXTRA_NOTIFICATION_ID, nid)))
             }
             NoticeManager.pushUnreadNotices
           }
@@ -194,13 +197,16 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
             if (receiverRegistered.compareAndSet(false, true))
               app.registerReceiver(loginReceiver, new IntentFilter(ACTION_LOGIN))
             val id = n.hashCode
-            val builder = loginNotificationBuilder
-              .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN).putExtra(EXTRA_NETWORK_ID, id)))
             val nid = getNotificationId(id)
             app.nm.notify(nid, PortalManager.queryOnline(n).headOption match {
-              case None => builder.build
-              case Some(entry) => entry.makeNotification(builder, new Intent(IgnoreMacListener.ACTION_IGNORE)
-                .putExtra(IgnoreMacListener.EXTRA_NOTIFICATION_ID, nid))
+              case None => loginNotificationBuilder
+                .setContentIntent(
+                  app.pendingBroadcast(new Intent(ACTION_LOGIN).putExtra(EXTRA_NETWORK_ID, id)))
+                .setAutoCancel(true)
+                .build()
+              case Some(entry) => entry.makeNotification(new Intent(OnlineEntryActivity.ACTION_SHOW)
+                .putExtra(OnlineEntryActivity.EXTRA_NETWORK_ID, id)
+                .putExtra(OnlineEntryActivity.EXTRA_NOTIFICATION_ID, nid))
             })
             NoticeManager.pushUnreadNotices
           }
@@ -219,9 +225,9 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
                 app.registerReceiver(loginReceiver, new IntentFilter(ACTION_LOGIN))
               val id = n.hashCode
               val nid = getNotificationId(id)
-              app.nm.notify(nid, entry.makeNotification(loginNotificationBuilder
-                .setContentIntent(app.pendingBroadcast(new Intent(ACTION_LOGIN).putExtra(EXTRA_NETWORK_ID, id))),
-                new Intent(IgnoreMacListener.ACTION_IGNORE).putExtra(IgnoreMacListener.EXTRA_NOTIFICATION_ID, nid)))
+              app.nm.notify(nid, entry.makeNotification(new Intent(OnlineEntryActivity.ACTION_SHOW)
+                .putExtra(OnlineEntryActivity.EXTRA_NETWORK_ID, id)
+                .putExtra(OnlineEntryActivity.EXTRA_NOTIFICATION_ID, nid)))
           }
           NoticeManager.pushUnreadNotices
         }

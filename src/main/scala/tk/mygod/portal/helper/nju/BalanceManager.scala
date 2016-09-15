@@ -70,7 +70,8 @@ object BalanceManager {
       .setContentTitle(app.getString(R.string.alert_balance_insufficient))
       .setContentText(text)
       .setShowWhen(true)
-    builder.setPublicVersion(builder.build)
+      .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+    builder.setPublicVersion(builder.build).setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
       .setContentTitle(app.getString(R.string.alert_balance_insufficient_details, formatCurrency(balance)))
     if (summary != null) {
       builder.setContentText(summary)

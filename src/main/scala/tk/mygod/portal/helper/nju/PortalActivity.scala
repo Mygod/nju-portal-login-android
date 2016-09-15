@@ -46,7 +46,7 @@ final class PortalActivity extends ToolbarActivity with CircularRevealActivity w
     toolbar.inflateMenu(R.menu.activity_webview)
     toolbar.setOnMenuItemClickListener(this)
     val swiper = findView(TR.swiper)
-    swiper.setColorSchemeResources(R.color.material_accent_500, R.color.material_primary_500)
+    swiper.setColorSchemeResources(R.color.material_accent_200, R.color.material_primary_500)
     swiper.setOnRefreshListener(this)
     webView.setBackgroundColor(0xfff4f4f4)
     mobileUA = webViewSettings.getUserAgentString

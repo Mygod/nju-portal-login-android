@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content">
+    <include layout="@layout/toolbar_light_dark"/>
+    <LinearLayout android:orientation="vertical"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_margin="8dp">
+        <TextView android:id="@+id/entryDetails"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:textIsSelectable="true"
+        />
+        <Button android:id="@+id/signInButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/network_available_sign_in_conflict_sign_in"
+        />
+        <Button android:id="@+id/ignoreMacButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/network_available_sign_in_conflict_ignore_mac"
+        />
+    </LinearLayout>
+</LinearLayout>

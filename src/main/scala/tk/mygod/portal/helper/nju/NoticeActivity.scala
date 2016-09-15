@@ -72,7 +72,7 @@ final class NoticeActivity extends ToolbarActivity with CircularRevealActivity w
     configureToolbar()
     setNavigationIcon()
     swiper = findView(TR.swiper)
-    swiper.setColorSchemeResources(R.color.material_accent_500, R.color.material_primary_500)
+    swiper.setColorSchemeResources(R.color.material_accent_200, R.color.material_primary_500)
     swiper.setOnRefreshListener(this)
     adapter.notices = NoticeManager.fetchAllNotices.toArray
     val notices = findView(TR.notices)

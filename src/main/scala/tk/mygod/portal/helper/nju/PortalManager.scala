@@ -11,7 +11,8 @@ import android.annotation.{SuppressLint, TargetApi}
 import android.content.Intent
 import android.net.{Network, NetworkInfo}
 import android.support.v4.app.NotificationCompat
-import android.text.TextUtils
+import android.text.style.URLSpan
+import android.text.{SpannableStringBuilder, Spanned, TextUtils}
 import android.util.Log
 import org.json4s.ParserUtil.ParseException
 import org.json4s._
@@ -85,7 +86,6 @@ object PortalManager {
       case i: JInt => i.values.toInt
       case _ => 0
     }
-    // TODO: balance insufficient code?
     json \ "userinfo" match {
       case info: JObject =>
         updateUserInfo(info)
@@ -171,26 +171,47 @@ object PortalManager {
     val mac = (obj \ "mac").asInstanceOf[JString].values
     val ipv4 = parseIpv4((obj \ "user_ipv4").asInstanceOf[JInt].values)
     val ipv6 = (obj \ "user_ipv6").asInstanceOf[JString].values
-    val ipv6Invalid = TextUtils.isEmpty(ipv6) || ipv6 == "::"
-    def makeNotification(builder: NotificationCompat.Builder, ignoreIntent: Intent) = {
+    val ipv6Valid = !TextUtils.isEmpty(ipv6) && ipv6 != "::"
+    def makeNotification(contentIntent: Intent) = {
+      val summary = new SpannableStringBuilder()
+      val rawSummary = app.getString(R.string.network_available_sign_in_conflict)
+      var start = 0
+      var i = rawSummary.indexOf('%')
+      while (i >= 0) {
+        summary.append(rawSummary.substring(start, i))
+        start = i + 4
+        rawSummary.substring(i, start) match {
+          case "%1$s" =>
+            val from = summary.length
+            summary.append(mac)
+            summary.setSpan(new URLSpan(app.getMacLookup(mac)), from, summary.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+          case "%2$s" => summary.append(obj \ "area_name" match {
+            case str: JString => str.values
+            case _ => "未知区域"
+          })
+          case "%3$s" => summary.append(parseTimeString(
+            (obj \ BalanceManager.KEY_ACTIVITY_START_TIME).asInstanceOf[JInt].values))
+        }
+        i = rawSummary.indexOf('%', start)
+      }
+      if (start < rawSummary.length) summary.append(rawSummary.substring(start))
+      summary.append("\nIP: ")
+      val from = summary.length
+      summary.append(ipv4)
+      summary.setSpan(new URLSpan(app.getIpLookup(ipv4)), from, summary.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+      if (ipv6Valid) {
+        summary.append(", ")
+        val from = summary.length
+        summary.append(ipv6)
+        summary.setSpan(new URLSpan(app.getIpLookup(ipv6)), from, summary.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+      }
+
+      val builder = NetworkMonitor.loginNotificationBuilder.setContentIntent(app.pendingActivity(contentIntent
+        .putExtra(OnlineEntryActivity.EXTRA_MAC, mac)
+        .putExtra(OnlineEntryActivity.EXTRA_TEXT, summary)))
       if (Build.version >= 21)
         builder.setPublicVersion(builder.build).setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
-      val summary = app.getString(R.string.network_available_sign_in_conflict, mac, obj \ "area_name" match {
-        case str: JString => str.values
-        case _ => "未知区域"
-      }, parseTimeString((obj \ BalanceManager.KEY_ACTIVITY_START_TIME).asInstanceOf[JInt].values))
-      val search = app.getString(R.string.network_available_sign_in_conflict_search)
-      builder.addAction(R.drawable.ic_action_search, search.format("MAC"),
-          app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getMacLookup(mac))))
-        .addAction(R.drawable.ic_action_search, search.format("IPv4"),
-          app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getIpLookup(ipv4))))
-      if (!ipv6Invalid) builder.addAction(R.drawable.ic_action_search, search.format("IPv6"),
-        app.pendingActivity(new Intent(Intent.ACTION_VIEW).setData(app.getIpLookup(ipv6))))
-      builder.addAction(R.drawable.ic_content_archive,
-        app.getString(R.string.network_available_sign_in_conflict_ignore_mac),
-        app.pendingBroadcast(ignoreIntent.putExtra(IgnoreMacListener.EXTRA_MAC, mac)))
-      new NotificationCompat.BigTextStyle(builder.setContentText(summary)).bigText(summary + app
-        .getString(R.string.network_available_sign_in_conflict_ip, ipv4 + (if (ipv6Invalid) "" else ", " + ipv6))).build
+      new NotificationCompat.BigTextStyle(builder.setContentText(summary)).bigText(summary).build
     }
   }
   private def queryOnlineCore(conn: URL => URLConnection): List[OnlineEntry] =

@@ -25,6 +25,17 @@
                   android:launchMode="singleTask"
                   android:parentActivityName=".MainActivity"
         />
+        <activity android:name=".OnlineEntryActivity"
+                  android:label="@string/network_available_sign_in"
+                  android:excludeFromRecents="true"
+                  android:taskAffinity=""
+                  android:theme="@style/Theme.Material.Dialog">
+            <intent-filter>
+                <action android:name="tk.mygod.portal.helper.nju.OnlineEntryActivity.ACTION_SHOW"/>
+                <action android:name="tk.mygod.portal.helper.nju.OnlineEntryActivity.ACTION_SHOW_LEGACY"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
         <activity android:name=".PortalActivity" android:exported="true" android:label="@string/portal_activity_url"
                   android:launchMode="singleTask"/>
         <activity android:name=".UsageActivity"
@@ -32,8 +43,12 @@
                   android:launchMode="singleTask"
                   android:parentActivityName=".MainActivity"
         />
-        <activity android:name=".ShortcutActivity" android:label="@string/login_logout" android:noHistory="true"
-                  android:theme="@android:style/Theme.NoDisplay" android:excludeFromRecents="true">
+        <activity android:name=".ShortcutActivity"
+                  android:label="@string/login_logout"
+                  android:noHistory="true"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  android:taskAffinity=""
+                  android:excludeFromRecents="true">
             <intent-filter>
                 <action android:name="android.intent.action.CREATE_SHORTCUT" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -64,13 +79,6 @@
         <receiver android:name=".BootReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
-            </intent-filter>
-        </receiver>
-        <receiver android:name=".IgnoreMacListener"
-                  android:exported="false">
-            <intent-filter>
-                <action android:name="tk.mygod.portal.helper.nju.IgnoreMacListener.ACTION_IGNORE"/>
-                <action android:name="tk.mygod.portal.helper.nju.IgnoreMacListener.ACTION_IGNORE_LEGACY"/>
             </intent-filter>
         </receiver>
         <receiver android:name=".NetworkMonitorListener">

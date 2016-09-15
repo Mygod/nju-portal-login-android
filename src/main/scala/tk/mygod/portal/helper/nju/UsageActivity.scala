@@ -34,7 +34,7 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
     setNavigationIcon()
     fragment = getFragmentManager.findFragmentById(android.R.id.content).asInstanceOf[UsageFragment]
     swiper = findView(TR.swiper)
-    swiper.setColorSchemeResources(R.color.material_accent_500, R.color.material_primary_500)
+    swiper.setColorSchemeResources(R.color.material_accent_200, R.color.material_primary_500)
     swiper.setOnRefreshListener(this)
   }
 
