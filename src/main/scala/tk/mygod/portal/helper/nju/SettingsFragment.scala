@@ -3,7 +3,7 @@ package tk.mygod.portal.helper.nju
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
-import android.preference.SwitchPreference
+import android.support.v14.preference.SwitchPreference
 import android.support.v4.app.ActivityOptionsCompat
 import android.support.v7.preference.Preference
 import android.util.Log
