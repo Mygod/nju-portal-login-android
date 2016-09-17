@@ -8,7 +8,7 @@ import android.content._
 import android.net.ConnectivityManager.NetworkCallback
 import android.net._
 import android.support.v4.app.NotificationCompat
-import android.support.v4.content.ContextCompat
+import android.support.v4.content.{ContextCompat, LocalBroadcastManager}
 import android.util.Log
 import tk.mygod.app.ServicePlus
 import tk.mygod.os.Build
@@ -60,6 +60,12 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
     .setContentTitle(app.getString(R.string.network_available_sign_in))
     .setShowWhen(false).setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 
+  def cancelLoginNotification(id: Int) = {
+    app.nm.cancel(id)
+    LocalBroadcastManager.getInstance(app).sendBroadcast(new Intent(OnlineEntryActivity.ACTION_CANCEL)
+      .putExtra(OnlineEntryActivity.EXTRA_NOTIFICATION_ID, id))
+  }
+
   //noinspection ScalaDeprecation
   class NetworkListenerLegacy {
     private val available = new mutable.LongMap[NetworkInfo]
@@ -81,7 +87,7 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
 
     def onLogin(n: NetworkInfo, code: Int) {
       loginedNetwork = n
-      app.nm.cancel(getNotificationId(serialize(n)))
+      cancelLoginNotification(getNotificationId(serialize(n)))
     }
 
     def reevaluate =
@@ -139,7 +145,7 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
     def onLost(n: NetworkInfo) {
       val id = serialize(n)
       available.remove(id)
-      app.nm.cancel(getNotificationId(id))
+      cancelLoginNotification(getNotificationId(id))
       if (loginedNetwork != null && id == serialize(loginedNetwork)) loginedNetwork = null
     }
 
@@ -240,7 +246,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
 
     def onLogin(n: Network, code: Int) {
       loginedNetwork = n
-      app.nm.cancel(getNotificationId(n.hashCode))
+      cancelLoginNotification(getNotificationId(n.hashCode))
     }
 
     def reevaluate = for ((id, (n, c)) <- available) testConnection(n)
@@ -270,7 +276,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
       if (DEBUG) Log.d(TAG, "onLost (%s)".format(n))
       val id = n.hashCode
       available.remove(id)
-      app.nm.cancel(getNotificationId(id))
+      cancelLoginNotification(getNotificationId(id))
       if (n.equals(loginedNetwork)) loginedNetwork = null
     }
 
