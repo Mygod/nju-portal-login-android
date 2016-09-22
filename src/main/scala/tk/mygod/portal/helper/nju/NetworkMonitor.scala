@@ -274,7 +274,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
       if (Build.version >= 23) {
         if (capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
           busy.synchronized(busy.remove(n.hashCode))
-        else if (capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL)) testConnection(n)
+        else testConnection(n)
       } else testConnection(n)
     }
     override def onLost(n: Network) {
