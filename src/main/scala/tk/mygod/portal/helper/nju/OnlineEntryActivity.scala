@@ -42,12 +42,19 @@ class OnlineEntryActivity extends ToolbarActivity with TypedFindView {
     val details = findView(TR.entryDetails)
     details.setText(intent.getCharSequenceExtra(EXTRA_TEXT))
     details.setMovementMethod(LinkMovementMethod.getInstance)
-    findView(TR.signInButton).setOnClickListener(_ =>
+    findView(TR.signInButton).setOnClickListener(_ => {
       if (legacy) NetworkMonitor.listenerLegacy.doLogin(intent.getLongExtra(EXTRA_NETWORK_ID, -1))
       else if (NetworkMonitor.instance != null && NetworkMonitor.instance.listener != null)
-        NetworkMonitor.instance.listener.doLogin(intent.getIntExtra(EXTRA_NETWORK_ID, -1)))
-    findView(TR.ignoreMacButton).setOnClickListener(_ => app.editor.putString(NetworkMonitor.LOCAL_MAC,
-      (NetworkMonitor.localMacs + intent.getStringExtra(EXTRA_MAC)).mkString("\n")).apply)
+        NetworkMonitor.instance.listener.doLogin(intent.getIntExtra(EXTRA_NETWORK_ID, -1))
+      app.nm.cancel(intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1))
+      finish()
+    })
+    findView(TR.ignoreMacButton).setOnClickListener(_ => {
+      app.editor.putString(NetworkMonitor.LOCAL_MAC,
+        (NetworkMonitor.localMacs + intent.getStringExtra(EXTRA_MAC)).mkString("\n")).apply
+      app.nm.cancel(intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1))
+      finish()
+    })
   }
 
   override protected def onDestroy() {
