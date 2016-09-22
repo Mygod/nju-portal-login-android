@@ -197,9 +197,8 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
     }
     private def doLogin(n: Network) {
       retryCount = 0
-      while (available.contains(n.hashCode) && loginedNetwork == null &&
-        busy.synchronized(busy.contains(n.hashCode)) && app.serviceStatus > 0 && PortalManager.login(n) == 1)
-        Thread.sleep(retryDelay)
+      while (available.contains(n.hashCode) && loginedNetwork == null && busy.synchronized(busy.contains(n.hashCode)) &&
+        app.serviceStatus > 0 && PortalManager.login(n) == 1) Thread.sleep(retryDelay)
     }
 
     private def testConnection(n: Network) = if (busy.synchronized(busy.add(n.hashCode))) ThrowableFuture {
