@@ -369,7 +369,7 @@ object PortalManager {
     setup(conn)
     if (parseResult(conn)._1 == 101) {
       if (app.boundConnectionsAvailable > 1 && network != null)
-        reportNetworkConnectivity(network.asInstanceOf[Network], false)
+        app.handler.postDelayed(() => reportNetworkConnectivity(network.asInstanceOf[Network], false), 4000)
       NetworkMonitor.listenerLegacy.loginedNetwork = null
       if (NetworkMonitor.instance != null && NetworkMonitor.instance.listener != null)
         NetworkMonitor.instance.listener.loginedNetwork = null
