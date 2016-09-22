@@ -49,7 +49,7 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
     val network = if (n == null) listenerLegacy.preferredNetwork else n
     val preference = if (network == null) ConnectivityManager.TYPE_WIFI else network.getType
     app.cm.setNetworkPreference(preference)
-    if (DEBUG) Log.v(TAG, "Setting network preference: " + preference)
+    Log.v(TAG, "Setting network preference: " + preference)
     network
   }
 
@@ -257,7 +257,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
     def reevaluate = for ((id, (n, c)) <- available) testConnection(n)
     override def onAvailable(n: Network) {
       val capabilities = app.cm.getNetworkCapabilities(n)
-      if (DEBUG) Log.d(TAG, "onAvailable (%s): %s".format(n, capabilities))
+      Log.d(TAG, "onAvailable (%s): %s".format(n, capabilities))
       if (available.contains(n.hashCode)) {
         if (Build.version < 23) busy.synchronized(busy.remove(n.hashCode))  // validated on 5.x
       } else {
@@ -267,7 +267,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
       }
     }
     override def onCapabilitiesChanged(n: Network, capabilities: NetworkCapabilities = null) {
-      if (DEBUG) Log.d(TAG, "onCapabilitiesChanged (%s): %s".format(n, capabilities))
+      Log.d(TAG, "onCapabilitiesChanged (%s): %s".format(n, capabilities))
       val newCapabilities = getCapabilities(capabilities)
       if (available(n.hashCode)._2 == newCapabilities) return
       available(n.hashCode) = (n, newCapabilities)
@@ -275,7 +275,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
         busy.synchronized(busy.remove(n.hashCode)) else testConnection(n)
     }
     override def onLost(n: Network) {
-      if (DEBUG) Log.d(TAG, "onLost (%s)".format(n))
+      Log.d(TAG, "onLost (%s)".format(n))
       val id = n.hashCode
       available.remove(id)
       cancelLoginNotification(getNotificationId(id))
@@ -307,7 +307,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
     initBoundConnections
     app.pref.registerOnSharedPreferenceChangeListener(this)
     instance = this
-    if (DEBUG) Log.d(TAG, "Service created.")
+    Log.d(TAG, "Network monitor created.")
   }
 
   @SuppressLint(Array("NewApi"))
@@ -320,7 +320,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
     }
     if (receiverRegistered.compareAndSet(true, false)) app.unregisterReceiver(loginReceiver)
     super.onDestroy
-    if (DEBUG) Log.d(TAG, "Service destroyed.")
+    Log.d(TAG, "Network monitor destroyed.")
   }
 
   @SuppressLint(Array("NewApi"))

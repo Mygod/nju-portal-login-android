@@ -77,7 +77,7 @@ object PortalManager {
   private def parseResult(conn: HttpURLConnection, login: Boolean = false) = {
     //noinspection JavaAccessorMethodCalledAsEmptyParen
     val resultStr = IOUtils.readAllText(conn.getInputStream())
-    if (DEBUG) Log.v(TAG, resultStr)
+    if (BuildConfig.DEBUG) Log.v(TAG, resultStr)
     val json = try parse(resultStr) catch {
       case e: ParseException => throw InvalidResponseException(resultStr)
     }
@@ -120,7 +120,7 @@ object PortalManager {
       code  // 2: 无用户portal信息
     } catch {
       case e: InvalidResponseException =>
-        if (DEBUG) Log.w(TAG, e.getMessage)
+        if (BuildConfig.DEBUG) Log.w(TAG, e.getMessage)
         1
       case _: SocketTimeoutException | _: UnknownHostException | _: ConnectException => 1 // ignore
       case e: Exception =>
@@ -249,7 +249,7 @@ object PortalManager {
   })
 
   private def loginCore(conn: URL => URLConnection): (Int, Int) = {
-    if (DEBUG) Log.d(TAG, "Logging in...")
+    Log.d(TAG, "Logging in...")
     try {
       val chapPassword = autoDisconnect(
         conn(new URL(HTTP, DOMAIN, "/portal_io/getchallenge")).asInstanceOf[HttpURLConnection]) { conn =>
@@ -285,13 +285,13 @@ object PortalManager {
             app.showToast("请求太频繁,请稍后再试!")
             (1, 0)
           case code =>
-            if (DEBUG) Log.w(TAG, "Unknown response code: " + code)
+            Log.w(TAG, "Unknown response code: " + code)
             (2, 0)
         }
       }
     } catch {
       case e: InvalidResponseException =>
-        if (DEBUG) Log.w(TAG, e.getMessage)
+        if (BuildConfig.DEBUG) Log.w(TAG, e.getMessage)
         (2, 0)
       case e: SocketException =>
         app.showToast(e.getMessage)

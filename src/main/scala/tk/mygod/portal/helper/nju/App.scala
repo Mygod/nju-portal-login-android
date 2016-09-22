@@ -22,7 +22,7 @@ class App extends Application with ContextPlus {
 
   override def onCreate {
     app = this
-    if (!DEBUG) System.setProperty(LocalLog.LOCAL_LOG_LEVEL_PROPERTY, "WARNING")
+    if (!BuildConfig.DEBUG) System.setProperty(LocalLog.LOCAL_LOG_LEVEL_PROPERTY, "WARNING")
     super.onCreate
     systemService[AccountManager].addAccountExplicitly(NoticeManager.account, null, null)
     NoticeManager.updatePeriodicSync

@@ -8,7 +8,6 @@ import scala.concurrent.Future
   */
 package object nju {
   var app: App = _
-  final val DEBUG = true
 
   final val HTTP = "http"
   final val PREF_NAME = "pref"
