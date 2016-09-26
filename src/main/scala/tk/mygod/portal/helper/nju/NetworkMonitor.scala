@@ -13,9 +13,9 @@ import android.util.Log
 import tk.mygod.app.ServicePlus
 import tk.mygod.os.Build
 import tk.mygod.portal.helper.nju.preference.MacAddressPreference
+import tk.mygod.portal.helper.nju.util.RetryCounter
 
 import scala.collection.mutable
-import scala.util.Random
 
 object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeListener {
   private final val TAG = "NetworkMonitor"
@@ -37,12 +37,6 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
 
   def cares(network: Int) =
     network > 6 && network != ConnectivityManager.TYPE_VPN || network == ConnectivityManager.TYPE_WIFI
-
-  private var retryCount: Int = _
-  private def retryDelay = {
-    if (retryCount < 10) retryCount = retryCount + 1
-    2000 + Random.nextInt(1000 << retryCount) // prevent overwhelming failing notifications
-  }
 
   //noinspection ScalaDeprecation
   def preferNetworkLegacy(n: NetworkInfo = null) = {
@@ -83,9 +77,9 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
       case _ =>
     }
     def doLogin(n: NetworkInfo) {
-      retryCount = 0
+      val counter = new RetryCounter
       while (instance != null && loginedNetwork == null &&
-        available.contains(serialize(n)) && PortalManager.loginLegacy(n) == 1) Thread.sleep(retryDelay)
+        available.contains(serialize(n)) && PortalManager.loginLegacy(n) == 1) counter.retry()
     }
 
     def onLogin(n: NetworkInfo, code: Int) {
@@ -196,9 +190,9 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
       case _ =>
     }
     private def doLogin(n: Network) {
-      retryCount = 0
+      val counter = new RetryCounter()
       while (available.contains(n.hashCode) && loginedNetwork == null && busy.synchronized(busy.contains(n.hashCode)) &&
-        app.serviceStatus > 0 && PortalManager.login(n) == 1) Thread.sleep(retryDelay)
+        app.serviceStatus > 0 && PortalManager.login(n) == 1) counter.retry()
     }
 
     private def testConnection(n: Network) = if (busy.synchronized(busy.add(n.hashCode))) ThrowableFuture {
