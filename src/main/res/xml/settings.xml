@@ -12,12 +12,13 @@
                                                 android:inputType="textPassword" android:summary="%s"/>
     </tk.mygod.preference.PreferenceCategory>
     <tk.mygod.preference.PreferenceCategory android:title="@string/settings_auth">
-        <tk.mygod.preference.DropDownPreference android:key="auth.serviceStatus"
-                                                android:defaultValue="3"
-                                                android:title="@string/settings_auth_service_status"
-                                                android:summary="%s"
-                                                android:entries="@array/settings_auth_service_statuses"
-                                                android:entryValues="@array/settings_auth_service_status_values"
+        <android.support.v7.preference.DropDownPreference
+                android:key="auth.serviceStatus"
+                android:defaultValue="3"
+                android:title="@string/settings_auth_service_status"
+                android:summary="%s"
+                android:entries="@array/settings_auth_service_statuses"
+                android:entryValues="@array/settings_auth_service_status_values"
         />
         <android.support.v7.preference.Preference android:key="auth.login"
                                                   android:title="@string/settings_auth_login"/>
@@ -68,12 +69,13 @@
                                                          android:defaultValue="true"
                                                          android:title="@string/settings_notices_sync_auto"
         />
-        <tk.mygod.preference.DropDownPreference android:key="notices.sync.interval"
-                                                android:defaultValue="0"
-                                                android:entries="@array/settings_notices_sync_intervals"
-                                                android:entryValues="@array/settings_notices_sync_interval_values"
-                                                android:title="@string/settings_notices_sync_interval"
-                                                android:summary="@string/settings_notices_sync_interval_summary"
+        <android.support.v7.preference.DropDownPreference
+                android:key="notices.sync.interval"
+                android:defaultValue="0"
+                android:entries="@array/settings_notices_sync_intervals"
+                android:entryValues="@array/settings_notices_sync_interval_values"
+                android:title="@string/settings_notices_sync_interval"
+                android:summary="@string/settings_notices_sync_interval_summary"
         />
     </tk.mygod.preference.PreferenceCategory>
     <tk.mygod.preference.PreferenceCategory android:title="@string/settings_notifications">
