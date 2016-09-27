@@ -29,8 +29,8 @@ import scala.util.Random
 
 /**
   * Portal manager. Supports:
-  *   Desktop v = 201606170633
-  *   Mobile v = 201606170633
+  *   Desktop v = 201606170634
+  *   Mobile v = 201606170634
   *
   * To be supported:
   *   Hotel v = 201503170854
