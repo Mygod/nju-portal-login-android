@@ -248,6 +248,7 @@ object PortalManager {
     _.openConnection
   })
 
+  // Returns: 0 success, 1 error (retry), 2 fatal, and code
   private def loginCore(conn: URL => URLConnection): (Int, Int) = {
     Log.d(TAG, "Logging in...")
     try {
@@ -274,10 +275,17 @@ object PortalManager {
         conn.getResponseCode match {
           case 200 =>
             val (result, obj) = parseResult(conn, true)
-            if (result == 3) {
-              if ((obj \ "reply_msg").toString.startsWith("E011 ")) BalanceManager.cancelNotification() // no more balance
-              (2, result)
-            } else (if (result == 8) 2 else 0, result)
+            result match {
+              case 3 => // need manual actions
+                if ((obj \ "reply_msg").toString.startsWith("E011 ")) BalanceManager.cancelNotification() // no more balance
+                (2, result)
+              case 8 =>
+                (2, result)
+              case 1 | 6 =>
+                (0, result)
+              case _ =>
+                (1, result)
+            }
           case 502 =>
             app.showToast("无可用服务器资源!")
             (1, 0)
@@ -318,11 +326,11 @@ object PortalManager {
     val network = if (n == null) NetworkMonitor.instance.listener.preferredNetwork else n
     if (network == null) throw new NetworkUnavailableException
     val (result, code) = loginCore(network.openConnection)
-    if (code == 1 || code == 6) {
+    if (result == 0) {
       reportNetworkConnectivity(network, true)
       NetworkMonitor.instance.listener.onLogin(network, code)
-    }
-    result
+      false
+    } else result == 1
   }
   def loginLegacy(n: NetworkInfo = null) = {
     var network = n
@@ -330,10 +338,12 @@ object PortalManager {
       network = NetworkMonitor.preferNetworkLegacy(n)
       _.openConnection
     })
-    if (code == 1 || code == 6) NetworkMonitor.listenerLegacy.onLogin(network, code)
-    result
+    if (result == 0) {
+      NetworkMonitor.listenerLegacy.onLogin(network, code)
+      false
+    } else result == 1
   }
-  def login: Int =
+  def login: Boolean =
     if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) login(null) else loginLegacy()
 
   // AnyRef is a workaround for 4.x
