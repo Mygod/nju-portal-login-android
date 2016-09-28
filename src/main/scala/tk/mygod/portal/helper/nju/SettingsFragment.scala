@@ -128,6 +128,7 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
       if (preference == null) key match {
         case "fullname" => name.value1 = value.asInstanceOf[String]
         case "username" => name.value2 = value.asInstanceOf[String]
+        case "domain" => if (value.asInstanceOf[String] != "default") Log.e(TAG, "Unknown domain: " + value)
         case _ => Log.e(TAG, "Unknown key in user_info: " + key)
       } else preference.setSummary(key match {
         case BalanceManager.KEY_ACTIVITY_START_TIME => PortalManager.parseTimeString(value.asInstanceOf[BigInt])
