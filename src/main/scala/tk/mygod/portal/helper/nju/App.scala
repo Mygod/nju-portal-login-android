@@ -11,9 +11,9 @@ import android.net.wifi.WifiManager
 import android.os.Handler
 import android.provider.Settings
 import android.widget.Toast
+import be.mygod.content.ContextPlus
+import be.mygod.os.Build
 import com.j256.ormlite.logger.LocalLog
-import tk.mygod.content.ContextPlus
-import tk.mygod.os.Build
 
 import scala.reflect._
 

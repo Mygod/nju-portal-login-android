@@ -10,8 +10,8 @@ import android.net._
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.{ContextCompat, LocalBroadcastManager}
 import android.util.Log
-import tk.mygod.app.ServicePlus
-import tk.mygod.os.Build
+import be.mygod.app.ServicePlus
+import be.mygod.os.Build
 import tk.mygod.portal.helper.nju.preference.MacAddressPreference
 import tk.mygod.portal.helper.nju.util.RetryCounter
 

@@ -1,7 +1,7 @@
 package tk.mygod.portal.helper.nju
 
 import android.os.Bundle
-import tk.mygod.preference.PreferenceFragmentPlus
+import be.mygod.preference.PreferenceFragmentPlus
 
 /**
   * @author Mygod

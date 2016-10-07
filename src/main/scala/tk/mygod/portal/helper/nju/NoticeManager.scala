@@ -6,9 +6,9 @@ import android.content._
 import android.os.Bundle
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
+import be.mygod.util.Conversions._
 import me.leolin.shortcutbadger.ShortcutBadger
 import tk.mygod.portal.helper.nju.database.Notice
-import tk.mygod.util.Conversions._
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable

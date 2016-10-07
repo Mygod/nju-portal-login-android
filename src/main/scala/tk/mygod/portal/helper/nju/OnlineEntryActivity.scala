@@ -4,7 +4,7 @@ import android.content.{BroadcastReceiver, IntentFilter}
 import android.os.Bundle
 import android.support.v4.content.LocalBroadcastManager
 import android.text.method.LinkMovementMethod
-import tk.mygod.app.ToolbarActivity
+import be.mygod.app.ToolbarActivity
 
 object OnlineEntryActivity {
   final val ACTION_CANCEL = "tk.mygod.portal.helper.nju.OnlineEntryActivity.ACTION_CANCEL"

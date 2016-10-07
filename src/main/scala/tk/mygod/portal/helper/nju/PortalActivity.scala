@@ -9,10 +9,10 @@ import android.support.v7.widget.Toolbar.OnMenuItemClickListener
 import android.util.Base64
 import android.view.MenuItem
 import android.webkit.{CookieManager, WebView, WebViewClient}
-import tk.mygod.app.{CircularRevealActivity, ToolbarActivity}
-import tk.mygod.os.Build
-import tk.mygod.util.Conversions._
-import tk.mygod.util.MetricsUtils
+import be.mygod.app.{CircularRevealActivity, ToolbarActivity}
+import be.mygod.os.Build
+import be.mygod.util.Conversions._
+import be.mygod.util.MetricsUtils
 
 /**
   * Use built-in WebViews to bypass Chrome Custom Tab's Data Saver feature.

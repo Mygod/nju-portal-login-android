@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<sync-adapter xmlns:android="http://schemas.android.com/apk/res/android" android:accountType="p.nju.edu.cn"
-              android:contentAuthority="tk.mygod.portal.helper.nju.provider" android:icon="@drawable/logo"
-              android:label="@string/app_name" android:smallIcon="@drawable/logo" android:userVisible="false"
-              android:supportsUploading="false" android:allowParallelSyncs="false" android:isAlwaysSyncable="false"/>
+<sync-adapter xmlns:android="http://schemas.android.com/apk/res/android"
+              android:accountType="p.nju.edu.cn"
+              android:contentAuthority="be.mygod.portal.helper.nju.provider"
+              android:icon="@drawable/logo"
+              android:label="@string/app_name"
+              android:smallIcon="@drawable/logo"
+              android:userVisible="false"
+              android:supportsUploading="false"
+              android:allowParallelSyncs="false"
+              android:isAlwaysSyncable="false"/>

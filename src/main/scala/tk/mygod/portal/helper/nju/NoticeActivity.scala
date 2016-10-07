@@ -10,9 +10,9 @@ import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
 import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, RecyclerView}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.TextView
-import tk.mygod.app.{CircularRevealActivity, ToolbarActivity}
+import be.mygod.app.{CircularRevealActivity, ToolbarActivity}
+import be.mygod.util.Conversions._
 import tk.mygod.portal.helper.nju.database.Notice
-import tk.mygod.util.Conversions._
 
 /**
   * @author Mygod

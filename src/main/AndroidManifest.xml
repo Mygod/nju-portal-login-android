@@ -54,9 +54,12 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <provider android:name="tk.mygod.content.StubProvider" android:authorities="tk.mygod.portal.helper.nju.provider"
-                  android:label="@string/app_name" android:exported="false" android:syncable="true"/>
-        <service android:name="tk.mygod.accounts.StubAuthenticatorService">
+        <provider android:name="be.mygod.content.StubProvider"
+                  android:authorities="be.mygod.portal.helper.nju.provider"
+                  android:label="@string/app_name"
+                  android:exported="false"
+                  android:syncable="true"/>
+        <service android:name="be.mygod.accounts.StubAuthenticatorService">
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator"/>
             </intent-filter>

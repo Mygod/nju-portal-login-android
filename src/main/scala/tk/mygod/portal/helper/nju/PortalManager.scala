@@ -18,11 +18,11 @@ import org.json4s.ParserUtil.ParseException
 import org.json4s._
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization
-import tk.mygod.os.Build
+import be.mygod.os.Build
+import be.mygod.util.CloseUtils._
+import be.mygod.util.Conversions._
+import be.mygod.util.IOUtils
 import tk.mygod.portal.helper.nju.database.Notice
-import tk.mygod.util.CloseUtils._
-import tk.mygod.util.Conversions._
-import tk.mygod.util.IOUtils
 
 import scala.collection.mutable
 import scala.util.Random

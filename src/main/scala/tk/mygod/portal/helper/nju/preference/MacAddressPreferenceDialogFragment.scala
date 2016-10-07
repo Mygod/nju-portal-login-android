@@ -2,9 +2,8 @@ package tk.mygod.portal.helper.nju.preference
 
 import android.app.AlertDialog.Builder
 import android.content.DialogInterface
-import tk.mygod.os.Build
+import be.mygod.preference.EditTextPreferenceDialogFragment
 import tk.mygod.portal.helper.nju.R
-import tk.mygod.preference.EditTextPreferenceDialogFragment
 
 /**
   * @author Mygod

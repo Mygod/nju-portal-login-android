@@ -10,8 +10,8 @@ import android.support.v4.app.ActivityOptionsCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.preference.PreferenceScreen
 import android.text.TextUtils
-import tk.mygod.app.{CircularRevealActivity, ToolbarActivity}
-import tk.mygod.util.Conversions._
+import be.mygod.app.{CircularRevealActivity, ToolbarActivity}
+import be.mygod.util.Conversions._
 
 object MainActivity {
   private val ASKED_BOUND_CONNECTION = "misc.useBoundConnections.asked"

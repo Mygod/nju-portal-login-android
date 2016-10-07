@@ -7,14 +7,14 @@ import android.support.v14.preference.SwitchPreference
 import android.support.v4.app.ActivityOptionsCompat
 import android.support.v7.preference.Preference
 import android.util.Log
+import be.mygod.app.CircularRevealActivity
+import be.mygod.net.UpdateManager
+import be.mygod.preference._
+import be.mygod.util.Conversions._
+import be.mygod.util.Logcat
 import org.json4s.JObject
-import tk.mygod.app.CircularRevealActivity
-import tk.mygod.net.UpdateManager
 import tk.mygod.portal.helper.nju.preference.{MacAddressPreference, MacAddressPreferenceDialogFragment}
 import tk.mygod.portal.helper.nju.util.DualFormatter
-import tk.mygod.preference._
-import tk.mygod.util.Conversions._
-import tk.mygod.util.Logcat
 
 object SettingsFragment {
   private val TAG = "SettingsFragment"

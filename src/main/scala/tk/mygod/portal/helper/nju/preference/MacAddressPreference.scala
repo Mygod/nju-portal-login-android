@@ -3,9 +3,9 @@ package tk.mygod.portal.helper.nju.preference
 import android.content.Context
 import android.text.TextUtils
 import android.util.AttributeSet
+import be.mygod.os.Build
+import be.mygod.preference.EditTextPreference
 import eu.chainfire.libsuperuser.Shell
-import tk.mygod.os.Build
-import tk.mygod.preference.EditTextPreference
 
 import scala.collection.JavaConversions._
 

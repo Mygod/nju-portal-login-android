@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
 import android.util.Log
-import tk.mygod.app.{CircularRevealActivity, ToolbarActivity}
+import be.mygod.app.{CircularRevealActivity, ToolbarActivity}
 import tk.mygod.portal.helper.nju.util.DualFormatter
 
 /**

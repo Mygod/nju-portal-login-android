@@ -3,7 +3,7 @@ package tk.mygod.portal.helper.nju
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import tk.mygod.app.ActivityPlus
+import be.mygod.app.ActivityPlus
 
 /**
   * @author mygod
