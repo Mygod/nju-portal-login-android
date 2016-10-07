@@ -17,10 +17,9 @@ import tk.mygod.portal.helper.nju.preference.{MacAddressPreference, MacAddressPr
 import tk.mygod.portal.helper.nju.util.DualFormatter
 
 object SettingsFragment {
-  private val TAG = "SettingsFragment"
-  private val SUPPORT_TIP = "misc.support.tip"
+  private final val TAG = "SettingsFragment"
 
-  private val preferenceGetId = classOf[Preference].getDeclaredMethod("getId")
+  private final val preferenceGetId = classOf[Preference].getDeclaredMethod("getId")
   preferenceGetId.setAccessible(true)
 }
 
@@ -30,6 +29,7 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
   private lazy val activity = getActivity.asInstanceOf[MainActivity]
   private var portalWeb: Preference = _
   private var useBoundConnections: Preference = _
+  private var ignoreSystemConnectionValidation: Preference = _
 
   override def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
     getPreferenceManager.setSharedPreferencesName(PREF_NAME)
@@ -72,6 +72,7 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
     })
 
     useBoundConnections = findPreference("misc.useBoundConnections")
+    ignoreSystemConnectionValidation = findPreference(NetworkMonitor.IGNORE_SYSTEM_VALIDATION)
     useBoundConnections.setOnPreferenceClickListener(_ => activity.testBoundConnections(true))
     findPreference("misc.update").setOnPreferenceClickListener(_ => {
       UpdateManager.check(activity, "https://github.com/Mygod/nju-portal-login-android/releases", app.handler)
@@ -92,10 +93,24 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
     val available = app.boundConnectionsAvailable
     useBoundConnections.setEnabled(available == 1 || available == 2)
     useBoundConnections.setSummary(getString(R.string.bound_connections_summary) + getString(available match {
-      case 0 => R.string.bound_connections_summary_na
-      case 1 => R.string.bound_connections_summary_permission_missing
-      case 2 => R.string.bound_connections_summary_enabled_revokable
-      case 3 => R.string.bound_connections_summary_enabled
+      case 0 =>
+        ignoreSystemConnectionValidation.setEnabled(false)
+        ignoreSystemConnectionValidation.setSummary(
+          R.string.settings_misc_ignore_system_connection_validation_summary_na)
+        R.string.bound_connections_summary_na
+      case 1 =>
+        ignoreSystemConnectionValidation.setEnabled(false)
+        ignoreSystemConnectionValidation.setSummary(
+          R.string.settings_misc_ignore_system_connection_validation_summary_permission_missing)
+        R.string.bound_connections_summary_permission_missing
+      case 2 =>
+        ignoreSystemConnectionValidation.setEnabled(true)
+        ignoreSystemConnectionValidation.setSummary(R.string.settings_misc_ignore_system_connection_validation_summary)
+        R.string.bound_connections_summary_enabled_revokable
+      case 3 =>
+        ignoreSystemConnectionValidation.setEnabled(true)
+        ignoreSystemConnectionValidation.setSummary(R.string.settings_misc_ignore_system_connection_validation_summary)
+        R.string.bound_connections_summary_enabled
     }))
     if (available > 1) {
       portalWeb.setSummary(R.string.settings_auth_portal_web_summary)

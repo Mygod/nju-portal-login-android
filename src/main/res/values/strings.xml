@@ -73,6 +73,12 @@
     <string name="settings_misc_local_mac_address_summary">Devices with local MAC addresses will be automatically
         ignored when checking for online devices.</string>
     <string name="settings_misc_local_mac_address_auto_detect">Auto detect</string>
+    <string name="settings_misc_ignore_system_connection_validation">Ignore system connection validation</string>
+    <string name="settings_misc_ignore_system_connection_validation_summary">Check this if auto connect isn\'t working
+        well for you. (e.g. HTC devices)</string>
+    <string name="settings_misc_ignore_system_connection_validation_summary_na">Not available on Android 4.x.</string>
+    <string name="settings_misc_ignore_system_connection_validation_summary_permission_missing">Needs permission to use
+        system connection validation.</string>
     <string name="settings_misc_update">Check for updates</string>
     <string name="settings_misc_support">FAQ &amp; Support</string>
     <string name="settings_misc_support_url">

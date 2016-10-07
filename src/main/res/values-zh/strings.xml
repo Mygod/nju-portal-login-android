@@ -70,6 +70,9 @@
     <string name="settings_misc_local_mac_address_summary">使用本地 MAC
         地址的在线设备会在检测是否有其他设备登录时被自动忽略。</string>
     <string name="settings_misc_local_mac_address_auto_detect">自动检测</string>
+    <string name="settings_misc_ignore_system_connection_validation">忽略系统连接验证结果</string>
+    <string name="settings_misc_ignore_system_connection_validation_summary">如果自动登录不好用，请尝试打开此项。据说对 HTC
+        设备有效。</string>
     <string name="settings_misc_update">检查更新</string>
     <string name="settings_misc_support">常见问题与支持</string>
     <string name="settings_misc_support_url" formatted="false">https://github.com/Mygod/nju-portal-login-android/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E6%94%AF%E6%8C%81</string>

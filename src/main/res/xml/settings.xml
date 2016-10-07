@@ -89,6 +89,9 @@
                 android:scrollbars="vertical"/>
         <Preference android:key="misc.useBoundConnections"
                     android:title="@string/bound_connections"/>
+        <SwitchPreference android:key="misc.ignoreSystemValidation"
+                          android:title="@string/settings_misc_ignore_system_connection_validation"
+                          android:summary="@string/settings_misc_ignore_system_connection_validation_summary"/>
         <Preference android:key="misc.update"
                     android:title="@string/settings_misc_update"/>
         <Preference android:key="misc.support"

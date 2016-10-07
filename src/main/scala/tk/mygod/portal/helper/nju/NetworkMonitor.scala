@@ -23,9 +23,11 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
   private final val ACTION_LOGIN_LEGACY = "tk.mygod.portal.helper.nju.NetworkMonitor.ACTION_LOGIN_LEGACY"
   private final val EXTRA_NETWORK_ID = "tk.mygod.portal.helper.nju.NetworkMonitor.EXTRA_NETWORK_ID"
   final val LOCAL_MAC = "misc.localMac"
+  final val IGNORE_SYSTEM_VALIDATION = "misc.ignoreSystemValidation"
 
   def localMacs = app.pref.getString(LOCAL_MAC, MacAddressPreference.default()).split("\n").map(_.toLowerCase)
     .filter(_ != null).toSet
+  def ignoreSystemValidation = app.pref.getBoolean(IGNORE_SYSTEM_VALIDATION, false)
 
   private lazy val networkCapabilities = {
     val result = classOf[NetworkCapabilities].getDeclaredField("mNetworkCapabilities")
@@ -253,10 +255,10 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
       val capabilities = app.cm.getNetworkCapabilities(n)
       Log.d(TAG, "onAvailable (%s): %s".format(n, capabilities))
       if (available.contains(n.hashCode)) {
-        if (Build.version < 23) busy.synchronized(busy.remove(n.hashCode))  // validated on 5.x
+        if (Build.version < 23 && !ignoreSystemValidation) busy.synchronized(busy.remove(n.hashCode)) // validated on 5.x
       } else {
         available(n.hashCode) = (n, getCapabilities(capabilities))
-        if (Build.version < 23 || capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL) ||
+        if (Build.version < 23 || ignoreSystemValidation ||
           !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) testConnection(n)
       }
     }
@@ -265,8 +267,9 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
       val newCapabilities = getCapabilities(capabilities)
       if (available(n.hashCode)._2 == newCapabilities) return
       available(n.hashCode) = (n, newCapabilities)
-      if (Build.version >= 23 && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
-        busy.synchronized(busy.remove(n.hashCode)) else testConnection(n)
+      if (Build.version < 23 || ignoreSystemValidation ||
+        !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
+        testConnection(n) else busy.synchronized(busy.remove(n.hashCode))
     }
     override def onLost(n: Network) {
       Log.d(TAG, "onLost (%s)".format(n))
