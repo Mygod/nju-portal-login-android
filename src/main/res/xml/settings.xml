@@ -1,92 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <tk.mygod.preference.PreferenceCategory android:title="@string/settings_account">
-        <tk.mygod.preference.EditTextPreference
-                android:key="account.username"
-                android:title="Username"
-                android:summary="%s"
-                android:inputType="text"
-        />
-        <tk.mygod.preference.EditTextPreference android:key="account.password" android:title="Password"
-                                                android:inputType="textPassword" android:summary="%s"/>
+        <tk.mygod.preference.EditTextPreference android:key="account.username"
+                                                android:title="Username"
+                                                android:summary="%s"
+                                                android:inputType="text"/>
+        <tk.mygod.preference.EditTextPreference android:key="account.password"
+                                                android:title="Password"
+                                                android:inputType="textPassword"
+                                                android:summary="%s"/>
     </tk.mygod.preference.PreferenceCategory>
     <tk.mygod.preference.PreferenceCategory android:title="@string/settings_auth">
-        <android.support.v7.preference.DropDownPreference
-                android:key="auth.serviceStatus"
-                android:defaultValue="3"
-                android:title="@string/settings_auth_service_status"
-                android:summary="%s"
-                android:entries="@array/settings_auth_service_statuses"
-                android:entryValues="@array/settings_auth_service_status_values"
-        />
-        <android.support.v7.preference.Preference android:key="auth.login"
-                                                  android:title="@string/settings_auth_login"/>
-        <android.support.v7.preference.Preference android:key="auth.logout"
-                                                  android:title="@string/settings_auth_logout"/>
-        <android.support.v7.preference.Preference android:key="auth.portalWeb"
-                                                  android:title="@string/settings_auth_portal_web"/>
+        <DropDownPreference android:key="auth.serviceStatus"
+                            android:defaultValue="3"
+                            android:title="@string/settings_auth_service_status"
+                            android:summary="%s"
+                            android:entries="@array/settings_auth_service_statuses"
+                            android:entryValues="@array/settings_auth_service_status_values"/>
+        <Preference android:key="auth.login"
+                    android:title="@string/settings_auth_login"/>
+        <Preference android:key="auth.logout"
+                    android:title="@string/settings_auth_logout"/>
+        <Preference android:key="auth.portalWeb"
+                    android:title="@string/settings_auth_portal_web"/>
     </tk.mygod.preference.PreferenceCategory>
     <tk.mygod.preference.PreferenceCategory android:title="@string/settings_status">
-        <android.support.v7.preference.Preference android:key="status.name"
-                                                  android:title="@string/settings_status_name"/>
-        <android.support.v7.preference.Preference android:key="status.service_name"
-                                                  android:title="@string/settings_status_service_name"/>
-        <android.support.v7.preference.Preference android:key="status.area_name"
-                                                  android:title="@string/settings_status_area_name"/>
-        <android.support.v7.preference.Preference android:key="status.acctstarttime"
-                                                  android:title="@string/settings_status_acctstarttime"/>
-        <android.support.v7.preference.Preference android:key="status.balance"
-                                                  android:title="@string/settings_status_balance"/>
-        <android.support.v7.preference.Preference android:key="status.useripv4"
-                                                  android:title="@string/settings_status_useripv4"/>
-        <android.support.v7.preference.Preference android:key="status.useripv6"
-                                                  android:title="@string/settings_status_useripv6"/>
-        <android.support.v7.preference.Preference android:key="status.mac" android:title="@string/settings_status_mac"/>
-        <android.support.v7.preference.PreferenceScreen android:key="status.usage"
-                                                        android:title="@string/settings_status_usage">
-            <android.support.v7.preference.Preference android:key="status.usage.user"
-                                                      android:title="@string/settings_status_usage_user"/>
-            <android.support.v7.preference.Preference android:key="status.usage.monthId"
-                                                      android:title="@string/settings_status_usage_month"/>
-            <android.support.v7.preference.Preference android:key="status.usage.service"
-                                                      android:title="@string/settings_status_usage_service"/>
-            <android.support.v7.preference.Preference android:key="status.usage.total_output_octets_ipv4"
-                                                      android:title="@string/settings_status_usage_output"/>
-            <android.support.v7.preference.Preference android:key="status.usage.total_input_octets_ipv4"
-                                                      android:title="@string/settings_status_usage_input"/>
-            <android.support.v7.preference.Preference android:key="status.usage.time"
-                                                      android:title="@string/settings_status_usage_time"/>
-            <android.support.v7.preference.Preference android:key="status.usage.total_refer_ipv4"
-                                                      android:title="@string/settings_status_usage_refer"/>
-        </android.support.v7.preference.PreferenceScreen>
+        <Preference android:key="status.name"
+                    android:title="@string/settings_status_name"/>
+        <Preference android:key="status.service_name"
+                    android:title="@string/settings_status_service_name"/>
+        <Preference android:key="status.area_name"
+                    android:title="@string/settings_status_area_name"/>
+        <Preference android:key="status.acctstarttime"
+                    android:title="@string/settings_status_acctstarttime"/>
+        <Preference android:key="status.balance"
+                    android:title="@string/settings_status_balance"/>
+        <Preference android:key="status.useripv4"
+                    android:title="@string/settings_status_useripv4"/>
+        <Preference android:key="status.useripv6"
+                    android:title="@string/settings_status_useripv6"/>
+        <Preference android:key="status.mac"
+                    android:title="@string/settings_status_mac"/>
+        <PreferenceScreen android:key="status.usage"
+                          android:title="@string/settings_status_usage">
+            <Preference android:key="status.usage.user"
+                        android:title="@string/settings_status_usage_user"/>
+            <Preference android:key="status.usage.monthId"
+                        android:title="@string/settings_status_usage_month"/>
+            <Preference android:key="status.usage.service"
+                        android:title="@string/settings_status_usage_service"/>
+            <Preference android:key="status.usage.total_output_octets_ipv4"
+                        android:title="@string/settings_status_usage_output"/>
+            <Preference android:key="status.usage.total_input_octets_ipv4"
+                        android:title="@string/settings_status_usage_input"/>
+            <Preference android:key="status.usage.time"
+                        android:title="@string/settings_status_usage_time"/>
+            <Preference android:key="status.usage.total_refer_ipv4"
+                        android:title="@string/settings_status_usage_refer"/>
+        </PreferenceScreen>
     </tk.mygod.preference.PreferenceCategory>
     <tk.mygod.preference.PreferenceCategory android:title="@string/settings_notices">
-        <android.support.v7.preference.Preference android:key="notices.history"
-                                                  android:title="@string/settings_notices_history"
-        />
-        <android.support.v14.preference.SwitchPreference android:key="notices.sync.auto"
-                                                         android:defaultValue="true"
-                                                         android:title="@string/settings_notices_sync_auto"
-        />
-        <android.support.v7.preference.DropDownPreference
-                android:key="notices.sync.interval"
-                android:defaultValue="0"
-                android:entries="@array/settings_notices_sync_intervals"
-                android:entryValues="@array/settings_notices_sync_interval_values"
-                android:title="@string/settings_notices_sync_interval"
-                android:summary="@string/settings_notices_sync_interval_summary"
-        />
+        <Preference android:key="notices.history"
+                    android:title="@string/settings_notices_history"/>
+        <SwitchPreference android:key="notices.sync.auto"
+                          android:defaultValue="true"
+                          android:title="@string/settings_notices_sync_auto"/>
+        <DropDownPreference android:key="notices.sync.interval"
+                            android:defaultValue="0"
+                            android:entries="@array/settings_notices_sync_intervals"
+                            android:entryValues="@array/settings_notices_sync_interval_values"
+                            android:title="@string/settings_notices_sync_interval"
+                            android:summary="@string/settings_notices_sync_interval_summary"/>
     </tk.mygod.preference.PreferenceCategory>
     <tk.mygod.preference.PreferenceCategory android:title="@string/settings_notifications">
-        <android.support.v14.preference.SwitchPreference
-                android:key="notifications.alert.balance"
-                android:defaultValue="true"
-                android:title="@string/settings_notifications_alert_balance"
-                android:summary="@string/settings_notifications_alert_balance_summary"
-        />
-        <android.support.v14.preference.SwitchPreference android:key="notifications.login" android:defaultValue="true"
-                                                         android:title="@string/settings_notifications_login"/>
+        <SwitchPreference android:key="notifications.alert.balance"
+                          android:defaultValue="true"
+                          android:title="@string/settings_notifications_alert_balance"
+                          android:summary="@string/settings_notifications_alert_balance_summary"/>
+        <SwitchPreference android:key="notifications.login" android:defaultValue="true"
+                          android:title="@string/settings_notifications_login"/>
     </tk.mygod.preference.PreferenceCategory>
     <tk.mygod.preference.PreferenceCategory android:title="@string/settings_misc">
         <tk.mygod.portal.helper.nju.preference.MacAddressPreference
@@ -94,19 +86,18 @@
                 android:title="@string/settings_misc_local_mac_address"
                 android:summary="@string/settings_misc_local_mac_address_summary"
                 android:inputType="textMultiLine"
-                android:scrollbars="vertical"
-        />
-        <android.support.v7.preference.Preference android:key="misc.useBoundConnections"
-                                                  android:title="@string/bound_connections"/>
-        <android.support.v7.preference.Preference android:key="misc.update"
-                                                  android:title="@string/settings_misc_update"/>
-        <android.support.v7.preference.Preference android:key="misc.support"
-                                                  android:title="@string/settings_misc_support"/>
-        <android.support.v7.preference.Preference android:key="misc.logcat"
-                                                  android:title="@string/settings_misc_logcat"/>
+                android:scrollbars="vertical"/>
+        <Preference android:key="misc.useBoundConnections"
+                    android:title="@string/bound_connections"/>
+        <Preference android:key="misc.update"
+                    android:title="@string/settings_misc_update"/>
+        <Preference android:key="misc.support"
+                    android:title="@string/settings_misc_support"/>
+        <Preference android:key="misc.logcat"
+                    android:title="@string/settings_misc_logcat"/>
     </tk.mygod.preference.PreferenceCategory>
     <tk.mygod.preference.PreferenceCategory android:title="@string/settings_privacy_policy">
-        <android.support.v7.preference.Preference android:summary="@string/settings_privacy_policy_1"/>
-        <android.support.v7.preference.Preference android:summary="@string/settings_privacy_policy_2"/>
+        <Preference android:summary="@string/settings_privacy_policy_1"/>
+        <Preference android:summary="@string/settings_privacy_policy_2"/>
     </tk.mygod.preference.PreferenceCategory>
-</android.support.v7.preference.PreferenceScreen>
+</PreferenceScreen>
