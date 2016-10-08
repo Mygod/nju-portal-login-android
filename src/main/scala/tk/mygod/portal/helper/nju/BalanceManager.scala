@@ -8,7 +8,9 @@ import android.content.{BroadcastReceiver, Context, Intent}
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationCompat.BigTextStyle
 import android.support.v4.content.ContextCompat
+import android.util.Log
 import org.json4s.{JInt, JObject}
+import tk.mygod.portal.helper.nju.PortalManager.InvalidResponseException
 
 /**
   * This object takes care of your balance!
@@ -86,9 +88,12 @@ object BalanceManager {
   }
 
   def check(info: JObject): Unit = if (enabled && needsChecking)
-    ThrowableFuture(PortalManager.queryVolume match {
+    ThrowableFuture(try PortalManager.queryVolume match {
       case Some(result) => check((result \ KEY_USAGE).asInstanceOf[JInt].values, info, true, true)
       case _ =>
+    } catch {
+      case e: InvalidResponseException =>
+        if (e.response == "") Log.w("BalanceManager", "Nothing returned on querying usage!") else throw e
     })
   def check(refer: BigInt): Usage = {
     val enabled = this.enabled

@@ -7,6 +7,7 @@ import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
 import android.util.Log
 import be.mygod.app.{CircularRevealActivity, ToolbarActivity}
+import tk.mygod.portal.helper.nju.PortalManager.InvalidResponseException
 import tk.mygod.portal.helper.nju.util.DualFormatter
 
 /**
@@ -45,7 +46,7 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
 
   def onRefresh = refresh(true)
 
-  def refresh(manual: Boolean = false) = {
+  def refresh(manual: Boolean = false) {
     swiper.setRefreshing(true)
     ThrowableFuture((try {
       if (manual) {
@@ -58,6 +59,14 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
     } catch {
       case e: PortalManager.NetworkUnavailableException =>
         app.showToast(app.getString(R.string.error_network_unavailable))
+        None
+      case e: InvalidResponseException =>
+        if (!manual && e.response == "") {
+          refresh(true)
+          return
+        }
+        e.printStackTrace
+        app.showToast(e.getMessage)
         None
       case e: Exception =>
         e.printStackTrace
