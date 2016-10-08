@@ -122,7 +122,10 @@ object BalanceManager {
             if (days != 0) prepend(days + " " + app.getResources.getQuantityString(R.plurals.days, days))
             pushNotification(balance, app.getString(R.string.alert_balance_insufficient_later, length))
           } else pushNotification(balance, app.getString(R.string.alert_balance_insufficient_soon))
-        } else lastMonth(currentMonth)
+        } else {
+          lastMonth(currentMonth)
+          cancelNotification()
+        }
     usage
   }
 }
@@ -130,8 +133,11 @@ object BalanceManager {
 final class BalanceManager extends BroadcastReceiver {
   import BalanceManager._
 
-  def onReceive(context: Context, intent: Intent) = intent.getAction match {
-    case ACTION_MUTE_MONTH => lastMonth(currentMonth)
-    case ACTION_MUTE_FOREVER => enabled(false)
+  def onReceive(context: Context, intent: Intent) = {
+    intent.getAction match {
+      case ACTION_MUTE_MONTH => lastMonth(currentMonth)
+      case ACTION_MUTE_FOREVER => enabled(false)
+    }
+    cancelNotification()
   }
 }
