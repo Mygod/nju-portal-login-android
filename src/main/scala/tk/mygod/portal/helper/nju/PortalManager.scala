@@ -89,8 +89,8 @@ object PortalManager {
     json \ "userinfo" match {
       case info: JObject =>
         updateUserInfo(info)
-        if (login && code == 1) app.handler.postDelayed(() => BalanceManager.check(info), 1000) // first login
-        else app.handler.post(() => BalanceManager.check(info))
+        if (login && code == 1) app.handler.postDelayed(() => BalanceManager.check(info), 2000) // first login
+        else BalanceManager.check(info)
       case _ =>
     }
     if (code != 0 && code != 2 && code != 9 &&
