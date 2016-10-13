@@ -375,7 +375,7 @@ object PortalManager {
   }
 
   @SuppressLint(Array("NewApi"))
-  def logout = openPortalConnection[Unit]("/portal_io/logout") { (conn, network) =>
+  def logout = try openPortalConnection[Unit]("/portal_io/logout") { (conn, network) =>
     setup(conn)
     if (parseResult(conn)._1 == 101) {
       if (app.boundConnectionsAvailable > 1 && network != null)
@@ -385,15 +385,30 @@ object PortalManager {
         NetworkMonitor.instance.listener.loginedNetwork = null
       Some()
     } else None
-  }.nonEmpty
-
-  def queryNotice(explicit: Boolean = true) = openPortalConnection[List[Notice]]("/portal_io/proxy/notice", explicit)
-  { (conn, _) =>
-    setup(conn)
-    Some((parseResult(conn)._2 \ "notice").asInstanceOf[JArray].values
-      .map(i => new Notice(i.asInstanceOf[Map[String, Any]])))
+  }.nonEmpty catch {
+    case e: Exception =>
+      e.printStackTrace()
+      app.showToast(e.getMessage)
+      false
   }
 
+  def queryNotice(explicit: Boolean = true) =
+    try openPortalConnection[List[Notice]]("/portal_io/proxy/notice", explicit) { (conn, _) =>
+      setup(conn)
+      Some((parseResult(conn)._2 \ "notice").asInstanceOf[JArray].values
+        .map(i => new Notice(i.asInstanceOf[Map[String, Any]])))
+    } catch {
+      case e: Exception =>
+        e.printStackTrace()
+        app.showToast(e.getMessage)
+        None
+    }
+
+  /**
+    * Warning: This method throws exception.
+    *
+    * @return Result if successful, else None.
+    */
   def queryVolume = openPortalConnection[JObject]("/portal_io/selfservice/volume/getlist") { (conn, _) =>
     setup(conn)
     val (code, json) = parseResult(conn)

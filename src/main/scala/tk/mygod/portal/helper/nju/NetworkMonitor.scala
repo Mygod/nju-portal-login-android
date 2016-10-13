@@ -198,7 +198,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
     }
 
     private def testConnection(n: Network) = if (busy.synchronized(busy.add(n.hashCode))) ThrowableFuture {
-      app.serviceStatus match {
+      try app.serviceStatus match {
         case 1 =>
           if (PortalManager.testConnection(n)) {
             if (receiverRegistered.compareAndSet(false, true))
@@ -239,8 +239,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
           NoticeManager.pushUnreadNotices
         }
         case _ =>
-      }
-      busy.synchronized(busy.remove(n.hashCode))
+      } finally busy.synchronized(busy.remove(n.hashCode))
     }
     private def getCapabilities(capabilities: NetworkCapabilities) =
       networkCapabilities.get(capabilities).asInstanceOf[Long]

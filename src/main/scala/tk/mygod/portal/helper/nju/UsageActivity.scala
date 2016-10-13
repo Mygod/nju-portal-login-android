@@ -57,9 +57,6 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
       }
       PortalManager.queryVolume
     } catch {
-      case e: PortalManager.NetworkUnavailableException =>
-        app.showToast(app.getString(R.string.error_network_unavailable))
-        None
       case e: InvalidResponseException =>
         if (!manual && e.response == "") {
           refresh(true)
