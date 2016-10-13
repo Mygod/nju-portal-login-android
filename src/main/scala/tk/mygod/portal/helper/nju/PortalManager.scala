@@ -134,9 +134,7 @@ object PortalManager {
     case 0 =>
       reportNetworkConnectivity(network, true)
       false
-    case 1 =>
-      reportNetworkConnectivity(network, false)
-      false
+    case 1 => false
     case 2 => true
   }
   def testConnectionLegacy(network: NetworkInfo) = testConnectionCore({
