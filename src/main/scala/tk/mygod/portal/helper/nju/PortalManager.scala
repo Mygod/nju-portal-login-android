@@ -118,6 +118,7 @@ object PortalManager {
       setup(conn)
       val (code, json) = parseResult(conn)
       if (code == 0) updateUserInfo((json \ "userinfo").asInstanceOf[JObject]) // 操作成功
+      Log.d(TAG, "Testing connection finished with code %d.".format(code))
       code // 2: 无用户portal信息
     } catch {
       case e: InvalidResponseException =>

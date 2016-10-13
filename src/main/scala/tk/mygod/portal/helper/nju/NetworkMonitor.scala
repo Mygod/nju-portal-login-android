@@ -93,52 +93,52 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
       if (app.serviceStatus > 0 && app.boundConnectionsAvailable < 2) for ((id, n) <- available) onAvailable(n)
     def onAvailable(n: NetworkInfo) {
       available += (serialize(n), n)
-      if (app.serviceStatus > 0 && app.boundConnectionsAvailable < 2 &&
-        busy.synchronized(busy.add(serialize(n)))) ThrowableFuture {
-        app.serviceStatus match {
-          case 1 =>
-            if (PortalManager.testConnectionLegacy(n)) {
-              if (receiverRegistered.compareAndSet(false, true))
-                app.registerReceiver(NetworkMonitor, new IntentFilter(ACTION_LOGIN_LEGACY))
-              val id = serialize(n)
-              val nid = getNotificationId(id)
-              app.nm.notify(nid, PortalManager.queryOnlineLegacy(n).headOption match {
-                case None => loginNotificationBuilder
-                  .setContentIntent(
-                    app.pendingBroadcast(new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id)))
-                  .setAutoCancel(true)
-                  .build()
-                case Some(entry) => entry.makeNotification(new Intent(OnlineEntryActivity.ACTION_SHOW_LEGACY)
-                  .putExtra(OnlineEntryActivity.EXTRA_NETWORK_ID, id)
-                  .putExtra(OnlineEntryActivity.EXTRA_NOTIFICATION_ID, nid))
-              })
-              NoticeManager.pushUnreadNotices
-            }
-          case 2 =>
-            doLogin(n)
-            NoticeManager.pushUnreadNotices
-          case 3 => if (PortalManager.testConnectionLegacy(n)) {
-            doLogin(n)
-            NoticeManager.pushUnreadNotices
-          }
-          case 4 => if (PortalManager.testConnectionLegacy(n)) {
-            PortalManager.queryOnlineLegacy(n).headOption match {
-              case None => doLogin(n)
-              case Some(entry) =>
+      if (app.serviceStatus > 0 && app.boundConnectionsAvailable < 2)
+        if (busy.synchronized(busy.add(serialize(n)))) ThrowableFuture {
+          app.serviceStatus match {
+            case 1 =>
+              if (PortalManager.testConnectionLegacy(n)) {
                 if (receiverRegistered.compareAndSet(false, true))
                   app.registerReceiver(NetworkMonitor, new IntentFilter(ACTION_LOGIN_LEGACY))
-                val id = n.hashCode
+                val id = serialize(n)
                 val nid = getNotificationId(id)
-                app.nm.notify(nid, entry.makeNotification(new Intent(OnlineEntryActivity.ACTION_SHOW_LEGACY)
-                  .putExtra(OnlineEntryActivity.EXTRA_NETWORK_ID, id)
-                  .putExtra(OnlineEntryActivity.EXTRA_NOTIFICATION_ID, nid)))
+                app.nm.notify(nid, PortalManager.queryOnlineLegacy(n).headOption match {
+                  case None => loginNotificationBuilder
+                    .setContentIntent(
+                      app.pendingBroadcast(new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id)))
+                    .setAutoCancel(true)
+                    .build()
+                  case Some(entry) => entry.makeNotification(new Intent(OnlineEntryActivity.ACTION_SHOW_LEGACY)
+                    .putExtra(OnlineEntryActivity.EXTRA_NETWORK_ID, id)
+                    .putExtra(OnlineEntryActivity.EXTRA_NOTIFICATION_ID, nid))
+                })
+                NoticeManager.pushUnreadNotices
+              }
+            case 2 =>
+              doLogin(n)
+              NoticeManager.pushUnreadNotices
+            case 3 => if (PortalManager.testConnectionLegacy(n)) {
+              doLogin(n)
+              NoticeManager.pushUnreadNotices
             }
-            NoticeManager.pushUnreadNotices
+            case 4 => if (PortalManager.testConnectionLegacy(n)) {
+              PortalManager.queryOnlineLegacy(n).headOption match {
+                case None => doLogin(n)
+                case Some(entry) =>
+                  if (receiverRegistered.compareAndSet(false, true))
+                    app.registerReceiver(NetworkMonitor, new IntentFilter(ACTION_LOGIN_LEGACY))
+                  val id = n.hashCode
+                  val nid = getNotificationId(id)
+                  app.nm.notify(nid, entry.makeNotification(new Intent(OnlineEntryActivity.ACTION_SHOW_LEGACY)
+                    .putExtra(OnlineEntryActivity.EXTRA_NETWORK_ID, id)
+                    .putExtra(OnlineEntryActivity.EXTRA_NOTIFICATION_ID, nid)))
+              }
+              NoticeManager.pushUnreadNotices
+            }
+            case _ =>
           }
-          case _ =>
-        }
-        busy.synchronized(busy.remove(serialize(n)))
-      }
+          busy.synchronized(busy.remove(serialize(n)))
+        } else Log.d(TAG, "Skipping repeated connection test request.")
     }
 
     def onLost(n: NetworkInfo) {
@@ -240,7 +240,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
         }
         case _ =>
       } finally busy.synchronized(busy.remove(n.hashCode))
-    }
+    } else Log.d(TAG, "Skipping repeated connection test request.")
     private def getCapabilities(capabilities: NetworkCapabilities) =
       networkCapabilities.get(capabilities).asInstanceOf[Long]
 
@@ -252,10 +252,11 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
     def reevaluate = for ((id, (n, c)) <- available) testConnection(n)
     override def onAvailable(n: Network) {
       val capabilities = app.cm.getNetworkCapabilities(n)
-      Log.d(TAG, "onAvailable (%s): %s".format(n, capabilities))
       if (available.contains(n.hashCode)) {
+        Log.d(TAG, "onAvailable (OLD: %s): %s".format(n, capabilities))
         if (Build.version < 23 && !ignoreSystemValidation) busy.synchronized(busy.remove(n.hashCode)) // validated on 5.x
       } else {
+        Log.d(TAG, "onAvailable (NEW: %s): %s".format(n, capabilities))
         available(n.hashCode) = (n, getCapabilities(capabilities))
         if (Build.version < 23 || ignoreSystemValidation ||
           !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) testConnection(n)
