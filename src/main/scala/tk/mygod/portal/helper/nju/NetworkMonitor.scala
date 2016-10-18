@@ -256,16 +256,16 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
         Log.d(TAG, "onAvailable (OLD: %s): %s".format(n, capabilities))
         if (Build.version < 23 && !ignoreSystemValidation) busy.synchronized(busy.remove(n.hashCode)) // validated on 5.x
       } else {
-        Log.d(TAG, "onAvailable (NEW: %s): %s".format(n, capabilities))
+        Log.d(TAG, "onAvailable (%s): %s".format(n, capabilities))
         available(n.hashCode) = (n, getCapabilities(capabilities))
         if (Build.version < 23 || ignoreSystemValidation ||
           !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) testConnection(n)
       }
     }
     override def onCapabilitiesChanged(n: Network, capabilities: NetworkCapabilities = null) {
-      Log.d(TAG, "onCapabilitiesChanged (%s): %s".format(n, capabilities))
       val newCapabilities = getCapabilities(capabilities)
       if (available(n.hashCode)._2 == newCapabilities) return
+      Log.d(TAG, "onCapabilitiesChanged (%s): %s".format(n, capabilities))
       available(n.hashCode) = (n, newCapabilities)
       if (Build.version < 23 || ignoreSystemValidation ||
         !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED))
