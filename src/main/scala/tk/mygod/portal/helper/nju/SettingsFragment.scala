@@ -149,7 +149,7 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
         case BalanceManager.KEY_ACTIVITY_START_TIME => PortalManager.parseTimeString(value.asInstanceOf[BigInt])
         case BalanceManager.KEY_BALANCE => BalanceManager.formatCurrency(value.asInstanceOf[BigInt].toInt)
         case "useripv4" => PortalManager.parseIpv4(value.asInstanceOf[BigInt])
-        case _ => value.toString
+        case _ => if (value == null) null else value.toString
       })
     }
     findPreference("status.name").setSummary(name.toString)
