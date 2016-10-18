@@ -124,7 +124,15 @@ object PortalManager {
       case e: InvalidResponseException =>
         if (BuildConfig.DEBUG) Log.w(TAG, e.getMessage)
         1
-      case _: SocketTimeoutException | _: UnknownHostException | _: ConnectException => 1 // ignore
+      case e: SocketTimeoutException=>
+        e.printStackTrace
+        1
+      case e: UnknownHostException =>
+        e.printStackTrace
+        1
+      case e: ConnectException =>
+        e.printStackTrace
+        1
       case e: Exception =>
         app.showToast(e.getMessage)
         e.printStackTrace
