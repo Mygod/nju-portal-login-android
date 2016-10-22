@@ -88,7 +88,9 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
       val counter = new RetryCounter()
       while (instance != null && loginedNetwork == null && available.contains(serialize(n)))
         PortalManager.testConnectionLegacy(n) match {
-          case 0 => return false
+          case 0 =>
+            NoticeManager.pushUnreadNotices // push notices only
+            return false
           case 2 => return true
           case _ => counter.retry()
         }
@@ -214,6 +216,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
         app.serviceStatus > 0) PortalManager.testConnection(n) match {
         case 0 =>
           app.reportNetworkConnectivity(n, true)
+          NoticeManager.pushUnreadNotices // push notices only
           return false
         case 2 => return true
         case _ => counter.retry()
