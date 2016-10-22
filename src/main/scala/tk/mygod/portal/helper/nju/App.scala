@@ -1,12 +1,12 @@
 package tk.mygod.portal.helper.nju
 
 import android.accounts.AccountManager
-import android.annotation.SuppressLint
+import android.annotation.{SuppressLint, TargetApi}
 import android.app.{Application, NotificationManager}
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.content.{ComponentName, Context}
-import android.net.ConnectivityManager
+import android.net.{ConnectivityManager, Network}
 import android.net.wifi.WifiManager
 import android.os.Handler
 import android.provider.Settings
@@ -45,6 +45,11 @@ class App extends Application with ContextPlus {
   def serviceStatus = pref.getString(SERVICE_STATUS, "3").toInt
 
   def showToast(msg: String) = handler.post(() => makeToast(msg, Toast.LENGTH_SHORT).show)
+
+  //noinspection ScalaDeprecation
+  @TargetApi(21)
+  def reportNetworkConnectivity(network: Network, hasConnectivity: Boolean) = if (Build.version >= 23)
+    cm.reportNetworkConnectivity(network, hasConnectivity) else cm.reportBadNetwork(network)
 
   private def readSystemInteger(key: String) =
     getResources.getInteger(Resources.getSystem.getIdentifier(key, "integer", "android"))

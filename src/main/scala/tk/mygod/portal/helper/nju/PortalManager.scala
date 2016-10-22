@@ -110,7 +110,7 @@ object PortalManager {
   /**
     * Based on: https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/connectivity/NetworkMonitor.java#640
     *
-    * @return 0 for success, 1 for failure, 2 for login required
+    * @return 0 for success, -1 for failure, 2 for login required
     */
   def testConnectionCore(connector: URL => URLConnection): Int =
     try {
@@ -123,38 +123,27 @@ object PortalManager {
     } catch {
       case e: InvalidResponseException =>
         if (BuildConfig.DEBUG) Log.w(TAG, e.getMessage)
-        1
+        -1
       case e: SocketTimeoutException=>
         e.printStackTrace
-        1
+        -1
       case e: UnknownHostException =>
         e.printStackTrace
-        1
+        -1
       case e: ConnectException =>
         e.printStackTrace
-        1
+        -1
       case e: Exception =>
         app.showToast(e.getMessage)
         e.printStackTrace
-        1
+        -1
     }
   @TargetApi(21)
-  def testConnection(network: Network) = testConnectionCore(network.openConnection) match {
-    case 0 =>
-      reportNetworkConnectivity(network, true)
-      false
-    case 1 => false
-    case 2 => true
-  }
+  def testConnection(network: Network) = testConnectionCore(network.openConnection)
   def testConnectionLegacy(network: NetworkInfo) = testConnectionCore({
     NetworkMonitor.preferNetworkLegacy(network)
     _.openConnection
-  }) == 2
-
-  //noinspection ScalaDeprecation
-  @TargetApi(21)
-  def reportNetworkConnectivity(network: Network, hasConnectivity: Boolean) = if (Build.version >= 23)
-    app.cm.reportNetworkConnectivity(network, hasConnectivity) else app.cm.reportBadNetwork(network)
+  })
 
   /**
     * Setup HttpURLConnection.
@@ -335,7 +324,7 @@ object PortalManager {
     if (network == null) throw new NetworkUnavailableException
     val (result, code) = loginCore(network.openConnection)
     if (result == 0) {
-      reportNetworkConnectivity(network, true)
+      app.reportNetworkConnectivity(network, true)
       NetworkMonitor.instance.listener.onLogin(network, code)
       false
     } else result == 1
@@ -386,7 +375,7 @@ object PortalManager {
     setup(conn)
     if (parseResult(conn)._1 == 101) {
       if (app.boundConnectionsAvailable > 1 && network != null)
-        app.handler.postDelayed(() => reportNetworkConnectivity(network.asInstanceOf[Network], false), 4000)
+        app.handler.postDelayed(() => app.reportNetworkConnectivity(network.asInstanceOf[Network], false), 4000)
       NetworkMonitor.listenerLegacy.loginedNetwork = null
       if (NetworkMonitor.instance != null && NetworkMonitor.instance.listener != null)
         NetworkMonitor.instance.listener.loginedNetwork = null

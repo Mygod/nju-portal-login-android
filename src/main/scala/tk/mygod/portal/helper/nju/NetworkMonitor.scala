@@ -79,9 +79,20 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
       case _ =>
     }
     def doLogin(n: NetworkInfo) {
-      val counter = new RetryCounter
+      val counter = new RetryCounter()
       while (instance != null && loginedNetwork == null &&
         available.contains(serialize(n)) && PortalManager.loginLegacy(n)) counter.retry()
+    }
+
+    private def doTestConnection(n: NetworkInfo): Boolean = {
+      val counter = new RetryCounter()
+      while (instance != null && loginedNetwork == null && available.contains(serialize(n)))
+        PortalManager.testConnectionLegacy(n) match {
+          case 0 => return false
+          case 2 => return true
+          case _ => counter.retry()
+        }
+      false
     }
 
     def onLogin(n: NetworkInfo, code: Int) {
@@ -97,7 +108,7 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
         if (busy.synchronized(busy.add(serialize(n)))) ThrowableFuture {
           app.serviceStatus match {
             case 1 =>
-              if (PortalManager.testConnectionLegacy(n)) {
+              if (doTestConnection(n)) {
                 if (receiverRegistered.compareAndSet(false, true))
                   app.registerReceiver(NetworkMonitor, new IntentFilter(ACTION_LOGIN_LEGACY))
                 val id = serialize(n)
@@ -117,11 +128,11 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
             case 2 =>
               doLogin(n)
               NoticeManager.pushUnreadNotices
-            case 3 => if (PortalManager.testConnectionLegacy(n)) {
+            case 3 => if (doTestConnection(n)) {
               doLogin(n)
               NoticeManager.pushUnreadNotices
             }
-            case 4 => if (PortalManager.testConnectionLegacy(n)) {
+            case 4 => if (doTestConnection(n)) {
               PortalManager.queryOnlineLegacy(n).headOption match {
                 case None => doLogin(n)
                 case Some(entry) =>
@@ -197,10 +208,23 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
         app.serviceStatus > 0 && PortalManager.login(n)) counter.retry()
     }
 
+    private def doTestConnection(n: Network): Boolean = {
+      val counter = new RetryCounter()
+      while (available.contains(n.hashCode) && loginedNetwork == null && busy.synchronized(busy.contains(n.hashCode)) &&
+        app.serviceStatus > 0) PortalManager.testConnection(n) match {
+        case 0 =>
+          app.reportNetworkConnectivity(n, true)
+          return false
+        case 2 => return true
+        case _ => counter.retry()
+      }
+      false
+    }
+
     private def testConnection(n: Network) = if (busy.synchronized(busy.add(n.hashCode))) ThrowableFuture {
       try app.serviceStatus match {
         case 1 =>
-          if (PortalManager.testConnection(n)) {
+          if (doTestConnection(n)) {
             if (receiverRegistered.compareAndSet(false, true))
               app.registerReceiver(loginReceiver, new IntentFilter(ACTION_LOGIN))
             val id = n.hashCode
@@ -220,11 +244,11 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
         case 2 =>
           doLogin(n)
           NoticeManager.pushUnreadNotices
-        case 3 => if (PortalManager.testConnection(n)) {
+        case 3 => if (doTestConnection(n)) {
           doLogin(n)
           NoticeManager.pushUnreadNotices
         }
-        case 4 => if (PortalManager.testConnection(n)) {
+        case 4 => if (doTestConnection(n)) {
           PortalManager.queryOnline(n).headOption match {
             case None => doLogin(n)
             case Some(entry) =>
