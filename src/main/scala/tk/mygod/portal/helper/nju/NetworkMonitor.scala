@@ -80,13 +80,13 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
     }
     def doLogin(n: NetworkInfo) {
       val counter = new RetryCounter()
-      while (instance != null && loginedNetwork == null &&
+      while (instance == null && loginedNetwork == null &&
         available.contains(serialize(n)) && PortalManager.loginLegacy(n)) counter.retry()
     }
 
     private def doTestConnection(n: NetworkInfo): Boolean = {
       val counter = new RetryCounter()
-      while (instance != null && loginedNetwork == null && available.contains(serialize(n)))
+      while (instance == null && loginedNetwork == null && available.contains(serialize(n)))
         PortalManager.testConnectionLegacy(n) match {
           case 0 =>
             NoticeManager.pushUnreadNotices // push notices only
