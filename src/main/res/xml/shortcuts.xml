@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="portal"
+              android:enabled="true"
+              android:icon="@drawable/logo"
+              android:shortcutShortLabel="@string/portal_activity_url"
+              android:shortcutLongLabel="@string/portal_activity_url">
+        <intent android:action="android.intent.action.MAIN"
+                android:targetPackage="tk.mygod.portal.helper.nju"
+                android:targetClass="tk.mygod.portal.helper.nju.PortalActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="login_logout"
+              android:enabled="true"
+              android:icon="@drawable/logo"
+              android:shortcutShortLabel="@string/login_logout"
+              android:shortcutLongLabel="@string/login_logout">
+        <intent android:action="android.intent.action.MAIN"
+                android:targetPackage="tk.mygod.portal.helper.nju"
+                android:targetClass="tk.mygod.portal.helper.nju.LogInOutShortcut" />
+    </shortcut>
+</shortcuts>

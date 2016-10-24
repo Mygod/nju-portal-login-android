@@ -18,6 +18,8 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <meta-data android:name="android.app.shortcuts"
+                       android:resource="@xml/shortcuts"/>
         </activity>
         <activity android:name=".NoticeActivity"
                   android:label="@string/notices"
@@ -42,10 +44,10 @@
                   android:launchMode="singleTask"
                   android:parentActivityName=".MainActivity"
         />
-        <activity android:name=".ShortcutActivity"
+        <activity android:name=".LogInOutShortcut"
                   android:label="@string/login_logout"
                   android:noHistory="true"
-                  android:theme="@android:style/Theme.NoDisplay"
+                  android:theme="@android:style/Theme.Translucent.NoTitleBar"
                   android:taskAffinity=""
                   android:excludeFromRecents="true">
             <intent-filter>
