@@ -22,7 +22,7 @@ proguardOptions ++=
 
 shrinkResources := true
 typedViewHolders := false
-resConfigs := Seq("zh")
+resConfigs := Seq("zh-rCN")
 
 resolvers ++= Seq(Resolver.jcenterRepo, Resolver.sonatypeRepo("public"))
 libraryDependencies ++=
