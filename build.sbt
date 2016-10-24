@@ -1,11 +1,11 @@
 scalaVersion := "2.11.8"
 
 enablePlugins(AndroidApp)
-useSupportVectors
+android.useSupportVectors
 
 name := "nju-portal-login-android"
-version := "3.3.1"
-versionCode := Some(409)
+version := "3.3.2"
+versionCode := Some(410)
 
 platformTarget := "android-25"
 
