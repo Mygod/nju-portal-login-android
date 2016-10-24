@@ -2,22 +2,22 @@ package tk.mygod.portal.helper.nju
 
 import android.accounts.AccountManager
 import android.annotation.{SuppressLint, TargetApi}
-import android.app.{Application, NotificationManager}
+import android.app.NotificationManager
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.content.{ComponentName, Context}
-import android.net.{ConnectivityManager, Network}
 import android.net.wifi.WifiManager
+import android.net.{ConnectivityManager, Network}
 import android.os.Handler
 import android.provider.Settings
 import android.widget.Toast
-import be.mygod.content.ContextPlus
+import be.mygod.app.ApplicationPlus
 import be.mygod.os.Build
 import com.j256.ormlite.logger.LocalLog
 
 import scala.reflect._
 
-class App extends Application with ContextPlus {
+class App extends ApplicationPlus {
   val handler = new Handler
 
   override def onCreate {
