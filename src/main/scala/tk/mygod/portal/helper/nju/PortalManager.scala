@@ -49,7 +49,7 @@ object PortalManager {
     val code = conn.getResponseCode
     val url = conn.getURL
     //noinspection JavaAccessorMethodCalledAsEmptyParen
-    val response = autoClose(if (code >= 400) conn.getErrorStream() else conn.getInputStream())(IOUtils.readAllText)
+    val response = autoClose(conn.getErrorStream())(IOUtils.readAllText)
 
     override def getMessage = "Unexpected response code %d from: %s\n%s".format(code, url, response)
   }
