@@ -43,9 +43,16 @@ object PortalManager {
   private final val STATUS = "status"
   private final val AUTH_BASE = "username=%s&password=%s"
   case class NetworkUnavailableException() extends IOException { }
-  case class InvalidResponseException(response: String) extends IOException("Invalid response: " + response) { }
-  case class UnexpectedResponseCodeException(code: Int, response: String)
-    extends IOException("Unexpected response code %d: %s".format(code, response))
+  case class InvalidResponseException(url: URL, response: String)
+    extends IOException("Invalid response from: %s\n%s".format(url, response)) { }
+  class UnexpectedResponseCodeException(conn: HttpURLConnection) extends IOException {
+    val code = conn.getResponseCode
+    val url = conn.getURL
+    //noinspection JavaAccessorMethodCalledAsEmptyParen
+    val response = autoClose(if (code >= 400) conn.getErrorStream() else conn.getInputStream())(IOUtils.readAllText)
+
+    override def getMessage = "Unexpected response code %d from: %s\n%s".format(code, url, response)
+  }
 
   var currentUsername: String = _
   def username = app.pref.getString("account.username", "")
@@ -77,16 +84,14 @@ object PortalManager {
 
   private implicit val formats = Serialization.formats(NoTypeHints)
   private def parseResult(conn: HttpURLConnection, login: Boolean = false) = {
-    if (conn.getResponseCode >= 400)
-      //noinspection JavaAccessorMethodCalledAsEmptyParen
-      throw UnexpectedResponseCodeException(conn.getResponseCode, autoClose(conn.getErrorStream())(IOUtils.readAllText))
+    if (conn.getResponseCode >= 400) throw new UnexpectedResponseCodeException(conn)
     //noinspection JavaAccessorMethodCalledAsEmptyParen
     val resultStr = autoClose(conn.getInputStream())(IOUtils.readAllText)
     if (BuildConfig.DEBUG) Log.v(TAG, resultStr)
     val json = try parse(resultStr) catch {
-      case e: ParseException => throw InvalidResponseException(resultStr)
+      case e: ParseException => throw InvalidResponseException(conn.getURL, resultStr)
     }
-    if (!json.isInstanceOf[JObject]) throw InvalidResponseException(resultStr)
+    if (!json.isInstanceOf[JObject]) throw InvalidResponseException(conn.getURL, resultStr)
     val code = json \ "reply_code" match {
       case i: JInt => i.values.toInt
       case _ => 0
@@ -128,6 +133,9 @@ object PortalManager {
     } catch {
       case e: InvalidResponseException =>
         if (BuildConfig.DEBUG) Log.w(TAG, e.getMessage)
+        -1
+      case e: UnexpectedResponseCodeException =>
+        Log.w(TAG, e.getMessage)
         -1
       case e: SocketTimeoutException=>
         e.printStackTrace
@@ -274,35 +282,34 @@ object PortalManager {
       if (chapPassword == null) return (1, 0)
       conn = connector(new URL(HTTP, DOMAIN, "/portal_io/login")).asInstanceOf[HttpURLConnection]
       setup(conn, chapPassword)
-      conn.getResponseCode match {
-        case 200 =>
-          val (result, obj) = parseResult(conn, true)
-          result match {
-            case 3 => // need manual actions
-              if ((obj \ "reply_msg").toString.startsWith("E011 ")) // no more balance
-                BalanceManager.cancelNotification()
-              (2, result)
-            case 8 =>
-              (2, result)
-            case 1 | 6 =>
-              (0, result)
-            case _ =>
-              (1, result)
-          }
-        case 502 =>
-          app.showToast("无可用服务器资源!")
-          (1, 0)
-        case 503 =>
-          app.showToast("请求太频繁,请稍后再试!")
-          (1, 0)
-        case i =>
-          Log.w(TAG, "Unknown response code: " + i)
-          (2, 0)
+      val (result, obj) = parseResult(conn, true)
+      result match {
+        case 3 => // need manual actions
+          if ((obj \ "reply_msg").toString.startsWith("E011 ")) // no more balance
+            BalanceManager.cancelNotification()
+          (2, result)
+        case 8 =>
+          (2, result)
+        case 1 | 6 =>
+          (0, result)
+        case _ =>
+          (1, result)
       }
     } catch {
       case e: InvalidResponseException =>
         if (BuildConfig.DEBUG) Log.w(TAG, e.getMessage)
         (2, 0)
+      case e: UnexpectedResponseCodeException =>
+        Log.w(TAG, e.getMessage)
+        e.code match {
+          case 502 =>
+            app.showToast("无可用服务器资源!")
+            (1, 0)
+          case 503 =>
+            app.showToast("请求太频繁,请稍后再试!")
+            (1, 0)
+          case i => (2, 0)
+        }
       case e: SocketException =>
         app.showToast(e.getMessage)
         e.printStackTrace
