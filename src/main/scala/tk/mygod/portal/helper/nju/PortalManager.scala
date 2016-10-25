@@ -44,6 +44,8 @@ object PortalManager {
   private final val AUTH_BASE = "username=%s&password=%s"
   case class NetworkUnavailableException() extends IOException { }
   case class InvalidResponseException(response: String) extends IOException("Invalid response: " + response) { }
+  case class UnexpectedResponseCodeException(code: Int, response: String)
+    extends IOException("Unexpected response code %d: %s".format(code, response))
 
   var currentUsername: String = _
   def username = app.pref.getString("account.username", "")
@@ -75,6 +77,9 @@ object PortalManager {
 
   private implicit val formats = Serialization.formats(NoTypeHints)
   private def parseResult(conn: HttpURLConnection, login: Boolean = false) = {
+    if (conn.getResponseCode >= 400)
+      //noinspection JavaAccessorMethodCalledAsEmptyParen
+      throw UnexpectedResponseCodeException(conn.getResponseCode, autoClose(conn.getErrorStream())(IOUtils.readAllText))
     //noinspection JavaAccessorMethodCalledAsEmptyParen
     val resultStr = autoClose(conn.getInputStream())(IOUtils.readAllText)
     if (BuildConfig.DEBUG) Log.v(TAG, resultStr)
