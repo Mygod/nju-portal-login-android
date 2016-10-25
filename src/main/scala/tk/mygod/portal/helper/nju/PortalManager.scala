@@ -52,6 +52,19 @@ object PortalManager {
     val response = autoClose(conn.getErrorStream())(IOUtils.readAllText)
 
     override def getMessage = "Unexpected response code %d from: %s\n%s".format(code, url, response)
+
+    def handle() = {
+      Log.w(TAG, getMessage)
+      code match {
+        case 502 =>
+          app.showToast("无可用服务器资源!")
+          true
+        case 503 =>
+          app.showToast("请求太频繁,请稍后再试!")
+          true
+        case i => false
+      }
+    }
   }
 
   var currentUsername: String = _
@@ -135,7 +148,7 @@ object PortalManager {
         if (BuildConfig.DEBUG) Log.w(TAG, e.getMessage)
         -1
       case e: UnexpectedResponseCodeException =>
-        Log.w(TAG, e.getMessage)
+        e.handle()
         -1
       case e: SocketTimeoutException=>
         e.printStackTrace
@@ -299,17 +312,7 @@ object PortalManager {
       case e: InvalidResponseException =>
         if (BuildConfig.DEBUG) Log.w(TAG, e.getMessage)
         (2, 0)
-      case e: UnexpectedResponseCodeException =>
-        Log.w(TAG, e.getMessage)
-        e.code match {
-          case 502 =>
-            app.showToast("无可用服务器资源!")
-            (1, 0)
-          case 503 =>
-            app.showToast("请求太频繁,请稍后再试!")
-            (1, 0)
-          case i => (2, 0)
-        }
+      case e: UnexpectedResponseCodeException => (if (e.handle()) 1 else 2, 0)
       case e: SocketException =>
         app.showToast(e.getMessage)
         e.printStackTrace
