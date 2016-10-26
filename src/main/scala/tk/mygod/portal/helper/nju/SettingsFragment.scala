@@ -1,23 +1,40 @@
 package tk.mygod.portal.helper.nju
 
+import java.net.{HttpURLConnection, URL, URLEncoder}
+import java.security.spec.PKCS8EncodedKeySpec
+import java.security.{KeyFactory, Signature}
+import java.text.SimpleDateFormat
+import java.util.Date
+
+import android.annotation.SuppressLint
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
 import android.support.v14.preference.SwitchPreference
 import android.support.v4.app.ActivityOptionsCompat
 import android.support.v7.preference.Preference
-import android.util.Log
+import android.util.{Base64, Log}
 import be.mygod.app.CircularRevealActivity
 import be.mygod.net.UpdateManager
 import be.mygod.preference._
+import be.mygod.util.CloseUtils._
 import be.mygod.util.Conversions._
-import be.mygod.util.Logcat
-import org.json4s.JObject
+import be.mygod.util.{IOUtils, Logcat}
+import org.json4s.ParserUtil.ParseException
+import org.json4s.native.JsonMethods._
+import org.json4s.{JArray, JInt, JObject}
+import tk.mygod.portal.helper.nju.PortalManager.{InvalidResponseException, UnexpectedResponseCodeException}
 import tk.mygod.portal.helper.nju.preference.{MacAddressPreference, MacAddressPreferenceDialogFragment}
 import tk.mygod.portal.helper.nju.util.DualFormatter
 
 object SettingsFragment {
   private final val TAG = "SettingsFragment"
+
+  private final val SIGN_DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss")
+  private final val SIGN_DEVICEID = "6756"
+  private final val SIGN_KEY = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(Base64.decode(
+    "MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAIaEhtCJEL3oq50S5d1sLX5Lb4uLEUSI7u3rzgDIv/3cEpSoANrXwM3qgC4U66ygmohhDjMbjTFiZfLRm4nWHKNk3WANInimM99s5FHKKooC0d0I+rwUbk2WZr0uOdDnx9lGJxqdRolMtYBI/pZCpBDRj2ogEv5Oxr9f9tARg3LvAgMBAAECgYBTN2MrWM/ZnDmmZ016qHSQX9x2qCabjla5Kxp607YqNt3rxu8Yc0acXIjFeT2+wnA3FEuzhETZmzTUfaVKJQH7kRaOlRvksYwg/wSNB/irD8N2Lmw6XX7AvHRvzC5qMbNjUiO2vQwFUjorxES93Bpe5smzc0vOlL3UjPxQXvwZkQJBAMHC5OPcF05xZlob4I4yiFBzThq8WLHKp2Lzq9fYeBW2t90St659HHYqQc/E5FlOfZnCqh6k9/cEa8e2qpCpD9cCQQCxuf6e0y8HHv4iIsfMvpwNkc/MSgoXKFYL0EpLb68vxgWf0WSGhUQ13Hoyk/TzgVBn0O229rxxexsbujl/sDKpAkAixYfwAEJKeH1GtHQC8LyXu2mL0LsWBOkvD82J6bX7J5QtXzuJW7hs2D6BO7NC95wAqPeAklhRgwCYkYZgeYZ3AkEAjD2aH7XBDDt2iXUsd/GIrmR6tldOMwvPKi9IENKmSGpXkc7nJgcO1fmOK075IRTPX7xLd+6msF1V/MEsEgf1UQJAeYjz5SREy1ztwaKp2aKWr9kIRjqcvUm2E0CD8pccn+MI7PKjg1VFFEKHPGXixRGTSbbolxyP3CegdzJfr3hAVQ==",
+    Base64.NO_WRAP)))
 
   private final val preferenceGetId = classOf[Preference].getDeclaredMethod("getId")
   preferenceGetId.setAccessible(true)
@@ -30,6 +47,38 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
   private var portalWeb: Preference = _
   private var useBoundConnections: Preference = _
   private var ignoreSystemConnectionValidation: Preference = _
+
+  @SuppressLint(Array("NewApi"))
+  def openSignConnection(file: String, data: String) = {
+    val url = new URL(HTTP, "114.212.5.2", 8088, "/yktpre/services/conference/" + file)
+    val conn = (if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) {
+      val network = NetworkMonitor.instance.listener.preferredNetwork
+      if (network == null) url.openConnection() else network.openConnection(url)
+    } else {
+      NetworkMonitor.preferNetworkLegacy()
+      url.openConnection()
+    }).asInstanceOf[HttpURLConnection]
+    conn.setInstanceFollowRedirects(false)
+    conn.setConnectTimeout(5000)
+    conn.setReadTimeout(2000)
+    conn.setUseCaches(false)
+    conn.addRequestProperty("Content-Type", "text/plain")
+    conn.addRequestProperty("accept", "*/*")
+    conn.addRequestProperty("Connection", "Keep-Alive")
+    conn.addRequestProperty("Charset", "UTF-8")
+    conn.setRequestMethod("POST")
+    conn.setDoOutput(true)
+    //noinspection JavaAccessorMethodCalledAsEmptyParen
+    autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, data))
+    if (conn.getResponseCode >= 400) throw new UnexpectedResponseCodeException(conn)
+    //noinspection JavaAccessorMethodCalledAsEmptyParen
+    val result = autoClose(conn.getInputStream())(IOUtils.readAllText)
+    val json = try parse(result) catch {
+      case e: ParseException => throw InvalidResponseException(url, result)
+    }
+    if (!json.isInstanceOf[JObject]) throw InvalidResponseException(url, result)
+    json
+  }
 
   override def onCreatePreferences(savedInstanceState: Bundle, rootKey: String) {
     getPreferenceManager.setSharedPreferencesName(PREF_NAME)
@@ -50,6 +99,35 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
     })
     findPreference("auth.logout").setOnPreferenceClickListener(_ => {
       ThrowableFuture(PortalManager.logout)
+      true
+    })
+    findPreference("auth.signConf").setOnPreferenceClickListener(_ => {
+      ThrowableFuture {
+        try {
+          val now = SIGN_DATE_FORMAT.format(new Date())
+          val sign = Signature.getInstance("SHA1withRSA")
+          sign.initSign(SIGN_KEY)
+          sign.update((SIGN_DEVICEID + now).getBytes("GBK"))
+          var json = openSignConnection("list", "deviceid=%s&timestamp=%s&sign=%s".format(SIGN_DEVICEID, now,
+            URLEncoder.encode(Base64.encodeToString(sign.sign(), Base64.NO_WRAP), "UTF-8")))
+          val code = (json \ "retcode").asInstanceOf[JInt].values.toInt
+          if (code == 0) {
+            (json \ "data").asInstanceOf[JArray].arr.headOption match {
+              case Some(conf) =>
+                Log.d(TAG, conf.toString)
+                json = openSignConnection("sign", "conid=%s&signtype=1&signdata=%s"
+                  .format(conf \ "con_id" toString, PortalManager.username))
+                app.showToast("#%d: %s".format((json \ "retcode").asInstanceOf[JInt].values.toInt,
+                  json \ "retmsg" values))
+              case None => app.showToast("No conferences available.")
+            }
+          } else app.showToast("#%d: %s".format(code, json \ "retmsg" values))
+        } catch {
+          case e: Exception =>
+            app.showToast(e.getMessage)
+            e.printStackTrace
+        }
+      }
       true
     })
 
