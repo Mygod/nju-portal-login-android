@@ -150,13 +150,7 @@ object PortalManager {
       case e: UnexpectedResponseCodeException =>
         e.handle()
         -1
-      case e: SocketTimeoutException=>
-        e.printStackTrace
-        -1
-      case e: UnknownHostException =>
-        e.printStackTrace
-        -1
-      case e: ConnectException =>
+      case e: IOException =>
         e.printStackTrace
         -1
       case e: Exception =>
@@ -254,10 +248,7 @@ object PortalManager {
         val msg = e.getMessage
         app.showToast(if (TextUtils.isEmpty(msg)) app.getString(R.string.error_socket_timeout) else msg)
         List.empty[OnlineEntry]
-      case e: ConnectException =>
-        app.showToast(e.getMessage)
-        List.empty[OnlineEntry]
-      case e: UnknownHostException =>
+      case e: IOException =>
         app.showToast(e.getMessage)
         List.empty[OnlineEntry]
       case e: Exception =>
@@ -313,18 +304,11 @@ object PortalManager {
         if (BuildConfig.DEBUG) Log.w(TAG, e.getMessage)
         (2, 0)
       case e: UnexpectedResponseCodeException => (if (e.handle()) 1 else 2, 0)
-      case e: SocketException =>
-        app.showToast(e.getMessage)
-        e.printStackTrace
-        (2, 0)
       case e: SocketTimeoutException =>
         val msg = e.getMessage
         app.showToast(if (TextUtils.isEmpty(msg)) app.getString(R.string.error_socket_timeout) else msg)
         (1, 0)
-      case e: ConnectException =>
-        app.showToast(e.getMessage)
-        (1, 0)
-      case e: UnknownHostException =>
+      case e: IOException =>
         app.showToast(e.getMessage)
         (1, 0)
       case e: Exception =>
@@ -376,7 +360,11 @@ object PortalManager {
     case e: NetworkUnavailableException =>
       if (explicit) app.showToast(app.getString(R.string.error_network_unavailable))
       None
-    case e: ConnectException =>
+    case e: SocketTimeoutException =>
+      val msg = e.getMessage
+      app.showToast(if (TextUtils.isEmpty(msg)) app.getString(R.string.error_socket_timeout) else msg)
+      None
+    case e: IOException =>
       app.showToast(e.getMessage)
       None
     case e: Exception =>
