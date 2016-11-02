@@ -115,8 +115,8 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
             (json \ "data").asInstanceOf[JArray].arr.headOption match {
               case Some(conf) =>
                 Log.d(TAG, conf.toString)
-                json = openSignConnection("sign", "conid=%s&signtype=1&signdata=%s"
-                  .format(conf \ "con_id" toString, PortalManager.username))
+                json = openSignConnection("sign", "conid=%s&signtype=2&signdata=%s"
+                  .format(conf \ "con_id" values, PortalManager.username))
                 app.showToast("#%d: %s".format((json \ "retcode").asInstanceOf[JInt].values.toInt,
                   json \ "retmsg" values))
               case None => app.showToast("No conferences available.")
