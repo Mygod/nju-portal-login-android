@@ -117,8 +117,8 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
                 Log.d(TAG, conf.toString)
                 json = openSignConnection("sign", "conid=%s&signtype=2&signdata=%s"
                   .format(conf \ "con_id" values, PortalManager.username))
-                app.showToast("#%d: %s".format((json \ "retcode").asInstanceOf[JInt].values.toInt,
-                  json \ "retmsg" values))
+                app.showToast("#%d: %s\n%s %s %s".format((json \ "retcode").asInstanceOf[JInt].values.toInt,
+                  json \ "retmsg" values, json \ "stuempno" values, json \ "custname" values, json \ "deptname" values))
               case None => app.showToast("No conferences available.")
             }
           } else app.showToast("#%d: %s".format(code, json \ "retmsg" values))
