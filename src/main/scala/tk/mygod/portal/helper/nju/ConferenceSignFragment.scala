@@ -82,6 +82,7 @@ class ConferenceSignFragment extends DialogFragment with FragmentPlus {
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) {
     super.onViewCreated(view, savedInstanceState)
+    val button = view.findViewById(R.id.query_button)
     Future {
       try {
         val now = DATE_FORMAT.format(new Date())
@@ -115,7 +116,10 @@ class ConferenceSignFragment extends DialogFragment with FragmentPlus {
             }
             val result = "会议名称：%s\n会议类型：%s\n会议日期：%s %s-%s\n会议地点：%s\n会议签到时间：%s\n".format(
               conName, typeName, conBeginDate, conBeginTime, conEndTime, roomName, conSignTime)
-            app.handler.post(() => view.findViewById(R.id.details).asInstanceOf[AppCompatTextView].setText(result))
+            app.handler.post(() => {
+              button.setEnabled(true)
+              view.findViewById(R.id.details).asInstanceOf[AppCompatTextView].setText(result)
+            })
           case None =>
             app.showToast("无会议信息")
           dismissAllowingStateLoss()
@@ -132,8 +136,9 @@ class ConferenceSignFragment extends DialogFragment with FragmentPlus {
     }
     val idInput = view.findViewById(R.id.id_input).asInstanceOf[TextInputEditText]
     idInput.setText(PortalManager.username)
-    idInput.setOnEditorActionListener((_, actionId, event) => if (actionId == EditorInfo.IME_ACTION_SEND ||
-      event.getKeyCode == KeyEvent.KEYCODE_ENTER && event.getAction == KeyEvent.ACTION_DOWN) {
+    idInput.setOnEditorActionListener((_, actionId, event) => if (button.isEnabled &&
+      (actionId == EditorInfo.IME_ACTION_SEND ||
+        event.getKeyCode == KeyEvent.KEYCODE_ENTER && event.getAction == KeyEvent.ACTION_DOWN)) {
       ThrowableFuture {
         // TODO: how to sign with card (signtype=1)?
         val json = openSignConnection("sign", "conid=%s&signtype=2&signdata=%s".format(conId, idInput.getText))
@@ -154,7 +159,6 @@ class ConferenceSignFragment extends DialogFragment with FragmentPlus {
       }
       true
     } else false)
-    val button = view.findViewById(R.id.query_button)
     button.setOnClickListener(_ => if (button.isEnabled) {
       button.setEnabled(false)
       ThrowableFuture {
