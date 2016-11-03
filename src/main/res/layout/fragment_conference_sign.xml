@@ -11,12 +11,12 @@
                                                  android:layout_height="wrap_content"
                                                  android:text="..."/>
     <Space android:layout_width="match_parent" android:layout_height="8dp"/>
-    <android.support.design.widget.TextInputLayout android:layout_width="match_parent"
-                                                   android:layout_height="wrap_content">
+    <android.support.design.widget.TextInputLayout android:layout_width="wrap_content"
+                                                   android:layout_height="wrap_content"
+                                                   android:minWidth="108sp">
         <android.support.design.widget.TextInputEditText android:id="@+id/id_input"
                                                          android:layout_width="match_parent"
                                                          android:layout_height="wrap_content"
-                                                         android:minWidth="120sp"
                                                          android:singleLine="true"
                                                          android:imeOptions="actionSend"
                                                          android:hint="学/工号"/>
