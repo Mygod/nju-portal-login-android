@@ -150,6 +150,12 @@ object PortalManager {
       case e: UnexpectedResponseCodeException =>
         e.handle()
         -1
+      case e: SocketTimeoutException =>
+        Log.w(TAG, e.getMessage match {
+          case "" | null => "SocketTimeoutException"
+          case msg => msg
+        })
+        -1
       case e: IOException =>
         e.printStackTrace
         -1
