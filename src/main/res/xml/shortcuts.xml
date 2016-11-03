@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
     <shortcut android:shortcutId="portal"
-              android:enabled="true"
-              android:icon="@drawable/logo"
+              android:icon="@drawable/ic_qu_browser_launcher"
               android:shortcutShortLabel="@string/portal_activity_url"
               android:shortcutLongLabel="@string/portal_activity_url">
         <intent android:action="android.intent.action.MAIN"
@@ -10,12 +9,27 @@
                 android:targetClass="tk.mygod.portal.helper.nju.PortalActivity" />
     </shortcut>
     <shortcut android:shortcutId="login_logout"
-              android:enabled="true"
-              android:icon="@drawable/logo"
+              android:icon="@drawable/ic_qu_launcher"
               android:shortcutShortLabel="@string/login_logout"
               android:shortcutLongLabel="@string/login_logout">
         <intent android:action="android.intent.action.MAIN"
                 android:targetPackage="tk.mygod.portal.helper.nju"
                 android:targetClass="tk.mygod.portal.helper.nju.LogInOutShortcut" />
+    </shortcut>
+    <shortcut android:shortcutId="notice"
+              android:icon="@drawable/ic_qu_notice_launcher"
+              android:shortcutShortLabel="@string/settings_notices"
+              android:shortcutLongLabel="@string/settings_notices">
+        <intent android:action="android.intent.action.MAIN"
+                android:targetPackage="tk.mygod.portal.helper.nju"
+                android:targetClass="tk.mygod.portal.helper.nju.NoticeActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="usage"
+              android:icon="@drawable/ic_qu_usage_launcher"
+              android:shortcutShortLabel="@string/settings_status_usage"
+              android:shortcutLongLabel="@string/settings_status_usage">
+        <intent android:action="android.intent.action.MAIN"
+                android:targetPackage="tk.mygod.portal.helper.nju"
+                android:targetClass="tk.mygod.portal.helper.nju.UsageActivity" />
     </shortcut>
 </shortcuts>

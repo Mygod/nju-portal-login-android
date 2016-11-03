@@ -111,7 +111,7 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
         fragment.findPreference("status.usage.time").setSummary(time.toString)
         swiper.setRefreshing(false)
       })
-      case None => runOnUiThread(supportFinishAfterTransition)
+      case None => runOnUiThread(() => finish(null))
     })
   }
 
