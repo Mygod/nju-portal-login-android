@@ -1,6 +1,7 @@
 package tk.mygod.portal.helper.nju
 
 import android.annotation.SuppressLint
+import android.content.pm.ShortcutManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
@@ -72,6 +73,7 @@ final class PortalActivity extends ToolbarActivity with CircularRevealActivity w
     manager.setCookie(url, "password=" + Base64.encodeToString(PortalManager.password.getBytes, Base64.DEFAULT))
     manager.setCookie(url, "rmbUser=true")
     webView.post(setDesktopSite(webView.getWidth >= MetricsUtils.dp2px(this, 875)))
+    if (Build.version >= 25) getSystemService(classOf[ShortcutManager]).reportShortcutUsed("portal")
   }
 
   def setDesktopSite(enabled: Boolean) {

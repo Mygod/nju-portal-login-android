@@ -3,6 +3,8 @@ package tk.mygod.portal.helper.nju
 import java.text.DateFormat
 import java.util.Date
 
+import android.annotation.SuppressLint
+import android.content.pm.ShortcutManager
 import android.graphics.Typeface
 import android.os.Bundle
 import android.support.v4.widget.SwipeRefreshLayout
@@ -11,6 +13,7 @@ import android.support.v7.widget.{DefaultItemAnimator, LinearLayoutManager, Recy
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.TextView
 import be.mygod.app.{CircularRevealActivity, ToolbarActivity}
+import be.mygod.os.Build
 import be.mygod.util.Conversions._
 import tk.mygod.portal.helper.nju.database.Notice
 
@@ -34,6 +37,7 @@ final class NoticeActivity extends ToolbarActivity with CircularRevealActivity w
       this.item = item
       text1.setText(item.formattedTitle)
       val date = new Date(item.distributionTime * 1000)
+      //noinspection ScalaDeprecation
       val summary = getString(R.string.notice_summary, DateFormat.getDateTimeInstance(
         DateFormat.DEFAULT, DateFormat.DEFAULT, getResources.getConfiguration.locale).format(date))
       text2.setText(if (item.url == null) summary else summary + '\n' + item.url)
@@ -66,6 +70,7 @@ final class NoticeActivity extends ToolbarActivity with CircularRevealActivity w
   private var swiper: SwipeRefreshLayout = _
   private val adapter = new NoticeAdapter
 
+  @SuppressLint(Array("NewApi"))
   override protected def onCreate(savedInstanceState: Bundle) = {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_notices)
@@ -79,6 +84,7 @@ final class NoticeActivity extends ToolbarActivity with CircularRevealActivity w
     notices.setLayoutManager(new LinearLayoutManager(this))
     notices.setItemAnimator(new DefaultItemAnimator)
     notices.setAdapter(adapter)
+    if (Build.version >= 25) getSystemService(classOf[ShortcutManager]).reportShortcutUsed("notice")
   }
 
   override def onResume {

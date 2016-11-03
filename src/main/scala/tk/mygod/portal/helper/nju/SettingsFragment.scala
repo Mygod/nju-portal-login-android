@@ -47,10 +47,12 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
 
     findPreference("auth.login").setOnPreferenceClickListener(_ => {
       ThrowableFuture(PortalManager.login)
+      LogInOutShortcut.reportUsed()
       true
     })
     findPreference("auth.logout").setOnPreferenceClickListener(_ => {
       ThrowableFuture(PortalManager.logout)
+      LogInOutShortcut.reportUsed()
       true
     })
     findPreference(KEY_SIGN_CONF).setOnPreferenceClickListener(_ => {

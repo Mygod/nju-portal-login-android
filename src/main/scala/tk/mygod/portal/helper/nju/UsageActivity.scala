@@ -2,11 +2,14 @@ package tk.mygod.portal.helper.nju
 
 import java.text.DecimalFormat
 
+import android.annotation.SuppressLint
+import android.content.pm.ShortcutManager
 import android.os.Bundle
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener
 import android.util.Log
 import be.mygod.app.{CircularRevealActivity, ToolbarActivity}
+import be.mygod.os.Build
 import tk.mygod.portal.helper.nju.PortalManager.InvalidResponseException
 import tk.mygod.portal.helper.nju.util.DualFormatter
 
@@ -28,6 +31,7 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
   private var fragment: UsageFragment = _
   private var swiper: SwipeRefreshLayout = _
 
+  @SuppressLint(Array("NewApi"))
   override protected def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_usage)
@@ -37,6 +41,7 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
     swiper = findView(TR.swiper)
     swiper.setColorSchemeResources(R.color.material_accent_200, R.color.material_primary_500)
     swiper.setOnRefreshListener(this)
+    if (Build.version >= 25) getSystemService(classOf[ShortcutManager]).reportShortcutUsed("usage")
   }
 
   override protected def onResume {
