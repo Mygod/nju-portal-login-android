@@ -1,7 +1,7 @@
 package tk.mygod.portal.helper.nju
 
 import android.accounts.AccountManager
-import android.annotation.{SuppressLint, TargetApi}
+import android.annotation.TargetApi
 import android.app.NotificationManager
 import android.content.pm.PackageManager
 import android.content.res.Resources
@@ -31,7 +31,6 @@ class App extends ApplicationPlus {
   /**
     * 0-3: Not available, permission missing, yes (revoke available), yes.
     */
-  @SuppressLint(Array("NewApi"))
   def boundConnectionsAvailable = if (Build.version >= 21) if (Build.version < 23) 3
     else if (Settings.System.canWrite(this)) 2 else 1 else 0
 

@@ -33,7 +33,6 @@ object ConferenceSignFragment {
     "MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAIaEhtCJEL3oq50S5d1sLX5Lb4uLEUSI7u3rzgDIv/3cEpSoANrXwM3qgC4U66ygmohhDjMbjTFiZfLRm4nWHKNk3WANInimM99s5FHKKooC0d0I+rwUbk2WZr0uOdDnx9lGJxqdRolMtYBI/pZCpBDRj2ogEv5Oxr9f9tARg3LvAgMBAAECgYBTN2MrWM/ZnDmmZ016qHSQX9x2qCabjla5Kxp607YqNt3rxu8Yc0acXIjFeT2+wnA3FEuzhETZmzTUfaVKJQH7kRaOlRvksYwg/wSNB/irD8N2Lmw6XX7AvHRvzC5qMbNjUiO2vQwFUjorxES93Bpe5smzc0vOlL3UjPxQXvwZkQJBAMHC5OPcF05xZlob4I4yiFBzThq8WLHKp2Lzq9fYeBW2t90St659HHYqQc/E5FlOfZnCqh6k9/cEa8e2qpCpD9cCQQCxuf6e0y8HHv4iIsfMvpwNkc/MSgoXKFYL0EpLb68vxgWf0WSGhUQ13Hoyk/TzgVBn0O229rxxexsbujl/sDKpAkAixYfwAEJKeH1GtHQC8LyXu2mL0LsWBOkvD82J6bX7J5QtXzuJW7hs2D6BO7NC95wAqPeAklhRgwCYkYZgeYZ3AkEAjD2aH7XBDDt2iXUsd/GIrmR6tldOMwvPKi9IENKmSGpXkc7nJgcO1fmOK075IRTPX7xLd+6msF1V/MEsEgf1UQJAeYjz5SREy1ztwaKp2aKWr9kIRjqcvUm2E0CD8pccn+MI7PKjg1VFFEKHPGXixRGTSbbolxyP3CegdzJfr3hAVQ==",
     Base64.NO_WRAP)))
 
-  @SuppressLint(Array("NewApi"))
   def openSignConnection(file: String, data: String) = {
     val url = new URL(HTTP, "114.212.5.2", 8088, "/yktpre/services/conference/" + file)
     val conn = (if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) {

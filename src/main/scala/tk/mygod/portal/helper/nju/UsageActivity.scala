@@ -2,7 +2,6 @@ package tk.mygod.portal.helper.nju
 
 import java.text.DecimalFormat
 
-import android.annotation.SuppressLint
 import android.content.pm.ShortcutManager
 import android.os.Bundle
 import android.support.v4.widget.SwipeRefreshLayout
@@ -31,7 +30,6 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
   private var fragment: UsageFragment = _
   private var swiper: SwipeRefreshLayout = _
 
-  @SuppressLint(Array("NewApi"))
   override protected def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_usage)

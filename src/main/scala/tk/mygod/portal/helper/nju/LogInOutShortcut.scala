@@ -1,6 +1,5 @@
 package tk.mygod.portal.helper.nju
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.ShortcutManager
@@ -9,7 +8,6 @@ import be.mygod.app.ActivityPlus
 import be.mygod.os.Build
 
 object LogInOutShortcut {
-  @SuppressLint(Array("NewApi"))
   def reportUsed() =
     if (Build.version >= 25) app.getSystemService(classOf[ShortcutManager]).reportShortcutUsed("login_logout")
 }

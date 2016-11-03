@@ -348,8 +348,7 @@ object PortalManager {
   def login: Boolean =
     if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) login(null) else loginLegacy()
 
-  // AnyRef is a workaround for 4.x
-  @SuppressLint(Array("NewApi"))
+  // AnyRef is a workaround for 4.4
   def openPortalConnection[T](file: String, explicit: Boolean = true)
                              (handler: (HttpURLConnection, AnyRef) => Option[T]) = try {
     val url = new URL(HTTP, DOMAIN, file)
@@ -379,7 +378,6 @@ object PortalManager {
       None
   }
 
-  @SuppressLint(Array("NewApi"))
   def logout = try openPortalConnection[Unit]("/portal_io/logout") { (conn, network) =>
     setup(conn)
     if (parseResult(conn)._1 == 101) {

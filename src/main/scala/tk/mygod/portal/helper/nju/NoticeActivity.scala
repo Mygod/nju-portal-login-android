@@ -3,7 +3,6 @@ package tk.mygod.portal.helper.nju
 import java.text.DateFormat
 import java.util.Date
 
-import android.annotation.SuppressLint
 import android.content.pm.ShortcutManager
 import android.graphics.Typeface
 import android.os.Bundle
@@ -70,7 +69,6 @@ final class NoticeActivity extends ToolbarActivity with CircularRevealActivity w
   private var swiper: SwipeRefreshLayout = _
   private val adapter = new NoticeAdapter
 
-  @SuppressLint(Array("NewApi"))
   override protected def onCreate(savedInstanceState: Bundle) = {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_notices)
