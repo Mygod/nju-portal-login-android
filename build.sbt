@@ -30,5 +30,5 @@ libraryDependencies ++=
   "eu.chainfire" % "libsuperuser" % "1.0.0.201608240809" ::
   "me.leolin" % "ShortcutBadger" % "1.1.10" ::
   "org.json4s" %% "json4s-native" % "3.4.2" ::
-  "be.mygod" %% "mygod-lib-android" % "4.0.3-SNAPSHOT" ::
+  "be.mygod" %% "mygod-lib-android" % "4.0.3" ::
   Nil
