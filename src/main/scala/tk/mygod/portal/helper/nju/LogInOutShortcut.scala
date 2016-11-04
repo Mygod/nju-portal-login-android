@@ -21,7 +21,8 @@ final class LogInOutShortcut extends ActivityPlus {
       case Intent.ACTION_CREATE_SHORTCUT => setResult(Activity.RESULT_OK, new Intent()
         .putExtra(Intent.EXTRA_SHORTCUT_INTENT, intent[LogInOutShortcut])
         .putExtra(Intent.EXTRA_SHORTCUT_NAME, getString(R.string.login_logout))
-        .putExtra(Intent.EXTRA_SHORTCUT_ICON_RESOURCE, Intent.ShortcutIconResource.fromContext(this, R.drawable.logo)))
+        .putExtra(Intent.EXTRA_SHORTCUT_ICON_RESOURCE,
+          Intent.ShortcutIconResource.fromContext(this, R.mipmap.ic_launcher)))
       case _ =>
         ThrowableFuture(if (NetworkMonitor.loginStatus == 0) PortalManager.login else PortalManager.logout)
         reportUsed()
