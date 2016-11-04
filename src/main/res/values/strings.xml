@@ -17,6 +17,7 @@
         <item>Detect campus networks only</item>
         <item>Disabled</item>
     </string-array>
+    <string name="settings_auth_sign_conference">Sign in at conference</string>
     <string name="settings_auth_portal_web">Open portal webpage</string>
     <string name="settings_auth_portal_web_summary">Bound connections not supported. The system may choose to use mobile
         network.</string>

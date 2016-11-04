@@ -22,7 +22,7 @@
         <Preference android:key="auth.logout"
                     android:title="@string/settings_auth_logout"/>
         <Preference android:key="auth.signConf"
-                    android:title="Sign in at conference"/>
+                    android:title="@string/settings_auth_sign_conference"/>
         <Preference android:key="auth.portalWeb"
                     android:title="@string/settings_auth_portal_web"/>
     </be.mygod.preference.PreferenceCategory>
