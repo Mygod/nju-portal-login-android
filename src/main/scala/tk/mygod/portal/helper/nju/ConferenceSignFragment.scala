@@ -6,7 +6,6 @@ import java.security.{KeyFactory, Signature}
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import android.annotation.SuppressLint
 import android.app.DialogFragment
 import android.os.Bundle
 import android.support.design.widget.TextInputEditText

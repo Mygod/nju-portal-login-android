@@ -7,21 +7,21 @@ import java.text.DateFormat
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
-import android.annotation.{SuppressLint, TargetApi}
+import android.annotation.TargetApi
 import android.content.Intent
 import android.net.{Network, NetworkInfo}
 import android.support.v4.app.NotificationCompat
 import android.text.style.URLSpan
 import android.text.{SpannableStringBuilder, Spanned, TextUtils}
 import android.util.Log
-import org.json4s.ParserUtil.ParseException
-import org.json4s._
-import org.json4s.native.JsonMethods._
-import org.json4s.native.Serialization
 import be.mygod.os.Build
 import be.mygod.util.CloseUtils._
 import be.mygod.util.Conversions._
 import be.mygod.util.IOUtils
+import org.json4s.ParserUtil.ParseException
+import org.json4s._
+import org.json4s.native.JsonMethods._
+import org.json4s.native.Serialization
 import tk.mygod.portal.helper.nju.database.Notice
 
 import scala.collection.mutable
@@ -269,7 +269,7 @@ object PortalManager {
     _.openConnection
   })
 
-  // Returns: 0 success, 1 error (retry), 2 fatal, and code
+  // Returns: -1 retry, 0 success, 1 error (retry), 2 fatal, and code
   private def loginCore(connector: URL => URLConnection): (Int, Int) = {
     Log.d(TAG, "Logging in...")
     try {
@@ -298,12 +298,10 @@ object PortalManager {
           if ((obj \ "reply_msg").toString.startsWith("E011 ")) // no more balance
             BalanceManager.cancelNotification()
           (2, result)
-        case 8 =>
-          (2, result)
-        case 1 | 6 =>
-          (0, result)
-        case _ =>
-          (1, result)
+        case 8 => (2, result)
+        case 1 | 6 => (0, result)
+        case 253 => (-1, result)  // processing request
+        case _ => (1, result)
       }
     } catch {
       case e: InvalidResponseException =>
@@ -331,8 +329,8 @@ object PortalManager {
     if (result == 0) {
       app.reportNetworkConnectivity(network, true)
       NetworkMonitor.instance.listener.onLogin(network, code)
-      false
-    } else result == 1
+    }
+    result
   }
   def loginLegacy(n: NetworkInfo = null) = {
     var network = n
@@ -340,12 +338,10 @@ object PortalManager {
       network = NetworkMonitor.preferNetworkLegacy(n)
       _.openConnection
     })
-    if (result == 0) {
-      NetworkMonitor.listenerLegacy.onLogin(network, code)
-      false
-    } else result == 1
+    if (result == 0) NetworkMonitor.listenerLegacy.onLogin(network, code)
+    result
   }
-  def login: Boolean =
+  def login: Int =
     if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) login(null) else loginLegacy()
 
   // AnyRef is a workaround for 4.4
