@@ -28,4 +28,6 @@ object MacAddressPreference {
 
 class MacAddressPreference(context: Context, attrs: AttributeSet) extends EditTextPreference(context, attrs) {
   setDefaultValue(MacAddressPreference.default())
+
+  override def createDialog() = new MacAddressPreferenceDialogFragment()
 }
