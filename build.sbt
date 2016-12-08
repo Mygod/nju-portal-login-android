@@ -13,7 +13,7 @@ compileOrder := CompileOrder.JavaThenScala
 javacOptions ++= "-source" :: "1.7" :: "-target" :: "1.7" :: Nil
 scalacOptions ++= "-target:jvm-1.7" :: "-Xexperimental" :: Nil
 
-proguardVersion := "5.3.1"
+proguardVersion := "5.3.2"
 proguardCache := Seq()
 proguardOptions ++=
   "-dontwarn com.thoughtworks.**" ::
@@ -30,5 +30,5 @@ libraryDependencies ++=
   "eu.chainfire" % "libsuperuser" % "1.0.0.201608240809" ::
   "me.leolin" % "ShortcutBadger" % "1.1.11" ::
   "org.json4s" %% "json4s-native" % "3.5.0" ::
-  "be.mygod" %% "mygod-lib-android" % "4.0.3" ::
+  "be.mygod" %% "mygod-lib-android" % "4.0.4-SNAPSHOT" ::
   Nil
