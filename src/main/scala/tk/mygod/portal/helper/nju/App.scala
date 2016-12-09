@@ -5,7 +5,7 @@ import android.annotation.TargetApi
 import android.app.NotificationManager
 import android.content.pm.PackageManager
 import android.content.res.Resources
-import android.content.{ComponentName, Context}
+import android.content.{ComponentName, Context, SharedPreferences}
 import android.net.wifi.WifiManager
 import android.net.{ConnectivityManager, Network}
 import android.os.Handler
@@ -25,43 +25,43 @@ class App extends ApplicationPlus {
     if (!BuildConfig.DEBUG) System.setProperty(LocalLog.LOCAL_LOG_LEVEL_PROPERTY, "WARNING")
     super.onCreate
     systemService[AccountManager].addAccountExplicitly(NoticeManager.account, null, null)
-    NoticeManager.updatePeriodicSync
+    NoticeManager.updatePeriodicSync()
   }
 
   /**
     * 0-3: Not available, permission missing, yes (revoke available), yes.
     */
-  def boundConnectionsAvailable = if (Build.version >= 21) if (Build.version < 23) 3
+  def boundConnectionsAvailable: Int = if (Build.version >= 21) if (Build.version < 23) 3
     else if (Settings.System.canWrite(this)) 2 else 1 else 0
 
-  lazy val cm = systemService[ConnectivityManager]
-  lazy val nm = systemService[NotificationManager]
-  lazy val pm = getPackageManager
-  lazy val wm = systemService[WifiManager]
-  lazy val pref = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-  lazy val editor = pref.edit
+  lazy val cm: ConnectivityManager = systemService[ConnectivityManager]
+  lazy val nm: NotificationManager = systemService[NotificationManager]
+  lazy val pm: PackageManager = getPackageManager
+  lazy val wm: WifiManager = systemService[WifiManager]
+  lazy val pref: SharedPreferences = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+  lazy val editor: SharedPreferences.Editor = pref.edit
 
-  def serviceStatus = pref.getString(SERVICE_STATUS, "3").toInt
+  def serviceStatus: Int = pref.getString(SERVICE_STATUS, "3").toInt
 
-  def showToast(msg: String) = handler.post(() => makeToast(msg, Toast.LENGTH_SHORT).show)
+  def showToast(msg: String): Boolean = handler.post(() => makeToast(msg, Toast.LENGTH_SHORT).show())
 
   //noinspection ScalaDeprecation
   @TargetApi(21)
-  def reportNetworkConnectivity(network: Network, hasConnectivity: Boolean) = if (Build.version >= 23)
+  def reportNetworkConnectivity(network: Network, hasConnectivity: Boolean): Unit = if (Build.version >= 23)
     cm.reportNetworkConnectivity(network, hasConnectivity) else cm.reportBadNetwork(network)
 
   private def readSystemInteger(key: String) =
     getResources.getInteger(Resources.getSystem.getIdentifier(key, "integer", "android"))
-  lazy val lightOnMs = readSystemInteger("config_defaultNotificationLedOn")
-  lazy val lightOffMs = readSystemInteger("config_defaultNotificationLedOff")
+  lazy val lightOnMs: Int = readSystemInteger("config_defaultNotificationLedOn")
+  lazy val lightOffMs: Int = readSystemInteger("config_defaultNotificationLedOff")
 
-  def getEnabled[T: ClassTag] = PackageManager.COMPONENT_ENABLED_STATE_ENABLED ==
+  def getEnabled[T: ClassTag]: Boolean = PackageManager.COMPONENT_ENABLED_STATE_ENABLED ==
     pm.getComponentEnabledSetting(new ComponentName(this, classTag[T].runtimeClass))
-  def setEnabled[T: ClassTag](enabled: Boolean) = pm.setComponentEnabledSetting(
+  def setEnabled[T: ClassTag](enabled: Boolean): Unit = pm.setComponentEnabledSetting(
     new ComponentName(this, classTag[T].runtimeClass),
     if (enabled) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
     PackageManager.DONT_KILL_APP)
 
-  def getIpLookup(ip: CharSequence) = "https://ipinfo.io/" + ip
-  def getMacLookup(mac: CharSequence) = "http://www.coffer.com/mac_find/?string=" + mac
+  def getIpLookup(ip: CharSequence): String = "https://ipinfo.io/" + ip
+  def getMacLookup(mac: CharSequence): String = "http://www.coffer.com/mac_find/?string=" + mac
 }

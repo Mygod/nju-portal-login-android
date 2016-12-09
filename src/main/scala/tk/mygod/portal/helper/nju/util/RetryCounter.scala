@@ -8,5 +8,5 @@ class RetryCounter {
     if (retryCount < 10) retryCount = retryCount + 1
     Thread.sleep(2000 + Random.nextInt(1000 << retryCount)) // prevent overwhelming failing notifications
   }
-  def reset() = retryCount = 0
+  def reset(): Unit = retryCount = 0
 }

@@ -29,20 +29,20 @@ final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeLi
     setContentView(R.layout.activity_main)
     configureToolbar()
     testBoundConnections()
-    startNetworkMonitor
+    startNetworkMonitor()
     app.pref.registerOnSharedPreferenceChangeListener(this)
     if (TextUtils.isEmpty(PortalManager.username) || TextUtils.isEmpty(PortalManager.password))
-      makeSnackbar(R.string.settings_account_missing).show
+      makeSnackbar(R.string.settings_account_missing).show()
   }
 
-  override protected def onDestroy {
+  override protected def onDestroy() {
     app.pref.unregisterOnSharedPreferenceChangeListener(this)
-    super.onDestroy
+    super.onDestroy()
   }
 
   private def manageWriteSettings(dialog: DialogInterface = null, which: Int = 0) = startActivity(
     new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).setData("package:" + getPackageName))
-  def testBoundConnections(requested: Boolean = false) = app.boundConnectionsAvailable match {
+  def testBoundConnections(requested: Boolean = false): Boolean = app.boundConnectionsAvailable match {
     case 1 => if (requested) {
       manageWriteSettings()
       true
@@ -50,7 +50,7 @@ final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeLi
       new AlertDialog.Builder(this).setTitle(R.string.bound_connections_title)
         .setPositiveButton(android.R.string.yes, manageWriteSettings: DialogInterface.OnClickListener)
         .setNegativeButton(android.R.string.no, ((_, _) => app.editor.putBoolean(ASKED_BOUND_CONNECTION, true)): DialogInterface.OnClickListener)
-        .setMessage(R.string.bound_connections_message).create.show
+        .setMessage(R.string.bound_connections_message).create.show()
       true
     } else false
     case 2 => if (requested) {
@@ -60,23 +60,23 @@ final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeLi
     case _ => false
   }
 
-  override def onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) = key match {
+  override def onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String): Unit = key match {
     case SERVICE_STATUS => if (app.serviceStatus > 0) {
       app.setEnabled[BootReceiver](true)
       app.setEnabled[NetworkMonitorListener](true)
-      startNetworkMonitor
+      startNetworkMonitor()
     } else {
       app.setEnabled[BootReceiver](false)
       app.setEnabled[NetworkMonitorListener](false)
       stopService(serviceIntent)
     }
-    case NoticeManager.SYNC_INTERVAL => NoticeManager.updatePeriodicSync
+    case NoticeManager.SYNC_INTERVAL => NoticeManager.updatePeriodicSync()
     case _ => // ignore
   }
 
-  def startNetworkMonitor = if (app.serviceStatus > 0) startService(serviceIntent)
+  def startNetworkMonitor(): Unit = if (app.serviceStatus > 0) startService(serviceIntent)
 
-  def onPreferenceStartScreen(fragment: PreferenceFragment, screen: PreferenceScreen) = {
+  def onPreferenceStartScreen(fragment: PreferenceFragment, screen: PreferenceScreen): Boolean = {
     startActivity(CircularRevealActivity.putLocation(intent[UsageActivity], getLocationOnScreen),
       ActivityOptionsCompat.makeSceneTransitionAnimation(this).toBundle)
     true

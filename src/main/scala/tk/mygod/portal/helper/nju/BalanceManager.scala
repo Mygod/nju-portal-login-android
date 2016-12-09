@@ -48,12 +48,12 @@ object BalanceManager {
   private final val LAST_MONTH = "notifications.alert.balance.lastMonth"
 
   private val currencyFormat = new DecimalFormat("0.00")
-  def formatCurrency(c: Int) = currencyFormat.format(c / 100.0)
+  def formatCurrency(c: Int): String = currencyFormat.format(c / 100.0)
 
   private def enabled = app.pref.getBoolean(ENABLED, true)
-  private def enabled(value: Boolean) = app.editor.putBoolean(ENABLED, value).apply
+  private def enabled(value: Boolean) = app.editor.putBoolean(ENABLED, value).apply()
   private def lastMonth = app.pref.getInt(LAST_MONTH, -1)
-  private def lastMonth(month: Int) = app.editor.putInt(LAST_MONTH, month).apply
+  private def lastMonth(month: Int) = app.editor.putInt(LAST_MONTH, month).apply()
 
   private def currentMonth = {
     val calendar = Calendar.getInstance
@@ -61,8 +61,8 @@ object BalanceManager {
   }
   private def needsChecking = lastMonth < currentMonth
 
-  def cancelNotification() = app.nm.cancel(0)
-  def pushNotification(balance: Int, summary: CharSequence = null) = {
+  def cancelNotification(): Unit = app.nm.cancel(0)
+  def pushNotification(balance: Int, summary: CharSequence = null) {
     var text = app.getText(R.string.alert_balance_insufficient_soon)
     val builder = new NotificationCompat.Builder(app)
       .setAutoCancel(true)
@@ -89,7 +89,8 @@ object BalanceManager {
 
   def check(info: JObject): Unit = if (enabled && needsChecking)
     ThrowableFuture(try PortalManager.queryVolume match {
-      case Some(result) => check((result \ KEY_USAGE).asInstanceOf[JInt].values, info, true, true)
+      case Some(result) =>
+        check((result \ KEY_USAGE).asInstanceOf[JInt].values, info, enabled = true, needsChecking = true)
       case _ =>
     } catch {
       case e: InvalidResponseException =>
@@ -133,7 +134,7 @@ object BalanceManager {
 final class BalanceManager extends BroadcastReceiver {
   import BalanceManager._
 
-  def onReceive(context: Context, intent: Intent) = {
+  def onReceive(context: Context, intent: Intent) {
     intent.getAction match {
       case ACTION_MUTE_MONTH => lastMonth(currentMonth)
       case ACTION_MUTE_FOREVER => enabled(false)

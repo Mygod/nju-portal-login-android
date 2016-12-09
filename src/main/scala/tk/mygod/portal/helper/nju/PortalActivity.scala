@@ -1,6 +1,5 @@
 package tk.mygod.portal.helper.nju
 
-import android.annotation.SuppressLint
 import android.content.pm.ShortcutManager
 import android.graphics.Bitmap
 import android.net.Uri
@@ -56,8 +55,8 @@ final class PortalActivity extends ToolbarActivity with CircularRevealActivity w
         swiper.setRefreshing(false)
         webView.evaluateJavascript(ENABLE_CHAP, null)
       }
-      override def onPageStarted(view: WebView, url: String, favicon: Bitmap) = swiper.setRefreshing(true)
-      override def shouldOverrideUrlLoading(view: WebView, url: String) = {
+      override def onPageStarted(view: WebView, url: String, favicon: Bitmap): Unit = swiper.setRefreshing(true)
+      override def shouldOverrideUrlLoading(view: WebView, url: String): Boolean = {
         val uri = Uri.parse(url)
         if ("http".equalsIgnoreCase(uri.getScheme) && PortalManager.isValidHost(uri.getHost)) false else {
           launchUrl(uri)
@@ -66,7 +65,7 @@ final class PortalActivity extends ToolbarActivity with CircularRevealActivity w
       }
     })
     //noinspection ScalaDeprecation
-    if (Build.version >= 21) manager.removeSessionCookies(null) else manager.removeSessionCookie
+    if (Build.version >= 21) manager.removeSessionCookies(null) else manager.removeSessionCookie()
     val url = rootUrl + "/portal"
     manager.setCookie(url, "username=" + Base64.encodeToString(PortalManager.username.getBytes, Base64.DEFAULT))
     manager.setCookie(url, "password=" + Base64.encodeToString(PortalManager.password.getBytes, Base64.DEFAULT))
@@ -80,10 +79,10 @@ final class PortalActivity extends ToolbarActivity with CircularRevealActivity w
       desktopSiteMenu.setChecked(enabled)
       webViewSettings.setUserAgentString(if (enabled) desktopUA else mobileUA)
     }
-    onRefresh
+    onRefresh()
   }
 
-  def onMenuItemClick(menuItem: MenuItem) = menuItem.getItemId match {
+  def onMenuItemClick(menuItem: MenuItem): Boolean = menuItem.getItemId match {
     case R.id.action_desktop_site =>
       setDesktopSite(!menuItem.isChecked)
       true
@@ -93,5 +92,5 @@ final class PortalActivity extends ToolbarActivity with CircularRevealActivity w
       true
     case _ => false
   }
-  def onRefresh = webView.loadUrl(rootUrl)
+  def onRefresh(): Unit = webView.loadUrl(rootUrl)
 }

@@ -8,6 +8,7 @@ import android.content._
 import android.net.ConnectivityManager.NetworkCallback
 import android.net._
 import android.support.v4.app.NotificationCompat
+import android.support.v4.app.NotificationCompat.Builder
 import android.support.v4.content.{ContextCompat, LocalBroadcastManager}
 import android.util.Log
 import be.mygod.app.ServicePlus
@@ -25,9 +26,9 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
   final val LOCAL_MAC = "misc.localMac"
   final val IGNORE_SYSTEM_VALIDATION = "misc.ignoreSystemValidation"
 
-  def localMacs = app.pref.getString(LOCAL_MAC, MacAddressPreference.default()).split("\n").map(_.toLowerCase)
+  def localMacs: Set[String] = app.pref.getString(LOCAL_MAC, MacAddressPreference.default()).split("\n").map(_.toLowerCase)
     .filter(_ != null).toSet
-  def ignoreSystemValidation = app.pref.getBoolean(IGNORE_SYSTEM_VALIDATION, false)
+  def ignoreSystemValidation: Boolean = app.pref.getBoolean(IGNORE_SYSTEM_VALIDATION, false)
 
   private lazy val networkCapabilities = {
     val result = classOf[NetworkCapabilities].getDeclaredField("mNetworkCapabilities")
@@ -37,11 +38,11 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
 
   var instance: NetworkMonitor = _
 
-  def cares(network: Int) =
+  def cares(network: Int): Boolean =
     network > 6 && network != ConnectivityManager.TYPE_VPN || network == ConnectivityManager.TYPE_WIFI
 
   //noinspection ScalaDeprecation
-  def preferNetworkLegacy(n: NetworkInfo = null) = {
+  def preferNetworkLegacy(n: NetworkInfo = null): NetworkInfo = {
     val network = if (n == null) listenerLegacy.preferredNetwork else n
     val preference = if (network == null) ConnectivityManager.TYPE_WIFI else network.getType
     app.cm.setNetworkPreference(preference)
@@ -49,13 +50,13 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
     network
   }
 
-  def loginNotificationBuilder = new NotificationCompat.Builder(app)
+  def loginNotificationBuilder: Builder = new NotificationCompat.Builder(app)
     .setColor(ContextCompat.getColor(app, R.color.material_primary_500))
     .setSmallIcon(R.drawable.ic_device_signal_wifi_statusbar_not_connected).setGroup(ACTION_LOGIN)
     .setContentTitle(app.getString(R.string.network_available_sign_in))
     .setShowWhen(false).setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 
-  def cancelLoginNotification(id: Int) = {
+  def cancelLoginNotification(id: Int): Boolean = {
     app.nm.cancel(id)
     LocalBroadcastManager.getInstance(app).sendBroadcast(new Intent(OnlineEntryActivity.ACTION_CANCEL)
       .putExtra(OnlineEntryActivity.EXTRA_NOTIFICATION_ID, id))
@@ -105,8 +106,8 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
       cancelLoginNotification(getNotificationId(serialize(n)))
     }
 
-    def reevaluate =
-      if (app.serviceStatus > 0 && app.boundConnectionsAvailable < 2) for ((id, n) <- available) onAvailable(n)
+    def reevaluate(): Unit =
+      if (app.serviceStatus > 0 && app.boundConnectionsAvailable < 2) for ((_, n) <- available) onAvailable(n)
     def onAvailable(n: NetworkInfo) {
       available += (serialize(n), n)
       if (app.serviceStatus > 0 && app.boundConnectionsAvailable < 2)
@@ -164,7 +165,8 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
       if (loginedNetwork != null && id == serialize(loginedNetwork)) loginedNetwork = null
     }
 
-    def preferredNetwork = if (loginedNetwork != null && available.contains(serialize(loginedNetwork))) loginedNetwork
+    def preferredNetwork: NetworkInfo =
+      if (loginedNetwork != null && available.contains(serialize(loginedNetwork))) loginedNetwork
       else app.cm.getAllNetworkInfo.collectFirst {
         case n: NetworkInfo if cares(n.getType) => n
       }.orNull
@@ -176,14 +178,15 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
     *
     * @return 0-2: Logged out, logged in, logged in (legacy).
     */
-  def loginStatus =
+  def loginStatus: Int =
     if (instance != null && instance.loggedIn) 1 else if (listenerLegacy.loginedNetwork != null) 2 else 0
 
   private val receiverRegistered = new AtomicBoolean
-  def onReceive(context: Context, intent: Intent) = listenerLegacy.doLogin(intent.getLongExtra(EXTRA_NETWORK_ID, -1))
+  def onReceive(context: Context, intent: Intent): Unit =
+    listenerLegacy.doLogin(intent.getLongExtra(EXTRA_NETWORK_ID, -1))
 
-  def onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) =
-    if (key == LOCAL_MAC && loginStatus <= 0) listenerLegacy.reevaluate
+  def onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String): Unit =
+    if (key == LOCAL_MAC && loginStatus <= 0) listenerLegacy.reevaluate()
 }
 
 final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeListener {
@@ -221,7 +224,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
       while (available.contains(n.hashCode) && loginedNetwork == null && busy.synchronized(busy.contains(n.hashCode)) &&
         app.serviceStatus > 0) PortalManager.testConnection(n) match {
         case 0 =>
-          app.reportNetworkConnectivity(n, true)
+          app.reportNetworkConnectivity(n, hasConnectivity = true)
           NoticeManager.pushUnreadNotices // push notices only
           return false
         case 2 => return true
@@ -282,7 +285,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
       cancelLoginNotification(getNotificationId(n.hashCode))
     }
 
-    def reevaluate = for ((id, (n, c)) <- available) testConnection(n)
+    def reevaluate(): Unit = for ((id, (n, c)) <- available) testConnection(n)
     override def onAvailable(n: Network) {
       val capabilities = app.cm.getNetworkCapabilities(n)
       if (available.contains(n.hashCode)) {
@@ -312,7 +315,8 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
       if (n.equals(loginedNetwork)) loginedNetwork = null
     }
 
-    def preferredNetwork = if (loginedNetwork != null && available.contains(loginedNetwork.hashCode)) loginedNetwork
+    def preferredNetwork: Network =
+      if (loginedNetwork != null && available.contains(loginedNetwork.hashCode)) loginedNetwork
       else available.collectFirst {
         case (_, (n, _)) => n
       }.orNull
@@ -320,7 +324,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
   @TargetApi(21)
   var listener: NetworkListener = _
 
-  def initBoundConnections = if (listener == null && app.boundConnectionsAvailable > 1) {
+  def initBoundConnections(): Unit = if (listener == null && app.boundConnectionsAvailable > 1) {
     listener = new NetworkListener
     app.cm.requestNetwork(new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
       .addTransportType(NetworkCapabilities.TRANSPORT_BLUETOOTH)
@@ -331,15 +335,15 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
   private lazy val loginReceiver: BroadcastReceiver =
     (_, intent) => listener.doLogin(intent.getIntExtra(EXTRA_NETWORK_ID, -1))
 
-  override def onCreate {
-    super.onCreate
-    initBoundConnections
+  override def onCreate() {
+    super.onCreate()
+    initBoundConnections()
     app.pref.registerOnSharedPreferenceChangeListener(this)
     instance = this
     Log.d(TAG, "Network monitor created.")
   }
 
-  override def onDestroy {
+  override def onDestroy() {
     instance = null
     app.pref.unregisterOnSharedPreferenceChangeListener(this)
     if (listener != null) {
@@ -347,10 +351,10 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
       listener = null
     }
     if (receiverRegistered.compareAndSet(true, false)) app.unregisterReceiver(loginReceiver)
-    super.onDestroy
+    super.onDestroy()
     Log.d(TAG, "Network monitor destroyed.")
   }
 
-  def onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) =
-    if (listener != null && key == LOCAL_MAC && loginStatus <= 0) listener.reevaluate
+  def onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String): Unit =
+    if (listener != null && key == LOCAL_MAC && loginStatus <= 0) listener.reevaluate()
 }

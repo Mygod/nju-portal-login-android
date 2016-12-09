@@ -25,7 +25,7 @@ final class NoticeActivity extends ToolbarActivity with CircularRevealActivity w
     {
       val typedArray = obtainStyledAttributes(Array(android.R.attr.selectableItemBackground))
       view.setBackgroundResource(typedArray.getResourceId(0, 0))
-      typedArray.recycle
+      typedArray.recycle()
     }
     private var item: Notice = _
     private val text1 = itemView.findViewById(android.R.id.text1).asInstanceOf[TextView]
@@ -60,8 +60,8 @@ final class NoticeActivity extends ToolbarActivity with CircularRevealActivity w
 
   private final class NoticeAdapter extends RecyclerView.Adapter[NoticeViewHolder] {
     var notices = new Array[Notice](0)
-    def getItemCount = notices.length
-    def onBindViewHolder(vh: NoticeViewHolder, i: Int) = vh.bind(notices(i))
+    def getItemCount: Int = notices.length
+    def onBindViewHolder(vh: NoticeViewHolder, i: Int): Unit = vh.bind(notices(i))
     def onCreateViewHolder(vg: ViewGroup, i: Int) = new NoticeViewHolder(LayoutInflater.from(vg.getContext)
       .inflate(android.R.layout.simple_list_item_2, vg, false))
   }
@@ -69,7 +69,7 @@ final class NoticeActivity extends ToolbarActivity with CircularRevealActivity w
   private var swiper: SwipeRefreshLayout = _
   private val adapter = new NoticeAdapter
 
-  override protected def onCreate(savedInstanceState: Bundle) = {
+  override protected def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_notices)
     configureToolbar()
@@ -85,18 +85,18 @@ final class NoticeActivity extends ToolbarActivity with CircularRevealActivity w
     if (Build.version >= 25) getSystemService(classOf[ShortcutManager]).reportShortcutUsed("notice")
   }
 
-  override def onResume {
-    super.onResume
+  override def onResume() {
+    super.onResume()
     onRefresh
   }
 
-  def onRefresh = if (!swiper.isRefreshing) {
+  def onRefresh(): Unit = if (!swiper.isRefreshing) {
     swiper.setRefreshing(true)
     ThrowableFuture {
       NoticeManager.updateUnreadNotices()
       adapter.notices = NoticeManager.fetchAllNotices.toArray
       runOnUiThread(() => {
-        adapter.notifyDataSetChanged
+        adapter.notifyDataSetChanged()
         swiper.setRefreshing(false)
       })
     }

@@ -17,7 +17,7 @@ object DatabaseManager {
 }
 
 final class DatabaseManager(context: Context) extends OrmLiteSqliteOpenHelper(context, "data.db", null, 1) {
-  def onCreate(database: SQLiteDatabase, connectionSource: ConnectionSource) =
+  def onCreate(database: SQLiteDatabase, connectionSource: ConnectionSource): Unit =
     TableUtils.createTable(connectionSource, classOf[Notice])
-  def onUpgrade(database: SQLiteDatabase, connectionSource: ConnectionSource, oldVersion: Int, newVersion: Int) = ()
+  def onUpgrade(database: SQLiteDatabase, connectionSource: ConnectionSource, oldVersion: Int, newVersion: Int): Unit = ()
 }

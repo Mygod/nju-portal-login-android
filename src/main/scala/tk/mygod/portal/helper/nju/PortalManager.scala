@@ -8,6 +8,7 @@ import java.util.Date
 import java.util.concurrent.TimeUnit
 
 import android.annotation.TargetApi
+import android.app.Notification
 import android.content.Intent
 import android.net.{Network, NetworkInfo}
 import android.support.v4.app.NotificationCompat
@@ -46,14 +47,14 @@ object PortalManager {
   case class InvalidResponseException(url: URL, response: String)
     extends IOException("Invalid response from: %s\n%s".format(url, response)) { }
   class UnexpectedResponseCodeException(conn: HttpURLConnection) extends IOException {
-    val code = conn.getResponseCode
-    val url = conn.getURL
+    val code: Int = conn.getResponseCode
+    val url: URL = conn.getURL
     //noinspection JavaAccessorMethodCalledAsEmptyParen
-    val response = autoClose(conn.getErrorStream())(IOUtils.readAllText)
+    val response: String = autoClose(conn.getErrorStream())(IOUtils.readAllText)
 
-    override def getMessage = "Unexpected response code %d from: %s\n%s".format(code, url, response)
+    override def getMessage: String = "Unexpected response code %d from: %s\n%s".format(code, url, response)
 
-    def handle() = {
+    def handle(): Boolean = {
       Log.w(TAG, getMessage)
       code match {
         case 502 =>
@@ -62,17 +63,17 @@ object PortalManager {
         case 503 =>
           app.showToast("请求太频繁,请稍后再试!")
           true
-        case i => false
+        case _ => false
       }
     }
   }
 
   var currentUsername: String = _
-  def username = app.pref.getString("account.username", "")
-  def password = app.pref.getString("account.password", "")
+  def username: String = app.pref.getString("account.username", "")
+  def password: String = app.pref.getString("account.password", "")
 
   private val ipv4Matcher = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$".r
-  def isValidHost(host: String) = host != null && (DOMAIN.equalsIgnoreCase(host) ||
+  def isValidHost(host: String): Boolean = host != null && (DOMAIN.equalsIgnoreCase(host) ||
     ipv4Matcher.findFirstIn(host).nonEmpty && host.startsWith("210.28.129.") || host.startsWith("219.219.114."))
 
   private var userInfoListener: JObject => Any = _
@@ -83,12 +84,12 @@ object PortalManager {
       case _ =>
     }
   }
-  def getUserInfo = {
+  def getUserInfo: Option[JObject] = {
     val info = app.pref.getString(STATUS, "")
     if (info.isEmpty) None else Some(parse(info).asInstanceOf[JObject])
   }
   def updateUserInfo(info: JObject) {
-    app.editor.putString(STATUS, compact(render(info))).apply
+    app.editor.putString(STATUS, compact(render(info))).apply()
     if (userInfoListener != null) {
       currentUsername = (info \ "username").asInstanceOf[JString].values
       app.handler.post(userInfoListener(info))
@@ -102,7 +103,7 @@ object PortalManager {
     val resultStr = autoClose(conn.getInputStream())(IOUtils.readAllText)
     if (BuildConfig.DEBUG) Log.v(TAG, resultStr)
     val json = try parse(resultStr) catch {
-      case e: ParseException => throw InvalidResponseException(conn.getURL, resultStr)
+      case _: ParseException => throw InvalidResponseException(conn.getURL, resultStr)
     }
     if (!json.isInstanceOf[JObject]) throw InvalidResponseException(conn.getURL, resultStr)
     val code = json \ "reply_code" match {
@@ -122,9 +123,9 @@ object PortalManager {
     (code, json)
   }
 
-  def parseTimeString(value: BigInt) =
+  def parseTimeString(value: BigInt): String =
     DateFormat.getDateTimeInstance.format(new Date(TimeUnit.SECONDS.toMillis(value.toLong)))
-  def parseIpv4(value: BigInt) = {
+  def parseIpv4(value: BigInt): String = {
     val bytes = value.asInstanceOf[BigInt].toInt
     InetAddress.getByAddress(Array[Byte]((bytes >>> 24 & 0xFF).toByte, (bytes >>> 16 & 0xFF).toByte,
       (bytes >>> 8 & 0xFF).toByte, (bytes & 0xFF).toByte)).getHostAddress
@@ -157,16 +158,16 @@ object PortalManager {
         })
         -1
       case e: IOException =>
-        e.printStackTrace
+        e.printStackTrace()
         -1
       case e: Exception =>
         app.showToast(e.getMessage)
-        e.printStackTrace
+        e.printStackTrace()
         -1
     }
   @TargetApi(21)
-  def testConnection(network: Network) = testConnectionCore(network.openConnection)
-  def testConnectionLegacy(network: NetworkInfo) = testConnectionCore({
+  def testConnection(network: Network): Int = testConnectionCore(network.openConnection)
+  def testConnectionLegacy(network: NetworkInfo): Int = testConnectionCore({
     NetworkMonitor.preferNetworkLegacy(network)
     _.openConnection
   })
@@ -191,11 +192,11 @@ object PortalManager {
   }
 
   class OnlineEntry(obj: JObject) {
-    val mac = (obj \ "mac").asInstanceOf[JString].values
-    val ipv4 = parseIpv4((obj \ "user_ipv4").asInstanceOf[JInt].values)
-    val ipv6 = (obj \ "user_ipv6").asInstanceOf[JString].values
-    val ipv6Valid = !TextUtils.isEmpty(ipv6) && ipv6 != "::"
-    def makeNotification(contentIntent: Intent) = {
+    val mac: String = (obj \ "mac").asInstanceOf[JString].values
+    val ipv4: String = parseIpv4((obj \ "user_ipv4").asInstanceOf[JInt].values)
+    val ipv6: String = (obj \ "user_ipv6").asInstanceOf[JString].values
+    val ipv6Valid: Boolean = !TextUtils.isEmpty(ipv6) && ipv6 != "::"
+    def makeNotification(contentIntent: Intent): Notification = {
       val summary = new SpannableStringBuilder()
       val rawSummary = app.getString(R.string.network_available_sign_in_conflict)
       var start = 0
@@ -259,12 +260,12 @@ object PortalManager {
         List.empty[OnlineEntry]
       case e: Exception =>
         app.showToast(e.getMessage)
-        e.printStackTrace
+        e.printStackTrace()
         List.empty[OnlineEntry]
     }
   @TargetApi(21)
-  def queryOnline(network: Network) = queryOnlineCore(network.openConnection)
-  def queryOnlineLegacy(network: NetworkInfo) = queryOnlineCore({
+  def queryOnline(network: Network): List[OnlineEntry] = queryOnlineCore(network.openConnection)
+  def queryOnlineLegacy(network: NetworkInfo): List[OnlineEntry] = queryOnlineCore({
     NetworkMonitor.preferNetworkLegacy(network)
     _.openConnection
   })
@@ -292,7 +293,7 @@ object PortalManager {
       if (chapPassword == null) return (1, 0)
       conn = connector(new URL(HTTP, DOMAIN, "/portal_io/login")).asInstanceOf[HttpURLConnection]
       setup(conn, chapPassword)
-      val (result, obj) = parseResult(conn, true)
+      val (result, obj) = parseResult(conn, login = true)
       result match {
         case 3 => // need manual actions
           if ((obj \ "reply_msg").toString.startsWith("E011 ")) // no more balance
@@ -317,22 +318,22 @@ object PortalManager {
         (1, 0)
       case e: Exception =>
         app.showToast(e.getMessage)
-        e.printStackTrace
+        e.printStackTrace()
         (1, 0)
     }
   }
   @TargetApi(21)
-  def login(n: Network) = {
+  def login(n: Network): Int = {
     val network = if (n == null) NetworkMonitor.instance.listener.preferredNetwork else n
     if (network == null) throw new NetworkUnavailableException
     val (result, code) = loginCore(network.openConnection)
     if (result == 0) {
-      app.reportNetworkConnectivity(network, true)
+      app.reportNetworkConnectivity(network, hasConnectivity = true)
       NetworkMonitor.instance.listener.onLogin(network, code)
     }
     result
   }
-  def loginLegacy(n: NetworkInfo = null) = {
+  def loginLegacy(n: NetworkInfo = null): Int = {
     var network = n
     val (result, code) = loginCore({
       network = NetworkMonitor.preferNetworkLegacy(n)
@@ -341,12 +342,12 @@ object PortalManager {
     if (result == 0) NetworkMonitor.listenerLegacy.onLogin(network, code)
     result
   }
-  def login: Int =
+  def login(): Int =
     if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) login(null) else loginLegacy()
 
   // AnyRef is a workaround for 4.4
   def openPortalConnection[T](file: String, explicit: Boolean = true)
-                             (handler: (HttpURLConnection, AnyRef) => Option[T]) = try {
+                             (handler: (HttpURLConnection, AnyRef) => Option[T]): Option[T] = try {
     val url = new URL(HTTP, DOMAIN, file)
     val (n: AnyRef, conn) = if (NetworkMonitor.instance != null && app.boundConnectionsAvailable > 1) {
       val network = NetworkMonitor.instance.listener.preferredNetwork
@@ -358,7 +359,7 @@ object PortalManager {
     }
     handler(conn.asInstanceOf[HttpURLConnection], n)
   } catch {
-    case e: NetworkUnavailableException =>
+    case _: NetworkUnavailableException =>
       if (explicit) app.showToast(app.getString(R.string.error_network_unavailable))
       None
     case e: SocketTimeoutException =>
@@ -370,15 +371,15 @@ object PortalManager {
       None
     case e: Exception =>
       app.showToast(e.getMessage)
-      e.printStackTrace
+      e.printStackTrace()
       None
   }
 
-  def logout = try openPortalConnection[Unit]("/portal_io/logout") { (conn, network) =>
+  def logout(): Boolean = try openPortalConnection[Unit]("/portal_io/logout") { (conn, network) =>
     setup(conn)
     if (parseResult(conn)._1 == 101) {
-      if (app.boundConnectionsAvailable > 1 && network != null)
-        app.handler.postDelayed(() => app.reportNetworkConnectivity(network.asInstanceOf[Network], false), 4000)
+      if (app.boundConnectionsAvailable > 1 && network != null) app.handler.postDelayed(() =>
+        app.reportNetworkConnectivity(network.asInstanceOf[Network], hasConnectivity = false), 4000)
       NetworkMonitor.listenerLegacy.loginedNetwork = null
       if (NetworkMonitor.instance != null && NetworkMonitor.instance.listener != null)
         NetworkMonitor.instance.listener.loginedNetwork = null
@@ -391,7 +392,7 @@ object PortalManager {
       false
   }
 
-  def queryNotice(explicit: Boolean = true) =
+  def queryNotice(explicit: Boolean = true): Option[List[Notice]] =
     try openPortalConnection[List[Notice]]("/portal_io/proxy/notice", explicit) { (conn, _) =>
       setup(conn)
       Some((parseResult(conn)._2 \ "notice").asInstanceOf[JArray].values
@@ -408,7 +409,8 @@ object PortalManager {
     *
     * @return Result if successful, else None.
     */
-  def queryVolume = openPortalConnection[JObject]("/portal_io/selfservice/volume/getlist") { (conn, _) =>
+  def queryVolume: Option[JObject] = openPortalConnection[JObject]("/portal_io/selfservice/volume/getlist") {
+    (conn, _) =>
     setup(conn)
     val (code, json) = parseResult(conn)
     if (code == 0) {

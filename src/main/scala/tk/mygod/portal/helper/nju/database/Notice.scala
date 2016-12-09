@@ -1,6 +1,7 @@
 package tk.mygod.portal.helper.nju.database
 
-import android.text.Html
+import android.text.{Html, Spanned}
+import be.mygod.os.Build
 import com.j256.ormlite.field.DatabaseField
 
 /**
@@ -40,13 +41,15 @@ final class Notice {
   @DatabaseField
   var read: Boolean = _
 
-  def formattedTitle = Html.fromHtml(title)
+  //noinspection ScalaDeprecation
+  def formattedTitle: Spanned = if (Build.version >= 24)
+    Html.fromHtml(title, Html.FROM_HTML_OPTION_USE_CSS_COLORS | Html.FROM_HTML_MODE_COMPACT) else Html.fromHtml(title)
 
-  override def equals(o: Any) = o match {
+  override def equals(o: Any): Boolean = o match {
     case that: Notice => distributionTime == that.distributionTime && title == that.title && url == that.url
     case _ => false
   }
-  override def hashCode = {
+  override def hashCode: Int = {
     var result = distributionTime.hashCode
     if (title != null) result ^= title.hashCode
     if (url != null) result ^= url.hashCode

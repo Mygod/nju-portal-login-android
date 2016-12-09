@@ -51,7 +51,7 @@ class OnlineEntryActivity extends ToolbarActivity with TypedFindView {
     })
     findView(TR.ignoreMacButton).setOnClickListener(_ => {
       app.editor.putString(NetworkMonitor.LOCAL_MAC,
-        (NetworkMonitor.localMacs + intent.getStringExtra(EXTRA_MAC)).mkString("\n")).apply
+        (NetworkMonitor.localMacs + intent.getStringExtra(EXTRA_MAC)).mkString("\n")).apply()
       app.nm.cancel(intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1))
       finish()
     })

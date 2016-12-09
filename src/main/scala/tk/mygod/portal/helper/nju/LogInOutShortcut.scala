@@ -8,7 +8,7 @@ import be.mygod.app.ActivityPlus
 import be.mygod.os.Build
 
 object LogInOutShortcut {
-  def reportUsed() =
+  def reportUsed(): Unit =
     if (Build.version >= 25) app.getSystemService(classOf[ShortcutManager]).reportShortcutUsed("login_logout")
 }
 

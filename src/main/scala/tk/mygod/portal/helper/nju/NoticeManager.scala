@@ -3,7 +3,7 @@ package tk.mygod.portal.helper.nju
 import android.accounts.Account
 import android.app.Service
 import android.content._
-import android.os.Bundle
+import android.os.{Bundle, IBinder}
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
 import be.mygod.util.Conversions._
@@ -29,11 +29,11 @@ object NoticeManager {
   private final class SyncAdapter(context: Context, autoInitialize: Boolean, allowParallelSyncs: Boolean)
     extends AbstractThreadedSyncAdapter(context, autoInitialize, allowParallelSyncs) {
     def onPerformSync(account: Account, extras: Bundle, authority: String, provider: ContentProviderClient,
-                      syncResult: SyncResult) = updateUnreadNotices(syncResult)
+                      syncResult: SyncResult): Unit = updateUnreadNotices(syncResult)
   }
 
   val account = new Account(app.getString(R.string.notice_sync), app.getString(R.string.portal_activity_url))
-  def updatePeriodicSync = app.pref.getString(SYNC_INTERVAL, "0").toLong match {
+  def updatePeriodicSync(): Unit = app.pref.getString(SYNC_INTERVAL, "0").toLong match {
     case 0 =>
       ContentResolver.removePeriodicSync(account, AUTHORITY, Bundle.EMPTY)
       ContentResolver.setSyncAutomatically(account, AUTHORITY, false)
@@ -44,11 +44,12 @@ object NoticeManager {
   }
 
   private def fetchNotice(id: Int) = noticeDao.queryForId(id)
-  def fetchAllNotices = noticeDao.query(noticeDao.queryBuilder.orderBy(Notice.DISTRIBUTION_TIME, false).prepare).asScala
+  def fetchAllNotices: mutable.Buffer[Notice] =
+    noticeDao.query(noticeDao.queryBuilder.orderBy(Notice.DISTRIBUTION_TIME, false).prepare).asScala
 
-  def updateUnreadCount = ShortcutBadger.applyCount(app, noticeDao.queryForEq("read", false).size)
+  def updateUnreadCount(): Boolean = ShortcutBadger.applyCount(app, noticeDao.queryForEq("read", false).size)
 
-  def updateUnreadNotices(syncResult: SyncResult = null) =
+  def updateUnreadNotices(syncResult: SyncResult = null): ArrayBuffer[Notice] =
     synchronized(PortalManager.queryNotice(syncResult == null) match {
       case Some(notices) =>
         val unread = new ArrayBuffer[Notice]
@@ -81,7 +82,7 @@ object NoticeManager {
             newItem = true
           }
         }
-        if (newItem) updateUnreadCount
+        if (newItem) updateUnreadCount()
         unread
       case _ => // error, ignore
         if (syncResult != null) syncResult.stats.numIoExceptions += 1
@@ -92,14 +93,14 @@ object NoticeManager {
     notice.read = true
     app.nm.cancel(notice.id)
     noticeDao.update(notice)
-    updateUnreadCount
+    updateUnreadCount()
   }
 
   private val pushedNotices = new mutable.HashSet[Int]
   private var receiverRegistered: Boolean = _
   private def pending(action: String, id: Int) =
     app.pendingBroadcast(new Intent(action).putExtra(EXTRA_ID, id).setFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY))
-  def pushUnreadNotices = if (app.pref.getBoolean("notices.sync.auto", true)) {
+  def pushUnreadNotices(): Unit = if (app.pref.getBoolean("notices.sync.auto", true)) {
     val notices = updateUnreadNotices()
     if (notices.nonEmpty) app.handler.post(() => {
       synchronized(if (!receiverRegistered) {
@@ -136,10 +137,10 @@ final class NoticeManager extends Service {
 
   private var syncAdapter: SyncAdapter = _
 
-  override def onCreate {
-    super.onCreate
+  override def onCreate() {
+    super.onCreate()
     syncAdapter = new SyncAdapter(app, true, false)
   }
 
-  def onBind(intent: Intent) = syncAdapter.getSyncAdapterBinder
+  def onBind(intent: Intent): IBinder = syncAdapter.getSyncAdapterBinder
 }

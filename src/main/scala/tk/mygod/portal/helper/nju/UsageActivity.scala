@@ -42,20 +42,20 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
     if (Build.version >= 25) getSystemService(classOf[ShortcutManager]).reportShortcutUsed("usage")
   }
 
-  override protected def onResume {
-    super.onResume
+  override protected def onResume() {
+    super.onResume()
     refresh()
   }
 
-  def onRefresh = refresh(true)
+  def onRefresh(): Unit = refresh(true)
 
   def refresh(manual: Boolean = false) {
     swiper.setRefreshing(true)
     ThrowableFuture((try {
       if (manual) {
-        PortalManager.logout
+        PortalManager.logout()
         Thread.sleep(2000)
-        PortalManager.login
+        PortalManager.login()
         Thread.sleep(2000)
       }
       PortalManager.queryVolume
@@ -65,11 +65,11 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
           refresh(true)
           return
         }
-        e.printStackTrace
+        e.printStackTrace()
         app.showToast(e.getMessage)
         None
       case e: Exception =>
-        e.printStackTrace
+        e.printStackTrace()
         app.showToast(e.getMessage)
         None
     }) match {

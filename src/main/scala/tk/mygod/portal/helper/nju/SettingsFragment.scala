@@ -46,12 +46,12 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
     })
 
     findPreference("auth.login").setOnPreferenceClickListener(_ => {
-      ThrowableFuture(PortalManager.login)
+      ThrowableFuture(PortalManager.login())
       LogInOutShortcut.reportUsed()
       true
     })
     findPreference("auth.logout").setOnPreferenceClickListener(_ => {
-      ThrowableFuture(PortalManager.logout)
+      ThrowableFuture(PortalManager.logout())
       LogInOutShortcut.reportUsed()
       true
     })
@@ -121,7 +121,7 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
     }))
     if (available > 1) {
       portalWeb.setSummary(R.string.settings_auth_portal_web_summary)
-      if (NetworkMonitor.instance != null) NetworkMonitor.instance.initBoundConnections
+      if (NetworkMonitor.instance != null) NetworkMonitor.instance.initBoundConnections()
       app.setEnabled[NetworkMonitorListener](false)
     } else {
       portalWeb.setSummary(null)
@@ -129,10 +129,10 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
     }
   }
 
-  override def onDestroy {
+  override def onDestroy() {
     PortalManager.setUserInfoListener(null)
     app.pref.unregisterOnSharedPreferenceChangeListener(this)
-    super.onDestroy
+    super.onDestroy()
   }
 
   def userInfoUpdated(info: JObject) {
@@ -161,13 +161,13 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
   }
 
   private def humorous(preference: Preference) = {
-    makeToast(R.string.coming_soon).show
+    makeToast(R.string.coming_soon).show()
     true
   }
 
   private lazy val localMac = findPreference(NetworkMonitor.LOCAL_MAC).asInstanceOf[MacAddressPreference]
   private lazy val alertBalanceEnabled = findPreference(BalanceManager.ENABLED).asInstanceOf[SwitchPreference]
-  def onSharedPreferenceChanged(pref: SharedPreferences, key: String) = key match {
+  def onSharedPreferenceChanged(pref: SharedPreferences, key: String): Unit = key match {
     case BalanceManager.ENABLED => alertBalanceEnabled.setChecked(pref.getBoolean(key, true))
     case NetworkMonitor.LOCAL_MAC => localMac.setText(pref.getString(key, null))
     case _ =>

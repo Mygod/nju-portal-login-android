@@ -13,11 +13,11 @@ package object nju {
   final val PREF_NAME = "pref"
   final val SERVICE_STATUS = "auth.serviceStatus"
 
-  def ThrowableFuture[T](f: => T) = Future(f) onFailure {
+  def ThrowableFuture[T](f: => T): Unit = Future(f) onFailure {
     case e: PortalManager.NetworkUnavailableException =>
       app.showToast(app.getString(R.string.error_network_unavailable))
     case e: Exception =>
-      e.printStackTrace
+      e.printStackTrace()
       app.showToast(e.getMessage)
   }
 }
