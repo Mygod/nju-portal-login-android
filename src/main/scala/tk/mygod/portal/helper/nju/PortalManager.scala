@@ -380,8 +380,10 @@ object PortalManager {
   def queryNotice(explicit: Boolean = true): Option[IndexedSeq[Notice]] =
     try openPortalConnection[IndexedSeq[Notice]]("/portal_io/proxy/notice", explicit) { (conn, _) =>
       setup(conn)
-      val notices = parseResult(conn)._2.optJSONArray("notice")
-      Some((0 until notices.length).map(i => new Notice(notices.getJSONObject(i))))
+      parseResult(conn)._2.optJSONArray("notice") match {
+        case null => Some(IndexedSeq.empty)
+        case notices => Some((0 until notices.length).map(i => new Notice(notices.getJSONObject(i))))
+      }
     } catch {
       case e: Exception =>
         e.printStackTrace()
