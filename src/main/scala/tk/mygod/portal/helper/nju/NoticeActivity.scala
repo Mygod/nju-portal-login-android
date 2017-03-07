@@ -79,7 +79,7 @@ final class NoticeActivity extends ToolbarActivity with CircularRevealActivity w
     swiper.setOnRefreshListener(this)
     adapter.notices = NoticeManager.fetchAllNotices.toArray
     val notices = findView(TR.notices)
-    notices.setLayoutManager(new LinearLayoutManager(this))
+    notices.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false))
     notices.setItemAnimator(new DefaultItemAnimator)
     notices.setAdapter(adapter)
     if (Build.version >= 25) getSystemService(classOf[ShortcutManager]).reportShortcutUsed("notice")
