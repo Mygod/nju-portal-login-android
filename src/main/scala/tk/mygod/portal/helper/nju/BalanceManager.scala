@@ -94,7 +94,7 @@ object BalanceManager {
       case _ =>
     } catch {
       case e: InvalidResponseException =>
-        if (e.response == "") Log.w("BalanceManager", "Nothing returned on querying usage!") else throw e
+        if (e.response.isEmpty) Log.w("BalanceManager", "Nothing returned on querying usage!") else throw e
     })
   def check(refer: Long): Usage = {
     val enabled = this.enabled
