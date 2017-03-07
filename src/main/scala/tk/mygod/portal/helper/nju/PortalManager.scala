@@ -19,10 +19,7 @@ import be.mygod.os.Build
 import be.mygod.util.CloseUtils._
 import be.mygod.util.Conversions._
 import be.mygod.util.IOUtils
-import org.json4s.ParserUtil.ParseException
-import org.json4s._
-import org.json4s.native.JsonMethods._
-import org.json4s.native.Serialization
+import org.json.{JSONException, JSONObject}
 import tk.mygod.portal.helper.nju.database.Notice
 
 import scala.collection.mutable
@@ -76,60 +73,52 @@ object PortalManager {
   def isValidHost(host: String): Boolean = host != null && (DOMAIN.equalsIgnoreCase(host) ||
     ipv4Matcher.findFirstIn(host).nonEmpty && host.startsWith("210.28.129.") || host.startsWith("219.219.114."))
 
-  private var userInfoListener: JObject => Any = _
-  def setUserInfoListener(listener: JObject => Any) {
+  private var userInfoListener: JSONObject => Any = _
+  def setUserInfoListener(listener: JSONObject => Any) {
     userInfoListener = listener
     if (listener != null) getUserInfo match {
       case Some(info) => listener(info)
       case _ =>
     }
   }
-  def getUserInfo: Option[JObject] = {
+  def getUserInfo: Option[JSONObject] = {
     val info = app.pref.getString(STATUS, "")
-    if (info.isEmpty) None else Some(parse(info).asInstanceOf[JObject])
+    if (info.isEmpty) None else Some(new JSONObject(info))
   }
-  def updateUserInfo(info: JObject) {
-    app.editor.putString(STATUS, compact(render(info))).apply()
+  def updateUserInfo(info: JSONObject) {
+    app.editor.putString(STATUS, info.toString).apply()
     if (userInfoListener != null) {
-      currentUsername = (info \ "username").asInstanceOf[JString].values
+      currentUsername = info.getString("username")
       app.handler.post(userInfoListener(info))
     }
   }
 
-  private implicit val formats = Serialization.formats(NoTypeHints)
   private def parseResult(conn: HttpURLConnection, login: Boolean = false) = {
     if (conn.getResponseCode >= 400) throw new UnexpectedResponseCodeException(conn)
     //noinspection JavaAccessorMethodCalledAsEmptyParen
     val resultStr = autoClose(conn.getInputStream())(IOUtils.readAllText)
     if (BuildConfig.DEBUG) Log.v(TAG, resultStr)
-    val json = try parse(resultStr) catch {
-      case _: ParseException => throw InvalidResponseException(conn.getURL, resultStr)
+    val json = try new JSONObject(resultStr) catch {
+      case _: JSONException => throw InvalidResponseException(conn.getURL, resultStr)
     }
-    if (!json.isInstanceOf[JObject]) throw InvalidResponseException(conn.getURL, resultStr)
-    val code = json \ "reply_code" match {
-      case i: JInt => i.values.toInt
-      case _ => 0
-    }
-    json \ "userinfo" match {
-      case info: JObject =>
+    val code = json.optInt("reply_code")  // assuming #0: 操作成功 for missing results
+    json.optJSONObject("userinfo") match {
+      case null =>
+      case info =>
         updateUserInfo(info)
         if (login && code == 1) app.handler.postDelayed(() => BalanceManager.check(info), 2000) // first login
         else BalanceManager.check(info)
-      case _ =>
     }
     if (code != 0 && code != 2 && code != 9 &&
       (code != 1 && code != 6 && code != 101 || app.pref.getBoolean("notifications.login", true)))
-      app.showToast((json \ "reply_msg").asInstanceOf[JString].values)
+      app.showToast(json.optString("reply_msg"))
     (code, json)
   }
 
-  def parseTimeString(value: BigInt): String =
-    DateFormat.getDateTimeInstance.format(new Date(TimeUnit.SECONDS.toMillis(value.toLong)))
-  def parseIpv4(value: BigInt): String = {
-    val bytes = value.asInstanceOf[BigInt].toInt
-    InetAddress.getByAddress(Array[Byte]((bytes >>> 24 & 0xFF).toByte, (bytes >>> 16 & 0xFF).toByte,
-      (bytes >>> 8 & 0xFF).toByte, (bytes & 0xFF).toByte)).getHostAddress
-  }
+  def parseTimeString(value: Long): String =
+    DateFormat.getDateTimeInstance.format(new Date(TimeUnit.SECONDS.toMillis(value)))
+  def parseIpv4(bytes: Int): String = InetAddress.getByAddress(Array[Byte]((bytes >>> 24 & 0xFF).toByte,
+    (bytes >>> 16 & 0xFF).toByte, (bytes >>> 8 & 0xFF).toByte, (bytes & 0xFF).toByte)).getHostAddress
 
   /**
     * Based on: https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/connectivity/NetworkMonitor.java#640
@@ -141,7 +130,6 @@ object PortalManager {
       val conn = connector(new URL(HTTP, DOMAIN, "/portal_io/getinfo")).asInstanceOf[HttpURLConnection]
       setup(conn)
       val (code, json) = parseResult(conn)
-      if (code == 0) updateUserInfo((json \ "userinfo").asInstanceOf[JObject]) // 操作成功
       Log.d(TAG, "Testing connection finished with code %d.".format(code))
       code // 2: 无用户portal信息
     } catch {
@@ -191,10 +179,10 @@ object PortalManager {
     autoClose(conn.getOutputStream())(os => IOUtils.writeAllText(os, post))
   }
 
-  class OnlineEntry(obj: JObject) {
-    val mac: String = (obj \ "mac").asInstanceOf[JString].values
-    val ipv4: String = parseIpv4((obj \ "user_ipv4").asInstanceOf[JInt].values)
-    val ipv6: String = (obj \ "user_ipv6").asInstanceOf[JString].values
+  class OnlineEntry(obj: JSONObject) {
+    val mac: String = obj.getString("mac")
+    val ipv4: String = parseIpv4(obj.getInt("user_ipv4"))
+    val ipv6: String = obj.getString("user_ipv6")
     val ipv6Valid: Boolean = !TextUtils.isEmpty(ipv6) && ipv6 != "::"
     def makeNotification(contentIntent: Intent): Notification = {
       val summary = new SpannableStringBuilder()
@@ -209,12 +197,8 @@ object PortalManager {
             val from = summary.length
             summary.append(mac)
             summary.setSpan(new URLSpan(app.getMacLookup(mac)), from, summary.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-          case "%2$s" => summary.append(obj \ "area_name" match {
-            case str: JString => str.values
-            case _ => "未知区域"
-          })
-          case "%3$s" => summary.append(parseTimeString(
-            (obj \ BalanceManager.KEY_ACTIVITY_START_TIME).asInstanceOf[JInt].values))
+          case "%2$s" => summary.append(obj.optString("area_name", "未知区域"))
+          case "%3$s" => summary.append(parseTimeString(obj.getLong(BalanceManager.KEY_ACTIVITY_START_TIME)))
         }
         i = rawSummary.indexOf('%', start)
       }
@@ -238,34 +222,35 @@ object PortalManager {
       new NotificationCompat.BigTextStyle(builder.setContentText(summary)).bigText(summary).build
     }
   }
-  private def queryOnlineCore(connector: URL => URLConnection): List[OnlineEntry] =
+  private def queryOnlineCore(connector: URL => URLConnection): IndexedSeq[OnlineEntry] =
     try {
       val conn = connector(new URL(HTTP, DOMAIN, "/portal_io/selfservice/bfonline/getlist"))
         .asInstanceOf[HttpURLConnection]
       setup(conn, AUTH_BASE.format(username, password))
       // TODO: Support CHAP encryption check
       val (_, json) = parseResult(conn)
-      if ((json \ "total").asInstanceOf[JInt].values > 0) {
+      if (json.getInt("total") > 0) {
         val macs = NetworkMonitor.localMacs
-        (json \ "rows").asInstanceOf[JArray].arr.map(obj => new OnlineEntry(obj.asInstanceOf[JObject]))
+        val rows = json.getJSONArray("rows")
+        (0 until rows.length).map(i => new OnlineEntry(rows.get(i).asInstanceOf[JSONObject]))
           .filter(obj => !macs.contains(obj.mac.toLowerCase))
-      } else List.empty[OnlineEntry]
+      } else IndexedSeq.empty[OnlineEntry]
     } catch {
       case e: SocketTimeoutException =>
         val msg = e.getMessage
         app.showToast(if (TextUtils.isEmpty(msg)) app.getString(R.string.error_socket_timeout) else msg)
-        List.empty[OnlineEntry]
+        IndexedSeq.empty[OnlineEntry]
       case e: IOException =>
         app.showToast(e.getMessage)
-        List.empty[OnlineEntry]
+        IndexedSeq.empty[OnlineEntry]
       case e: Exception =>
         app.showToast(e.getMessage)
         e.printStackTrace()
-        List.empty[OnlineEntry]
+        IndexedSeq.empty[OnlineEntry]
     }
   @TargetApi(21)
-  def queryOnline(network: Network): List[OnlineEntry] = queryOnlineCore(network.openConnection)
-  def queryOnlineLegacy(network: NetworkInfo): List[OnlineEntry] = queryOnlineCore({
+  def queryOnline(network: Network): IndexedSeq[OnlineEntry] = queryOnlineCore(network.openConnection)
+  def queryOnlineLegacy(network: NetworkInfo): IndexedSeq[OnlineEntry] = queryOnlineCore({
     NetworkMonitor.preferNetworkLegacy(network)
     _.openConnection
   })
@@ -278,7 +263,7 @@ object PortalManager {
       setup(conn)
       val (code, json) = parseResult(conn)
       if (code != 0) return null
-      val challenge = (json \ "challenge").asInstanceOf[JString].values
+      val challenge = json.getString("challenge")
       val passphrase = new Array[Byte](17)
       passphrase(0) = Random.nextInt.toByte
       val passphraseRaw = new mutable.ArrayBuffer[Byte]
@@ -296,7 +281,7 @@ object PortalManager {
       val (result, obj) = parseResult(conn, login = true)
       result match {
         case 3 => // need manual actions
-          if ((obj \ "reply_msg").toString.startsWith("E011 ")) // no more balance
+          if (obj.getString("reply_msg").startsWith("E011 ")) // no more balance
             BalanceManager.cancelNotification()
           (2, result)
         case 8 => (2, result)
@@ -392,11 +377,11 @@ object PortalManager {
       false
   }
 
-  def queryNotice(explicit: Boolean = true): Option[List[Notice]] =
-    try openPortalConnection[List[Notice]]("/portal_io/proxy/notice", explicit) { (conn, _) =>
+  def queryNotice(explicit: Boolean = true): Option[IndexedSeq[Notice]] =
+    try openPortalConnection[IndexedSeq[Notice]]("/portal_io/proxy/notice", explicit) { (conn, _) =>
       setup(conn)
-      Some((parseResult(conn)._2 \ "notice").asInstanceOf[JArray].values
-        .map(i => new Notice(i.asInstanceOf[Map[String, Any]])))
+      val notices = parseResult(conn)._2.optJSONArray("notice")
+      Some((0 until notices.length).map(i => new Notice(notices.getJSONObject(i))))
     } catch {
       case e: Exception =>
         e.printStackTrace()
@@ -409,14 +394,14 @@ object PortalManager {
     *
     * @return Result if successful, else None.
     */
-  def queryVolume: Option[JObject] = openPortalConnection[JObject]("/portal_io/selfservice/volume/getlist") {
+  def queryVolume: Option[JSONObject] = openPortalConnection[JSONObject]("/portal_io/selfservice/volume/getlist") {
     (conn, _) =>
     setup(conn)
     val (code, json) = parseResult(conn)
     if (code == 0) {
-      val total = (json \ "total").asInstanceOf[JInt].values
-      if (total != BigInt(1)) throw new Exception("total = " + total)
-      Some((json \ "rows")(0).asInstanceOf[JObject])
+      val total = json.getInt("total")
+      if (total != 1) throw new Exception("total = " + total)
+      Some(json.getJSONArray("rows").getJSONObject(0))
     } else None
   }
 }

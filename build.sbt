@@ -29,6 +29,5 @@ libraryDependencies ++=
   "com.j256.ormlite" % "ormlite-android" % "5.0" ::
   "eu.chainfire" % "libsuperuser" % "1.0.0.201608240809" ::
   "me.leolin" % "ShortcutBadger" % "1.1.13" ::
-  "org.json4s" %% "json4s-native" % "3.5.0" ::
   "be.mygod" %% "mygod-lib-android" % "4.0.4-SNAPSHOT" ::
   Nil

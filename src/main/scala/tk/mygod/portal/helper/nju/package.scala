@@ -20,4 +20,10 @@ package object nju {
       e.printStackTrace()
       app.showToast(e.getMessage)
   }
+
+  def quantityToInt(i: Long): Int = i match {
+    case _ if i > Int.MaxValue => Int.MaxValue
+    case _ if i < Int.MinValue => Int.MinValue
+    case _ => i.toInt
+  }
 }

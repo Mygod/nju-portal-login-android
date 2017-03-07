@@ -3,6 +3,7 @@ package tk.mygod.portal.helper.nju.database
 import android.text.{Html, Spanned}
 import be.mygod.os.Build
 import com.j256.ormlite.field.DatabaseField
+import org.json.JSONObject
 
 /**
   * @author Mygod
@@ -13,11 +14,11 @@ object Notice {
 
 //noinspection HashCodeUsesVar
 final class Notice {
-  def this(o: Map[String, Any]) {
+  def this(obj: JSONObject) {
     this()
-    title = o("title").asInstanceOf[String]
-    distributionTime = o("disttime").asInstanceOf[BigInt].toLong
-    o.get("url") match {
+    title = obj.getString("title")
+    distributionTime = obj.getLong("disttime")
+    obj.get("url") match {
       case Some(str: String) => url = str
       case _ =>
     }

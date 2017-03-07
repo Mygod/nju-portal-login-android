@@ -9,7 +9,7 @@ import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationCompat.BigTextStyle
 import android.support.v4.content.ContextCompat
 import android.util.Log
-import org.json4s.{JInt, JObject}
+import org.json.JSONObject
 import tk.mygod.portal.helper.nju.PortalManager.InvalidResponseException
 
 /**
@@ -18,7 +18,7 @@ import tk.mygod.portal.helper.nju.PortalManager.InvalidResponseException
   * @author Mygod
   */
 object BalanceManager {
-  class Usage(private val refer: Int) {
+  class Usage(private val refer: Long) {
     override def toString: String = {
       if (refer <= 0) return formatCurrency(refer)
       if (refer <= 600) return "%1$s - %1$s = %2$s".format(formatCurrency(refer), formatCurrency(0))
@@ -27,12 +27,12 @@ object BalanceManager {
       "%s - %s - %s = %s"
         .format(formatCurrency(refer), formatCurrency(600), formatCurrency(refer - 2600), formatCurrency(2000))
     }
-    def monthChargeLimit: Int = {
+    def monthChargeLimit: Long = {
       if (refer <= 600) return 2000
       if (refer >= 2600) return 0
       2600 - refer
     }
-    def remainingTime(balance: Int): Int = {
+    def remainingTime(balance: Long): Long = {
       if (refer > 2600) return -1
       if (refer >= 600) return balance
       600 - refer + balance
@@ -48,7 +48,7 @@ object BalanceManager {
   private final val LAST_MONTH = "notifications.alert.balance.lastMonth"
 
   private val currencyFormat = new DecimalFormat("0.00")
-  def formatCurrency(c: Int): String = currencyFormat.format(c / 100.0)
+  def formatCurrency(c: Long): String = currencyFormat.format(c / 100.0)
 
   private def enabled = app.pref.getBoolean(ENABLED, true)
   private def enabled(value: Boolean) = app.editor.putBoolean(ENABLED, value).apply()
@@ -62,7 +62,7 @@ object BalanceManager {
   private def needsChecking = lastMonth < currentMonth
 
   def cancelNotification(): Unit = app.nm.cancel(0)
-  def pushNotification(balance: Int, summary: CharSequence = null) {
+  def pushNotification(balance: Long, summary: CharSequence = null) {
     var text = app.getText(R.string.alert_balance_insufficient_soon)
     val builder = new NotificationCompat.Builder(app)
       .setAutoCancel(true)
@@ -87,40 +87,40 @@ object BalanceManager {
       app.pendingBroadcast(ACTION_MUTE_FOREVER))).bigText(text).build())
   }
 
-  def check(info: JObject): Unit = if (enabled && needsChecking)
+  def check(info: JSONObject): Unit = if (enabled && needsChecking)
     ThrowableFuture(try PortalManager.queryVolume match {
       case Some(result) =>
-        check((result \ KEY_USAGE).asInstanceOf[JInt].values, info, enabled = true, needsChecking = true)
+        check(result.getLong(KEY_USAGE), info, enabled = true, needsChecking = true)
       case _ =>
     } catch {
       case e: InvalidResponseException =>
         if (e.response == "") Log.w("BalanceManager", "Nothing returned on querying usage!") else throw e
     })
-  def check(refer: BigInt): Usage = {
+  def check(refer: Long): Usage = {
     val enabled = this.enabled
     check(refer, PortalManager.getUserInfo.get, enabled, enabled && needsChecking)
   }
-  private def check(refer: BigInt, info: JObject, enabled: Boolean, needsChecking: Boolean) = {
-    val usage = new Usage(refer.toInt)
-    val balance = (info \ KEY_BALANCE).asInstanceOf[JInt].values.toInt
+  private def check(refer: Long, info: JSONObject, enabled: Boolean, needsChecking: Boolean) = {
+    val usage = new Usage(refer)
+    val balance = info.getLong(KEY_BALANCE)
     if (enabled)  // always check for negative balance
       if (balance < 0) pushNotification(balance) else if (needsChecking)
         if (balance < usage.monthChargeLimit) {
           var length: String = null
           def prepend(s: String) = if (length == null) length = s else length = s + ' ' + length
-          var time = ((info \ KEY_ACTIVITY_START_TIME).asInstanceOf[JInt].values.toLong + // total remaining seconds
-            180 * usage.remainingTime(balance) - TimeUnit.MILLISECONDS.toSeconds(new Date().getTime)).toInt
+          var time = info.getLong(KEY_ACTIVITY_START_TIME) +  // total remaining seconds
+            180 * usage.remainingTime(balance) - TimeUnit.MILLISECONDS.toSeconds(new Date().getTime)
           if (time > 0) {
-            val sec = time % 60
+            val sec = (time % 60).toInt
             time /= 60
             if (sec != 0) prepend(sec + " " + app.getResources.getQuantityString(R.plurals.seconds, sec))
-            val min = time % 60
+            val min = (time % 60).toInt
             time /= 60
             if (min != 0) prepend(min + " " + app.getResources.getQuantityString(R.plurals.minutes, min))
-            val hr = time % 24
+            val hr = (time % 24).toInt
             val days = time / 24
             if (hr != 0) prepend(hr + " " + app.getResources.getQuantityString(R.plurals.hours, hr))
-            if (days != 0) prepend(days + " " + app.getResources.getQuantityString(R.plurals.days, days))
+            if (days != 0) prepend(days + " " + app.getResources.getQuantityString(R.plurals.days, quantityToInt(days)))
             pushNotification(balance, app.getString(R.string.alert_balance_insufficient_later, length))
           } else pushNotification(balance, app.getString(R.string.alert_balance_insufficient_soon))
         } else {

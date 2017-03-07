@@ -12,6 +12,8 @@ import be.mygod.os.Build
 import tk.mygod.portal.helper.nju.PortalManager.InvalidResponseException
 import tk.mygod.portal.helper.nju.util.DualFormatter
 
+import scala.collection.JavaConversions._
+
 /**
   * @author Mygod
   */
@@ -78,32 +80,38 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
         val monthId = new DualFormatter(format2 = NUMBER_FORMAT)
         val service = new DualFormatter(format2 = NUMBER_FORMAT)
         val time = new DualFormatter(format2 = "~%s")
-        for ((key, value) <- result.values) {
+        for (key <- result.keys) {
           val preference = fragment.findPreference("status.usage." + key)
           if (preference == null) key match {
-            case "username" => user.value1 = value.toString
-            case "user_id" => user.value2 = value.toString
-            case "month" => monthId.value1 = value.toString
-            case "id" => monthId.value2 = value.toString
-            case "service_name" => service.value1 = value.toString
-            case "service_id" => service.value2 = value.toString
-            case "total_time" => time.value1 = formatTime(value.asInstanceOf[BigInt].toInt)
-            case "total_ipv4_volume" => time.value2 = formatTime(value.asInstanceOf[BigInt].toInt)
-            case "ipv4_units" | "ipv6_units" => if (value.toString != "S") UNEXPECTED_PAIR.format(key, value)
+            case "username" => user.value1 = result.getString(key)
+            case "user_id" => user.value2 = result.getString(key)
+            case "month" => monthId.value1 = result.getString(key)
+            case "id" => monthId.value2 = result.getString(key)
+            case "service_name" => service.value1 = result.getString(key)
+            case "service_id" => service.value2 = result.getString(key)
+            case "total_time" => time.value1 = formatTime(result.getLong(key))
+            case "total_ipv4_volume" => time.value2 = formatTime(result.getLong(key))
+            case "ipv4_units" | "ipv6_units" => result.getString(key) match {
+              case "S" =>
+              case value => UNEXPECTED_PAIR.format(key, value)
+            }
             case "total_input_octets_ipv6" | "total_ipv6_volume" | "total_output_octets_ipv6" | "total_refer_ipv6" =>
-              if (value.toString != "0") UNEXPECTED_PAIR.format(key, value)
+              result.getLong(key) match {
+                case 0 =>
+                case value => UNEXPECTED_PAIR.format(key, value)
+              }
             case _ => Log.e(TAG, "Unknown key in volume: " + key)
           } else preference.setSummary(key match {
-            case BalanceManager.KEY_USAGE => BalanceManager.check(value.asInstanceOf[BigInt]).toString
+            case BalanceManager.KEY_USAGE => BalanceManager.check(result.getLong(key)).toString
             case _ =>
-              val size = value.asInstanceOf[BigInt]
+              val size = result.getLong(key)
               var n = size.toDouble
               var i = -1
               while (n >= 1000) {
                 n /= 1024
                 i = i + 1
               }
-              val bytes = getResources.getQuantityString(R.plurals.bytes, size.toInt)
+              val bytes = getResources.getQuantityString(R.plurals.bytes, quantityToInt(size))
               if (i < 0) "%s %s".format(largeFormat.format(size), bytes)
               else "%s %s (%s %s)".format(smallFormat.format(n), units(i), largeFormat.format(size), bytes)
           })
@@ -118,16 +126,15 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
     })
   }
 
-  private def formatTime(totalSecs: Int) = {
+  private def formatTime(totalSecs: Long) = {
     var result: String = null
     def prepend(s: String) = if (result == null) result = s else result = s + ' ' + result
-    val secs = totalSecs % 60
+    val secs = (totalSecs % 60).toInt
     if (secs != 0) prepend(secs + " " + getResources.getQuantityString(R.plurals.seconds, secs))
-    var mins = totalSecs / 60
+    val mins = totalSecs / 60
     val hrs = mins / 60
-    mins %= 60
-    if (mins != 0) prepend(mins + " " + getResources.getQuantityString(R.plurals.minutes, mins))
-    if (hrs != 0) prepend(hrs + " " + getResources.getQuantityString(R.plurals.hours, hrs))
+    if (mins != 0) prepend(mins + " " + getResources.getQuantityString(R.plurals.minutes, (mins % 60).toInt))
+    if (hrs != 0) prepend(hrs + " " + getResources.getQuantityString(R.plurals.hours, quantityToInt(hrs)))
     result
   }
 }

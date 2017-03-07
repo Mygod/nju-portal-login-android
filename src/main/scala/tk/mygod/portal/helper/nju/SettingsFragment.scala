@@ -12,9 +12,11 @@ import be.mygod.net.UpdateManager
 import be.mygod.preference.PreferenceFragmentPlus
 import be.mygod.util.Conversions._
 import be.mygod.util.Logcat
-import org.json4s.JObject
+import org.json.JSONObject
 import tk.mygod.portal.helper.nju.preference.MacAddressPreference
 import tk.mygod.portal.helper.nju.util.DualFormatter
+
+import scala.collection.JavaConversions._
 
 object SettingsFragment {
   private final val TAG = "SettingsFragment"
@@ -135,20 +137,26 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
     super.onDestroy()
   }
 
-  def userInfoUpdated(info: JObject) {
+  def userInfoUpdated(info: JSONObject) {
     val name = new DualFormatter
-    for ((key, value) <- info.values) {
+    for (key <- info.keys) {
       val preference = findPreference("status." + key)
       if (preference == null) key match {
-        case "fullname" => name.value1 = value.asInstanceOf[String]
-        case "username" => name.value2 = value.asInstanceOf[String]
-        case "domain" => if (value.asInstanceOf[String] != "default") Log.e(TAG, "Unknown domain: " + value)
+        case "fullname" => name.value1 = info.getString(key)
+        case "username" => name.value2 = info.getString(key)
+        case "domain" => info.getString(key) match {
+          case "default" =>
+          case value => Log.e(TAG, "Unknown domain: " + value)
+        }
         case _ => Log.e(TAG, "Unknown key in user_info: " + key)
       } else preference.setSummary(key match {
-        case BalanceManager.KEY_ACTIVITY_START_TIME => PortalManager.parseTimeString(value.asInstanceOf[BigInt])
-        case BalanceManager.KEY_BALANCE => BalanceManager.formatCurrency(value.asInstanceOf[BigInt].toInt)
-        case "useripv4" => PortalManager.parseIpv4(value.asInstanceOf[BigInt])
-        case _ => if (value == null) null else value.toString
+        case BalanceManager.KEY_ACTIVITY_START_TIME => PortalManager.parseTimeString(info.getLong(key))
+        case BalanceManager.KEY_BALANCE => BalanceManager.formatCurrency(info.getLong(key))
+        case "useripv4" => PortalManager.parseIpv4(info.getInt(key))
+        case _ => info.optString(key) match {
+          case null => null
+          case value => value.toString
+        }
       })
     }
     findPreference("status.name").setSummary(name.toString)
