@@ -281,8 +281,10 @@ object PortalManager {
       val (result, obj) = parseResult(conn, login = true)
       result match {
         case 3 => // need manual actions
-          if (obj.getString("reply_msg").startsWith("E011 ")) // no more balance
-            BalanceManager.cancelNotification()
+          obj.getString("reply_msg").substring(0, 4) match {
+            case "E011" => BalanceManager.cancelNotification()  // no more balance
+            case _ =>
+          }
           (2, result)
         case 8 => (2, result)
         case 1 | 6 => (0, result)
