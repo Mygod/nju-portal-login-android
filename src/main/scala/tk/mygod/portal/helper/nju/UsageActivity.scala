@@ -131,9 +131,10 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
     def prepend(s: String) = if (result == null) result = s else result = s + ' ' + result
     val secs = (totalSecs % 60).toInt
     if (secs != 0) prepend(secs + " " + getResources.getQuantityString(R.plurals.seconds, secs))
-    val mins = totalSecs / 60
+    var mins = totalSecs / 60
     val hrs = mins / 60
-    if (mins != 0) prepend(mins + " " + getResources.getQuantityString(R.plurals.minutes, (mins % 60).toInt))
+    mins %= 60
+    if (mins != 0) prepend(mins + " " + getResources.getQuantityString(R.plurals.minutes, mins.toInt))
     if (hrs != 0) prepend(hrs + " " + getResources.getQuantityString(R.plurals.hours, quantityToInt(hrs)))
     result
   }
