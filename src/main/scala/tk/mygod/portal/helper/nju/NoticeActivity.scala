@@ -88,7 +88,7 @@ final class NoticeActivity extends ToolbarActivity with CircularRevealActivity w
 
   override def onResume() {
     super.onResume()
-    onRefresh
+    onRefresh()
   }
 
   def onRefresh(): Unit = if (!swiper.isRefreshing) {
