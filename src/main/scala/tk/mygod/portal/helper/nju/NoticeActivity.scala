@@ -26,6 +26,7 @@ final class NoticeActivity extends ToolbarActivity with CircularRevealActivity w
       val typedArray = obtainStyledAttributes(Array(android.R.attr.selectableItemBackground))
       view.setBackgroundResource(typedArray.getResourceId(0, 0))
       typedArray.recycle()
+      view.setMinimumHeight(0)
     }
     private var item: Notice = _
     private val text1 = itemView.findViewById(android.R.id.text1).asInstanceOf[TextView]
