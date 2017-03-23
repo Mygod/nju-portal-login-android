@@ -18,10 +18,7 @@ final class Notice {
     this()
     title = obj.getString("title")
     distributionTime = obj.getLong("disttime")
-    obj.get("url") match {
-      case Some(str: String) => url = str
-      case _ =>
-    }
+    url = obj.optString("url", null)
   }
 
   @DatabaseField(generatedId = true)
