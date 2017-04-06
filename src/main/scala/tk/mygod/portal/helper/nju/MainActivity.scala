@@ -15,7 +15,6 @@ import be.mygod.util.Conversions._
 
 object MainActivity {
   private val ASKED_BOUND_CONNECTION = "misc.useBoundConnections.asked"
-  val ACTION_VIEW_NOTICES = "tk.mygod.portal.helper.nju.MainActivity.VIEW_NOTICES"
 }
 
 final class MainActivity extends ToolbarActivity with OnSharedPreferenceChangeListener

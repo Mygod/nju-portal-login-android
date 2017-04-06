@@ -108,8 +108,7 @@ object NoticeManager {
         filter.addAction(ACTION_VIEW)
         app.registerReceiver((context, intent) => {
           val notice = fetchNotice(intent.getIntExtra(EXTRA_ID, 0))
-          if (intent.getAction == ACTION_VIEW) context.startActivity((if (notice.url == null)
-            app.intent[MainActivity].setAction(MainActivity.ACTION_VIEW_NOTICES)
+          if (intent.getAction == ACTION_VIEW) context.startActivity((if (notice.url == null) app.intent[NoticeActivity]
           else new Intent(Intent.ACTION_VIEW).setData(notice.url)).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
           read(notice)
         }, filter)
