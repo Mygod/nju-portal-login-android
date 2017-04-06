@@ -102,6 +102,7 @@ object NoticeManager {
     app.pendingBroadcast(new Intent(action).putExtra(EXTRA_ID, id).setFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY))
   def pushUnreadNotices(): Unit = if (app.pref.getBoolean("notices.sync.auto", true)) {
     val notices = updateUnreadNotices()
+    // notices += new Notice(31, "Test title", 1491493509)
     if (notices.nonEmpty) app.handler.post(() => {
       synchronized(if (!receiverRegistered) {
         val filter = new IntentFilter(ACTION_MARK_AS_READ)

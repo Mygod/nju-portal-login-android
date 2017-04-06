@@ -23,6 +23,13 @@ final class Notice {
     distributionTime = obj.getLong("disttime")
     url = obj.optString(URL, null)
   }
+  def this(id: Int, title: String, distributionTime: Long, url: String = null) = {
+    this()
+    this.id = id
+    this.title = title
+    this.distributionTime = distributionTime
+    this.url = url
+  }
 
   @DatabaseField(generatedId = true)
   var id: Int = _
