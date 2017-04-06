@@ -80,6 +80,7 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
         val monthId = new DualFormatter(format2 = NUMBER_FORMAT)
         val service = new DualFormatter(format2 = NUMBER_FORMAT)
         val time = new DualFormatter(format2 = "~%s")
+        var usage = 0L
         for (key <- result.keys) {
           val preference = fragment.findPreference("status.usage." + key)
           if (preference == null) key match {
@@ -88,7 +89,7 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
             case "month" => monthId.value1 = result.getString(key)
             case "id" => monthId.value2 = result.getString(key)
             case "service_name" => service.value1 = result.getString(key)
-            case "service_id" => service.value2 = result.getString(key)
+            case BalanceManager.KEY_SERVICE_ID => service.value2 = result.getString(key)
             case "total_time" => time.value1 = formatTime(result.getLong(key))
             case "total_ipv4_volume" => time.value2 = formatTime(result.getLong(key))
             case "ipv4_units" | "ipv6_units" => result.getString(key) match {
@@ -100,9 +101,9 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
                 case 0 =>
                 case value => UNEXPECTED_PAIR.format(key, value)
               }
+            case BalanceManager.KEY_USAGE => usage = result.getLong(key)
             case _ => Log.e(TAG, "Unknown key in volume: " + key)
           } else preference.setSummary(key match {
-            case BalanceManager.KEY_USAGE => BalanceManager.check(result.getLong(key)).toString
             case _ =>
               val size = result.getLong(key)
               var n = size.toDouble
@@ -120,6 +121,7 @@ class UsageActivity extends ToolbarActivity with CircularRevealActivity with OnR
         fragment.findPreference("status.usage.monthId").setSummary(monthId.toString)
         fragment.findPreference("status.usage.service").setSummary(service.toString)
         fragment.findPreference("status.usage.time").setSummary(time.toString)
+        fragment.findPreference("status.usage.refer").setSummary(BalanceManager.check(usage, service.value2).toString)
         swiper.setRefreshing(false)
       })
       case None => runOnUiThread(() => finish(null))

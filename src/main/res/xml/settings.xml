@@ -59,7 +59,7 @@
                         android:title="@string/settings_status_usage_input"/>
             <Preference android:key="status.usage.time"
                         android:title="@string/settings_status_usage_time"/>
-            <Preference android:key="status.usage.total_refer_ipv4"
+            <Preference android:key="status.usage.refer"
                         android:title="@string/settings_status_usage_refer"/>
         </PreferenceScreen>
     </be.mygod.preference.PreferenceCategory>

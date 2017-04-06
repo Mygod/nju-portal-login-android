@@ -18,22 +18,22 @@ import tk.mygod.portal.helper.nju.PortalManager.InvalidResponseException
   * @author Mygod
   */
 object BalanceManager {
-  class Usage(private val refer: Long) {
+  class Usage(private val refer: Long, private val limit: Int) {
     override def toString: String = {
       if (refer <= 0) return formatCurrency(refer)
       if (refer <= 600) return "%1$s - %1$s = %2$s".format(formatCurrency(refer), formatCurrency(0))
-      if (refer <= 2600) return "%s - %s = %s"
+      if (refer <= limit + 600) return "%s - %s = %s"
         .format(formatCurrency(refer), formatCurrency(600), formatCurrency(refer - 600))
       "%s - %s - %s = %s"
-        .format(formatCurrency(refer), formatCurrency(600), formatCurrency(refer - 2600), formatCurrency(2000))
+        .format(formatCurrency(refer), formatCurrency(600), formatCurrency(refer - limit - 600), formatCurrency(limit))
     }
     def monthChargeLimit: Long = {
-      if (refer <= 600) return 2000
-      if (refer >= 2600) return 0
-      2600 - refer
+      if (refer <= 600) return limit
+      if (refer >= limit + 600) return 0
+      limit + 600 - refer
     }
     def remainingTime(balance: Long): Long = {
-      if (refer > 2600) return -1
+      if (refer > limit + 600) return -1
       if (refer >= 600) return balance
       600 - refer + balance
     }
@@ -43,8 +43,10 @@ object BalanceManager {
   private final val ACTION_MUTE_FOREVER = "tk.mygod.portal.helper.nju.BalanceManager.MUTE_FOREVER"
   final val KEY_ACTIVITY_START_TIME = "acctstarttime"
   final val KEY_BALANCE = "balance"
+  final val KEY_SERVICE_ID = "service_id"
   final val KEY_USAGE = "total_refer_ipv4"
   final val ENABLED = "notifications.alert.balance"
+  final val TAG = "BalanceManager"
   private final val LAST_MONTH = "notifications.alert.balance.lastMonth"
 
   private val currencyFormat = new DecimalFormat("0.00")
@@ -90,18 +92,32 @@ object BalanceManager {
   def check(info: JSONObject): Unit = if (enabled && needsChecking)
     ThrowableFuture(try PortalManager.queryVolume match {
       case Some(result) =>
-        check(result.getLong(KEY_USAGE), info, enabled = true, needsChecking = true)
+        check(result.getLong(KEY_USAGE), result.getString(KEY_SERVICE_ID), info, enabled = true, needsChecking = true)
       case _ =>
     } catch {
       case e: InvalidResponseException =>
-        if (e.response.isEmpty) Log.w("BalanceManager", "Nothing returned on querying usage!") else throw e
+        if (e.response.isEmpty) Log.w(TAG, "Nothing returned on querying usage!") else throw e
     })
-  def check(refer: Long): Usage = {
+  def check(refer: Long, serviceId: String): Usage = {
     val enabled = this.enabled
-    check(refer, PortalManager.getUserInfo.get, enabled, enabled && needsChecking)
+    check(refer, serviceId, PortalManager.getUserInfo.get, enabled, enabled && needsChecking)
   }
-  private def check(refer: Long, info: JSONObject, enabled: Boolean, needsChecking: Boolean) = {
-    val usage = new Usage(refer)
+  private def check(refer: Long, serviceId: String, info: JSONObject, enabled: Boolean, needsChecking: Boolean) = {
+    val usage = new Usage(refer, serviceId match {
+      case "13455362142011" =>
+        // 学生标准计时服务
+        // 简介：同一时间只允许1个在线。
+        // 资费：每月前30小时免费，超过30小时部分，0.2元/小时；每月20元封顶。
+        2000
+      case "14899909789418" =>
+        // 学生2线程网络服务(测试)
+        // 简介：同一时间最多2个在线。
+        // 资费：每月前30小时免费，超过30小时部分，每线程0.2元/小时；每月40元封顶。
+        4000
+      case id =>
+        Log.e(TAG, "Unknown service id \"%s\". Assuming 20 yuan as upper limit for now.".format(id))
+        2000
+    })
     val balance = info.getLong(KEY_BALANCE)
     if (enabled)  // always check for negative balance
       if (balance < 0) pushNotification(balance) else if (needsChecking)
