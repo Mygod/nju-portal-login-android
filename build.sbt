@@ -1,4 +1,4 @@
-scalaVersion := "2.11.8"
+scalaVersion := "2.11.9"
 
 enablePlugins(AndroidApp)
 android.useSupportVectors
@@ -13,7 +13,7 @@ compileOrder := CompileOrder.JavaThenScala
 javacOptions ++= "-source" :: "1.7" :: "-target" :: "1.7" :: Nil
 scalacOptions ++= "-target:jvm-1.7" :: "-Xexperimental" :: Nil
 
-proguardVersion := "5.3.2"
+proguardVersion := "5.3.3"
 proguardCache := Seq()
 proguardOptions ++=
   "-dontwarn com.thoughtworks.**" ::
@@ -27,7 +27,7 @@ resConfigs := Seq("zh-rCN")
 resolvers ++= Seq(Resolver.jcenterRepo, Resolver.sonatypeRepo("public"))
 libraryDependencies ++=
   "com.j256.ormlite" % "ormlite-android" % "5.0" ::
-  "eu.chainfire" % "libsuperuser" % "1.0.0.201608240809" ::
-  "me.leolin" % "ShortcutBadger" % "1.1.13" ::
-  "be.mygod" %% "mygod-lib-android" % "4.0.4" ::
+  "eu.chainfire" % "libsuperuser" % "1.0.0.201704021214" ::
+  "me.leolin" % "ShortcutBadger" % "1.1.14" ::
+  "be.mygod" %% "mygod-lib-android" % "4.0.5-SNAPSHOT" ::
   Nil
