@@ -129,7 +129,7 @@ object PortalManager {
     try {
       val conn = connector(new URL(HTTP, DOMAIN, "/portal_io/getinfo")).asInstanceOf[HttpURLConnection]
       setup(conn)
-      val (code, json) = parseResult(conn)
+      val (code, _) = parseResult(conn)
       Log.d(TAG, "Testing connection finished with code %d.".format(code))
       code // 2: 无用户portal信息
     } catch {
