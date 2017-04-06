@@ -2,11 +2,11 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <be.mygod.preference.PreferenceCategory android:title="@string/settings_account">
         <be.mygod.preference.EditTextPreference android:key="account.username"
-                                                android:title="Username"
+                                                android:title="@string/settings_account_username"
                                                 android:summary="%s"
                                                 android:inputType="text"/>
         <be.mygod.preference.EditTextPreference android:key="account.password"
-                                                android:title="Password"
+                                                android:title="@string/settings_account_password"
                                                 android:inputType="textPassword"
                                                 android:summary="%s"/>
     </be.mygod.preference.PreferenceCategory>

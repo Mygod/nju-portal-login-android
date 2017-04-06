@@ -5,7 +5,9 @@
 
     <!-- Settings -->
     <string name="settings_account">帐号</string>
-    <string name="settings_account_missing">Username/Password 未填写，此应用将无法正常使用。</string>
+    <string name="settings_account_username">用户名</string>
+    <string name="settings_account_password">密码</string>
+    <string name="settings_account_missing">用户名/密码未填写，此应用将无法正常使用。</string>
 
     <string name="settings_auth">认证</string>
     <string name="settings_auth_service_status">服务状态</string>

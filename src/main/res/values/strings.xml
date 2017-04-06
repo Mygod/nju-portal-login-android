@@ -6,6 +6,8 @@
 
     <!-- Settings -->
     <string name="settings_account">Account</string>
+    <string name="settings_account_username">Username</string>
+    <string name="settings_account_password">Password</string>
     <string name="settings_account_missing">Username and/or Password is missing. This app won\'t work properly.</string>
 
     <string name="settings_auth">Authorization</string>
