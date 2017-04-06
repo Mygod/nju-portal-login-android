@@ -65,8 +65,8 @@ object NoticeManager {
         for ((_, notice) <- active) {
           val query = noticeDao.queryBuilder.where.eq(Notice.DISTRIBUTION_TIME, notice.distributionTime)
             .and.eq("title", notice.title).and
-          val duplicate = noticeDao.query((if (notice.url == null) query.isNull("url") else query.eq("url", notice.url))
-            .prepare)
+          val duplicate = noticeDao.query((if (notice.url == null)
+            query.isNull(Notice.URL) else query.eq(Notice.URL, notice.url)).prepare)
           if (duplicate.size > 0) {
             val result = duplicate.get(0)
             if (result.obsolete) {

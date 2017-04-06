@@ -10,15 +10,18 @@ import org.json.JSONObject
   */
 object Notice {
   final val DISTRIBUTION_TIME = "distributionTime"
+  final val URL = "url"
 }
 
 //noinspection HashCodeUsesVar
 final class Notice {
+  import Notice._
+
   def this(obj: JSONObject) {
     this()
     title = obj.getString("title")
     distributionTime = obj.getLong("disttime")
-    url = obj.optString("url", null)
+    url = obj.optString(URL, null)
   }
 
   @DatabaseField(generatedId = true)
