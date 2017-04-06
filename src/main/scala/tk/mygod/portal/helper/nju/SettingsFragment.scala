@@ -73,6 +73,7 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
       if (mac != null) activity.launchUrl(app.getMacLookup(mac))
       true
     })
+    findPreference("status.portal_server_ip").setOnPreferenceClickListener(displayIpInfo)
 
     findPreference("notices.history").setOnPreferenceClickListener(_ => {
       startActivity(CircularRevealActivity.putLocation(activity.intent[NoticeActivity], activity.getLocationOnScreen),
@@ -138,21 +139,25 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
   }
 
   def userInfoUpdated(info: JSONObject) {
-    val name = new DualFormatter
+    val name = new DualFormatter()
+    val activity = new DualFormatter()
     for (key <- info.keys) {
       val preference = findPreference("status." + key)
       if (preference == null) key match {
         case "fullname" => name.value1 = info.getString(key)
         case "username" => name.value2 = info.getString(key)
+        case BalanceManager.KEY_ACTIVITY_START_TIME =>
+          activity.value1 = PortalManager.parseTimeString(info.getLong(key))
+        case "portal_acctsessionid" => activity.value2 = info.getString(key)
         case "domain" => info.getString(key) match {
-          case "default" =>
+          case "" =>
           case value => Log.e(TAG, "Unknown domain: " + value)
         }
         case _ => Log.e(TAG, "Unknown key in user_info: " + key)
       } else preference.setSummary(key match {
-        case BalanceManager.KEY_ACTIVITY_START_TIME => PortalManager.parseTimeString(info.getLong(key))
         case BalanceManager.KEY_BALANCE => BalanceManager.formatCurrency(info.getLong(key))
         case "useripv4" => PortalManager.parseIpv4(info.getInt(key))
+        case "portal_server_ip" => PortalManager.parseIpv4(info.getInt(key))
         case _ => info.optString(key) match {
           case null => null
           case value => value.toString
@@ -160,6 +165,7 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
       })
     }
     findPreference("status.name").setSummary(name.toString)
+    findPreference("status.activity").setSummary(activity.toString)
   }
 
   private def displayIpInfo(preference: Preference) = {

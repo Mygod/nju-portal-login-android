@@ -33,7 +33,7 @@
                     android:title="@string/settings_status_service_name"/>
         <Preference android:key="status.area_name"
                     android:title="@string/settings_status_area_name"/>
-        <Preference android:key="status.acctstarttime"
+        <Preference android:key="status.activity"
                     android:title="@string/settings_status_acctstarttime"/>
         <Preference android:key="status.balance"
                     android:title="@string/settings_status_balance"/>
@@ -43,6 +43,8 @@
                     android:title="@string/settings_status_useripv6"/>
         <Preference android:key="status.mac"
                     android:title="@string/settings_status_mac"/>
+        <Preference android:key="status.portal_server_ip"
+                    android:title="@string/settings_status_portal_server_ip"/>
         <PreferenceScreen android:key="status.usage"
                           android:title="@string/settings_status_usage">
             <Preference android:key="status.usage.user"

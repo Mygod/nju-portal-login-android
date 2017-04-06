@@ -33,6 +33,7 @@
     <string name="settings_status_useripv4">IPv4 地址</string>
     <string name="settings_status_useripv6">IPv6 地址</string>
     <string name="settings_status_mac">MAC 地址</string>
+    <string name="settings_status_portal_server_ip">认证服务器 IP 地址</string>
 
     <string name="settings_status_usage">查询使用情况</string>
     <string name="settings_status_usage_title">使用情况</string>

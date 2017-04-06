@@ -35,6 +35,7 @@
     <string name="settings_status_useripv4">IPv4 address</string>
     <string name="settings_status_useripv6">IPv6 address</string>
     <string name="settings_status_mac">MAC address</string>
+    <string name="settings_status_portal_server_ip">Portal IP address</string>
 
     <string name="settings_status_usage">Query usage</string>
     <string name="settings_status_usage_title">Usage</string>
