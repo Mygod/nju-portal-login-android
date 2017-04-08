@@ -18,7 +18,6 @@
         <item>仅检测校园网</item>
         <item>禁用</item>
     </string-array>
-    <string name="settings_auth_sign_conference">会议签到</string>
     <string name="settings_auth_portal_web">打开认证界面</string>
     <string name="settings_auth_portal_web_summary">此功能不支持绑定连接，系统可能会使用手机网络。</string>
     <string name="settings_auth_login">登录</string>

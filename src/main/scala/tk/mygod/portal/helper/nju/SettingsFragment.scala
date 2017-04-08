@@ -20,7 +20,6 @@ import scala.collection.JavaConversions._
 
 object SettingsFragment {
   private final val TAG = "SettingsFragment"
-  private final val KEY_SIGN_CONF = "auth.signConf"
 
   private final val preferenceGetId = classOf[Preference].getDeclaredMethod("getId")
   preferenceGetId.setAccessible(true)
@@ -55,10 +54,6 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
     findPreference("auth.logout").setOnPreferenceClickListener(_ => {
       ThrowableFuture(PortalManager.logout())
       LogInOutShortcut.reportUsed()
-      true
-    })
-    findPreference(KEY_SIGN_CONF).setOnPreferenceClickListener(_ => {
-      displayPreferenceDialog(KEY_SIGN_CONF, new ConferenceSignFragment())
       true
     })
 
