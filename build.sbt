@@ -4,8 +4,8 @@ enablePlugins(AndroidApp)
 android.useSupportVectors
 
 name := "nju-portal-login-android"
-version := "3.4.1"
-versionCode := Some(413)
+version := "3.5.0"
+versionCode := Some(415)
 
 platformTarget := "android-25"
 
