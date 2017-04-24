@@ -1,4 +1,4 @@
-scalaVersion := "2.11.9"
+scalaVersion := "2.11.11"
 
 enablePlugins(AndroidApp)
 android.useSupportVectors
@@ -28,6 +28,6 @@ resolvers ++= Seq(Resolver.jcenterRepo, Resolver.sonatypeRepo("public"))
 libraryDependencies ++=
   "com.j256.ormlite" % "ormlite-android" % "5.0" ::
   "eu.chainfire" % "libsuperuser" % "1.0.0.201704021214" ::
-  "me.leolin" % "ShortcutBadger" % "1.1.14" ::
-  "be.mygod" %% "mygod-lib-android" % "4.0.5" ::
+  "me.leolin" % "ShortcutBadger" % "1.1.16" ::
+  "be.mygod" %% "mygod-lib-android" % "4.0.6-SNAPSHOT" ::
   Nil
