@@ -79,9 +79,6 @@
     <string name="settings_misc_ignore_system_connection_validation">Ignore system connection validation</string>
     <string name="settings_misc_ignore_system_connection_validation_summary">Check this if auto connect isn\'t working
         well for you. (e.g. HTC devices)</string>
-    <string name="settings_misc_ignore_system_connection_validation_summary_na">Not available on Android 4.x.</string>
-    <string name="settings_misc_ignore_system_connection_validation_summary_permission_missing">Needs permission to use
-        system connection validation.</string>
     <string name="settings_misc_update">Check for updates</string>
     <string name="settings_misc_support">FAQ &amp; Support</string>
     <string name="settings_misc_support_url">
@@ -95,16 +92,9 @@
         transmitted by this app.</string>
 
     <!-- MainActivity/SettingsFragment -->
-    <string name="bound_connections">Use bound connections</string>
-    <string name="bound_connections_title">Enable bound connections?</string>
+    <string name="bound_connections_title">Need permission for bound connections</string>
     <string name="bound_connections_message">Bound connections will enforce the connections to go on a specific
         network so that you can login with cellular data on.</string>
-    <string name="bound_connections_summary">Use bound connections to login with cellular data on.\n</string>
-    <string name="bound_connections_summary_na">Not necessary on Android 4.x.</string>
-    <string name="bound_connections_summary_permission_missing">Needs permission to modify system settings.</string>
-    <string name="bound_connections_summary_enabled_revokable">Enabled. Click to revoke the permission.</string>
-    <string name="bound_connections_summary_enabled">Enabled.</string>
-
     <string name="coming_soon">Coming soon…</string>
 
     <plurals name="bytes">

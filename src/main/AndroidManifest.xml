@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="tk.mygod.portal.helper.nju">
-    <uses-sdk android:minSdkVersion="19" android:targetSdkVersion="25" />
+    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="25" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
@@ -33,7 +33,6 @@
                   android:theme="@style/Theme.Material.Dialog">
             <intent-filter>
                 <action android:name="tk.mygod.portal.helper.nju.OnlineEntryActivity.ACTION_SHOW"/>
-                <action android:name="tk.mygod.portal.helper.nju.OnlineEntryActivity.ACTION_SHOW_LEGACY"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
@@ -83,11 +82,6 @@
         <receiver android:name=".BootReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
-            </intent-filter>
-        </receiver>
-        <receiver android:name=".NetworkMonitorListener">
-            <intent-filter>
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
             </intent-filter>
         </receiver>
     </application>

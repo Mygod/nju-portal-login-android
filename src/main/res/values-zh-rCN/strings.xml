@@ -86,15 +86,8 @@
     <string name="settings_privacy_policy_2">本应用不会收集或传输你和你的设备的信息和隐私。</string>
 
     <!-- MainActivity/SettingsFragment -->
-    <string name="bound_connections">使用绑定连接</string>
-    <string name="bound_connections_title">使用绑定连接？</string>
+    <string name="bound_connections_title">需要权限使用绑定连接</string>
     <string name="bound_connections_message">绑定连接通过强制流量通过某连接来实现打开移动数据时也能登录。</string>
-    <string name="bound_connections_summary">绑定连接来实现打开移动数据时也能登录。\n</string>
-    <string name="bound_connections_summary_na">Android 4.x 无需使用。</string>
-    <string name="bound_connections_summary_permission_missing">需要修改系统设置的权限。</string>
-    <string name="bound_connections_summary_enabled_revokable">已启用。点击撤销权限。</string>
-    <string name="bound_connections_summary_enabled">已启用。</string>
-
     <string name="coming_soon">即将推出……</string>
 
     <plurals name="bytes">

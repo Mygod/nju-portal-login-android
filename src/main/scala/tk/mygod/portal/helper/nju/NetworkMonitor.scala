@@ -2,7 +2,6 @@ package tk.mygod.portal.helper.nju
 
 import java.util.concurrent.atomic.AtomicBoolean
 
-import android.annotation.TargetApi
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.content._
 import android.net.ConnectivityManager.NetworkCallback
@@ -18,17 +17,15 @@ import tk.mygod.portal.helper.nju.util.RetryCounter
 
 import scala.collection.mutable
 
-object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeListener {
+object NetworkMonitor {
   private final val TAG = "NetworkMonitor"
   private final val ACTION_LOGIN = "tk.mygod.portal.helper.nju.NetworkMonitor.ACTION_LOGIN"
-  private final val ACTION_LOGIN_LEGACY = "tk.mygod.portal.helper.nju.NetworkMonitor.ACTION_LOGIN_LEGACY"
   private final val EXTRA_NETWORK_ID = "tk.mygod.portal.helper.nju.NetworkMonitor.EXTRA_NETWORK_ID"
   final val LOCAL_MAC = "misc.localMac"
-  final val IGNORE_SYSTEM_VALIDATION = "misc.ignoreSystemValidation"
 
   def localMacs: Set[String] = app.pref.getString(LOCAL_MAC, MacAddressPreference.default()).split("\n").map(_.toLowerCase)
     .filter(_ != null).toSet
-  def ignoreSystemValidation: Boolean = app.pref.getBoolean(IGNORE_SYSTEM_VALIDATION, false)
+  def ignoreSystemValidation: Boolean = app.pref.getBoolean("misc.ignoreSystemValidation", false)
 
   private lazy val networkCapabilities = {
     val result = classOf[NetworkCapabilities].getDeclaredField("mNetworkCapabilities")
@@ -40,15 +37,6 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
 
   def cares(network: Int): Boolean =
     network > 6 && network != ConnectivityManager.TYPE_VPN || network == ConnectivityManager.TYPE_WIFI
-
-  //noinspection ScalaDeprecation
-  def preferNetworkLegacy(n: NetworkInfo = null): NetworkInfo = {
-    val network = if (n == null) listenerLegacy.preferredNetwork else n
-    val preference = if (network == null) ConnectivityManager.TYPE_WIFI else network.getType
-    app.cm.setNetworkPreference(preference)
-    Log.v(TAG, "Setting network preference: " + preference)
-    network
-  }
 
   def loginNotificationBuilder: Builder = new NotificationCompat.Builder(app)
     .setColor(ContextCompat.getColor(app, R.color.material_primary_500))
@@ -62,139 +50,14 @@ object NetworkMonitor extends BroadcastReceiver with OnSharedPreferenceChangeLis
       .putExtra(OnlineEntryActivity.EXTRA_NOTIFICATION_ID, id))
   }
 
-  //noinspection ScalaDeprecation
-  class NetworkListenerLegacy {
-    private val available = new mutable.LongMap[NetworkInfo]
-    private val busy = new mutable.TreeSet[Long]
-    var loginedNetwork: NetworkInfo = _
-
-    private def serialize(n: NetworkInfo) = n.getType.toLong << 32 | n.getSubtype
-    private def getNotificationId(id: Long) = (id ^ id >> 28 ^ id >> 56).toInt & 0xFFFFFFF | 0x10000000
-
-    def doLogin(id: Long): Unit = available.get(id) match {
-      case Some(n: NetworkInfo) => ThrowableFuture(if (busy.synchronized(busy.add(serialize(n)))) {
-        doLogin(n)
-        busy.synchronized(busy.remove(serialize(n)))
-      })
-      case _ =>
-    }
-    def doLogin(n: NetworkInfo) {
-      val counter = new RetryCounter()
-      while (instance == null && loginedNetwork == null && available.contains(serialize(n)))
-        PortalManager.loginLegacy(n) match {
-          case 1 => counter.retry()
-          case -1 => counter.reset()
-          case _ =>
-        }
-    }
-
-    private def doTestConnection(n: NetworkInfo): Boolean = {
-      val counter = new RetryCounter()
-      while (instance == null && loginedNetwork == null && available.contains(serialize(n)))
-        PortalManager.testConnectionLegacy(n) match {
-          case 0 =>
-            NoticeManager.pushUnreadNotices // push notices only
-            return false
-          case 2 => return true
-          case _ => counter.retry()
-        }
-      false
-    }
-
-    def onLogin(n: NetworkInfo, code: Int) {
-      loginedNetwork = n
-      cancelLoginNotification(getNotificationId(serialize(n)))
-    }
-
-    def reevaluate(): Unit =
-      if (app.serviceStatus > 0 && app.boundConnectionsAvailable < 2) for ((_, n) <- available) onAvailable(n)
-    def onAvailable(n: NetworkInfo) {
-      available += (serialize(n), n)
-      if (app.serviceStatus > 0 && app.boundConnectionsAvailable < 2)
-        if (busy.synchronized(busy.add(serialize(n)))) ThrowableFuture {
-          app.serviceStatus match {
-            case 1 =>
-              if (doTestConnection(n)) {
-                if (receiverRegistered.compareAndSet(false, true))
-                  app.registerReceiver(NetworkMonitor, new IntentFilter(ACTION_LOGIN_LEGACY))
-                val id = serialize(n)
-                val nid = getNotificationId(id)
-                app.nm.notify(nid, PortalManager.queryOnlineLegacy(n).headOption match {
-                  case None => loginNotificationBuilder
-                    .setContentIntent(
-                      app.pendingBroadcast(new Intent(ACTION_LOGIN_LEGACY).putExtra(EXTRA_NETWORK_ID, id)))
-                    .setAutoCancel(true)
-                    .build()
-                  case Some(entry) => entry.makeNotification(new Intent(OnlineEntryActivity.ACTION_SHOW_LEGACY)
-                    .putExtra(OnlineEntryActivity.EXTRA_NETWORK_ID, id)
-                    .putExtra(OnlineEntryActivity.EXTRA_NOTIFICATION_ID, nid))
-                })
-                NoticeManager.pushUnreadNotices
-              }
-            case 2 =>
-              doLogin(n)
-              NoticeManager.pushUnreadNotices
-            case 3 => if (doTestConnection(n)) {
-              doLogin(n)
-              NoticeManager.pushUnreadNotices
-            }
-            case 4 => if (doTestConnection(n)) {
-              PortalManager.queryOnlineLegacy(n).headOption match {
-                case None => doLogin(n)
-                case Some(entry) =>
-                  if (receiverRegistered.compareAndSet(false, true))
-                    app.registerReceiver(NetworkMonitor, new IntentFilter(ACTION_LOGIN_LEGACY))
-                  val id = n.hashCode
-                  val nid = getNotificationId(id)
-                  app.nm.notify(nid, entry.makeNotification(new Intent(OnlineEntryActivity.ACTION_SHOW_LEGACY)
-                    .putExtra(OnlineEntryActivity.EXTRA_NETWORK_ID, id)
-                    .putExtra(OnlineEntryActivity.EXTRA_NOTIFICATION_ID, nid)))
-              }
-              NoticeManager.pushUnreadNotices
-            }
-            case _ =>
-          }
-          busy.synchronized(busy.remove(serialize(n)))
-        } else Log.d(TAG, "Skipping repeated connection test request.")
-    }
-
-    def onLost(n: NetworkInfo) {
-      val id = serialize(n)
-      available.remove(id)
-      cancelLoginNotification(getNotificationId(id))
-      if (loginedNetwork != null && id == serialize(loginedNetwork)) loginedNetwork = null
-    }
-
-    def preferredNetwork: NetworkInfo =
-      if (loginedNetwork != null && available.contains(serialize(loginedNetwork))) loginedNetwork
-      else app.cm.getAllNetworkInfo.collectFirst {
-        case n: NetworkInfo if cares(n.getType) => n
-      }.orNull
-  }
-  lazy val listenerLegacy = new NetworkListenerLegacy
-
-  /**
-    * Get login status.
-    *
-    * @return 0-2: Logged out, logged in, logged in (legacy).
-    */
-  def loginStatus: Int =
-    if (instance != null && instance.loggedIn) 1 else if (listenerLegacy.loginedNetwork != null) 2 else 0
-
-  private val receiverRegistered = new AtomicBoolean
-  def onReceive(context: Context, intent: Intent): Unit =
-    listenerLegacy.doLogin(intent.getLongExtra(EXTRA_NETWORK_ID, -1))
-
-  def onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String): Unit =
-    if (key == LOCAL_MAC && loginStatus <= 0) listenerLegacy.reevaluate()
+  def loggedIn: Boolean = instance != null && instance.loggedIn
 }
 
 final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeListener {
   import NetworkMonitor._
 
-  private def loggedIn = listener != null && app.boundConnectionsAvailable > 1 && listener.loginedNetwork != null
+  private def loggedIn = listener != null && app.boundConnectionsAvailable && listener.loginedNetwork != null
 
-  @TargetApi(21)
   class NetworkListener extends NetworkCallback {
     private val available = new mutable.HashMap[Int, (Network, Long)]
     private val busy = new mutable.HashSet[Int]
@@ -321,10 +184,9 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
         case (_, (n, _)) => n
       }.orNull
   }
-  @TargetApi(21)
   var listener: NetworkListener = _
 
-  def initBoundConnections(): Unit = if (listener == null && app.boundConnectionsAvailable > 1) {
+  def initBoundConnections(): Unit = if (listener == null && app.boundConnectionsAvailable) {
     listener = new NetworkListener
     app.cm.requestNetwork(new NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
       .addTransportType(NetworkCapabilities.TRANSPORT_BLUETOOTH)
@@ -356,5 +218,5 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
   }
 
   def onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String): Unit =
-    if (listener != null && key == LOCAL_MAC && loginStatus <= 0) listener.reevaluate()
+    if (listener != null && key == LOCAL_MAC && !loggedIn) listener.reevaluate()
 }

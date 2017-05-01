@@ -30,7 +30,7 @@ anything gone wrong, I will laugh at you.
 * [Web (official)](http://p.nju.edu.cn)
 * [Windows](https://github.com/miaoxw/Auto-p.nju)
 * [Mac](https://github.com/Cee/PNJU-TodayWidget)
-* [Android 4.0-4.3](https://github.com/padeoe/AutoConnect)
+* [Android 4.x](https://github.com/padeoe/AutoConnect)
 * [iOS &  Watch](https://github.com/Cee/PNJU-Watch)
 * [Alfred Workflow](https://github.com/Cee/PNJU-Workflow)
 * Got more? Feel free to tell me.

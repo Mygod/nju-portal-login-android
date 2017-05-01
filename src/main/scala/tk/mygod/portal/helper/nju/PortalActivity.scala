@@ -64,8 +64,7 @@ final class PortalActivity extends ToolbarActivity with CircularRevealActivity w
         }
       }
     })
-    //noinspection ScalaDeprecation
-    if (Build.version >= 21) manager.removeSessionCookies(null) else manager.removeSessionCookie()
+    manager.removeSessionCookies(null)
     val url = rootUrl + "/portal"
     manager.setCookie(url, "username=" + Base64.encodeToString(PortalManager.username.getBytes, Base64.DEFAULT))
     manager.setCookie(url, "password=" + Base64.encodeToString(PortalManager.password.getBytes, Base64.DEFAULT))

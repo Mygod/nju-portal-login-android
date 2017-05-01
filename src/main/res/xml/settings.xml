@@ -22,7 +22,8 @@
         <Preference android:key="auth.logout"
                     android:title="@string/settings_auth_logout"/>
         <Preference android:key="auth.portalWeb"
-                    android:title="@string/settings_auth_portal_web"/>
+                    android:title="@string/settings_auth_portal_web"
+                    android:summary="@string/settings_auth_portal_web_summary"/>
     </be.mygod.preference.PreferenceCategory>
     <be.mygod.preference.PreferenceCategory android:title="@string/settings_status">
         <Preference android:key="status.name"
@@ -89,8 +90,6 @@
                 android:summary="@string/settings_misc_local_mac_address_summary"
                 android:inputType="textMultiLine"
                 android:scrollbars="vertical"/>
-        <Preference android:key="misc.useBoundConnections"
-                    android:title="@string/bound_connections"/>
         <SwitchPreference android:key="misc.ignoreSystemValidation"
                           android:title="@string/settings_misc_ignore_system_connection_validation"
                           android:summary="@string/settings_misc_ignore_system_connection_validation_summary"/>

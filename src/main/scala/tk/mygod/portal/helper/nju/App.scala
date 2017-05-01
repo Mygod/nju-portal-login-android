@@ -1,7 +1,6 @@
 package tk.mygod.portal.helper.nju
 
 import android.accounts.AccountManager
-import android.annotation.TargetApi
 import android.app.NotificationManager
 import android.content.pm.PackageManager
 import android.content.res.Resources
@@ -28,11 +27,7 @@ class App extends ApplicationPlus {
     NoticeManager.updatePeriodicSync()
   }
 
-  /**
-    * 0-3: Not available, permission missing, yes (revoke available), yes.
-    */
-  def boundConnectionsAvailable: Int = if (Build.version >= 21) if (Build.version < 23) 3
-    else if (Settings.System.canWrite(this)) 2 else 1 else 0
+  def boundConnectionsAvailable: Boolean = Build.version < 23 || Settings.System.canWrite(this)
 
   lazy val cm: ConnectivityManager = systemService[ConnectivityManager]
   lazy val nm: NotificationManager = systemService[NotificationManager]
@@ -45,8 +40,6 @@ class App extends ApplicationPlus {
 
   def showToast(msg: String): Boolean = handler.post(() => makeToast(msg, Toast.LENGTH_SHORT).show())
 
-  //noinspection ScalaDeprecation
-  @TargetApi(21)
   def reportNetworkConnectivity(network: Network, hasConnectivity: Boolean): Unit = if (Build.version >= 23)
     cm.reportNetworkConnectivity(network, hasConnectivity) else cm.reportBadNetwork(network)
 
