@@ -1,10 +1,12 @@
 package tk.mygod.portal.helper.nju
 
-import android.content.SharedPreferences
+import android.content.{Intent, SharedPreferences}
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
+import android.provider.Settings
 import android.support.v14.preference.SwitchPreference
 import android.support.v4.app.ActivityOptionsCompat
+import android.support.v7.app.AlertDialog
 import android.support.v7.preference.Preference
 import android.util.Log
 import be.mygod.app.CircularRevealActivity
@@ -88,7 +90,15 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
 
   override def onResume() {
     super.onResume()
-    if (app.boundConnectionsAvailable && NetworkMonitor.instance != null) NetworkMonitor.instance.initBoundConnections()
+    if (app.boundConnectionsAvailable) {
+      if (NetworkMonitor.instance != null) NetworkMonitor.instance.initBoundConnections()
+    } else new AlertDialog.Builder(getActivity)
+      .setTitle(R.string.bound_connections_title)
+      .setPositiveButton(android.R.string.ok, null)
+      .setOnDismissListener(_ => startActivity(
+        new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).setData("package:" + getActivity.getPackageName)))
+      .setMessage(R.string.bound_connections_message)
+      .create().show()
   }
 
   override def onDestroy() {
