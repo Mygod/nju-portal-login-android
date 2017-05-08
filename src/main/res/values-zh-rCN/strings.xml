@@ -89,6 +89,7 @@
     <string name="bound_connections_title">需要权限使用绑定连接</string>
     <string name="bound_connections_message">绑定连接通过强制流量通过某连接来实现打开移动数据时也能登录。</string>
     <string name="coming_soon">即将推出……</string>
+    <string name="date_format_milliseconds">yyyy-M-d H:mm:ss.SSS</string>
 
     <plurals name="bytes">
         <item quantity="other">字节</item>

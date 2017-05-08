@@ -1,5 +1,7 @@
 package tk.mygod.portal.helper.nju
 
+import java.util.Locale
+
 import android.content.{Intent, SharedPreferences}
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
@@ -109,21 +111,23 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
 
   def userInfoUpdated(info: JSONObject) {
     val name = new DualFormatter()
-    val activity = new DualFormatter()
+    var activityStartTimeShort: Long = -1
+    var activityStartTimeLong: Long = -1
     for (key <- info.keys) {
       val preference = findPreference("status." + key)
       if (preference == null) key match {
         case "fullname" => name.value1 = info.getString(key)
         case "username" => name.value2 = info.getString(key)
-        case BalanceManager.KEY_ACTIVITY_START_TIME =>
-          activity.value1 = PortalManager.parseTimeString(info.getLong(key))
-        case "portal_acctsessionid" => activity.value2 = info.getString(key)
+        case "acctstarttime" => activityStartTimeShort = info.getLong(key)
         case "domain" => info.getString(key) match {
           case "" =>
           case value => Log.e(TAG, "Unknown domain: " + value)
         }
         case _ => Log.e(TAG, "Unknown key in user_info: " + key)
       } else preference.setSummary(key match {
+        case BalanceManager.KEY_ACTIVITY_START_TIME =>
+          activityStartTimeLong = info.getString(key).toLong
+          PortalManager.parseTimeString(activityStartTimeLong)
         case BalanceManager.KEY_BALANCE => BalanceManager.formatCurrency(info.getLong(key))
         case "useripv4" => PortalManager.parseIpv4(info.getInt(key))
         case "portal_server_ip" => PortalManager.parseIpv4(info.getInt(key))
@@ -134,7 +138,9 @@ final class SettingsFragment extends PreferenceFragmentPlus with OnSharedPrefere
       })
     }
     findPreference("status.name").setSummary(name.toString)
-    findPreference("status.activity").setSummary(activity.toString)
+    if (activityStartTimeShort != activityStartTimeLong / 10000)
+      Log.w(TAG, "acctstarttime (%d) != portal_acctsessionid (%d) / 10000"
+        .formatLocal(Locale.ENGLISH, activityStartTimeShort, activityStartTimeLong))
   }
 
   private def displayIpInfo(preference: Preference) = {

@@ -41,7 +41,7 @@ object BalanceManager {
 
   private final val ACTION_MUTE_MONTH = "tk.mygod.portal.helper.nju.BalanceManager.MUTE_MONTH"
   private final val ACTION_MUTE_FOREVER = "tk.mygod.portal.helper.nju.BalanceManager.MUTE_FOREVER"
-  final val KEY_ACTIVITY_START_TIME = "acctstarttime"
+  final val KEY_ACTIVITY_START_TIME = "portal_acctsessionid"
   final val KEY_BALANCE = "balance"
   final val KEY_SERVICE_ID = "service_id"
   final val KEY_USAGE = "total_refer_ipv4"
@@ -124,17 +124,18 @@ object BalanceManager {
         if (balance < usage.monthChargeLimit) {
           var length: String = null
           def prepend(s: String) = if (length == null) length = s else length = s + ' ' + length
-          var time = info.getLong(KEY_ACTIVITY_START_TIME) +  // total remaining seconds
+          var time = info.getString(KEY_ACTIVITY_START_TIME).toLong * .0001 + // total remaining seconds
             180 * usage.remainingTime(balance) - TimeUnit.MILLISECONDS.toSeconds(new Date().getTime)
           if (time > 0) {
-            val sec = (time % 60).toInt
+            val sec = time % 60
             time /= 60
-            if (sec != 0) prepend(sec + " " + app.getResources.getQuantityString(R.plurals.seconds, sec))
+            if (sec != 0) prepend(sec + " " + app.getResources.getQuantityString(R.plurals.seconds,
+              if (Math.abs(sec - 1) < 1e-4) 1 else 0))  // TODO: workaround for English, Chinese only
             val min = (time % 60).toInt
             time /= 60
             if (min != 0) prepend(min + " " + app.getResources.getQuantityString(R.plurals.minutes, min))
             val hr = (time % 24).toInt
-            val days = time / 24
+            val days = (time / 24).toInt
             if (hr != 0) prepend(hr + " " + app.getResources.getQuantityString(R.plurals.hours, hr))
             if (days != 0) prepend(days + " " + app.getResources.getQuantityString(R.plurals.days, quantityToInt(days)))
             pushNotification(balance, app.getString(R.string.alert_balance_insufficient_later, length))

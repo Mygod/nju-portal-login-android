@@ -3,9 +3,8 @@ package tk.mygod.portal.helper.nju
 import java.io.IOException
 import java.net._
 import java.security.MessageDigest
-import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.concurrent.TimeUnit
 
 import android.app.Notification
 import android.content.Intent
@@ -116,7 +115,7 @@ object PortalManager {
   }
 
   def parseTimeString(value: Long): String =
-    DateFormat.getDateTimeInstance.format(new Date(TimeUnit.SECONDS.toMillis(value)))
+    new SimpleDateFormat(app.getString(R.string.date_format_milliseconds)).format(new Date(value / 10))
   def parseIpv4(bytes: Int): String = InetAddress.getByAddress(Array[Byte]((bytes >>> 24 & 0xFF).toByte,
     (bytes >>> 16 & 0xFF).toByte, (bytes >>> 8 & 0xFF).toByte, (bytes & 0xFF).toByte)).getHostAddress
 
@@ -192,7 +191,7 @@ object PortalManager {
             summary.append(mac)
             summary.setSpan(new URLSpan(app.getMacLookup(mac)), from, summary.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
           case "%2$s" => summary.append(obj.optString("area_name", "未知区域"))
-          case "%3$s" => summary.append(parseTimeString(obj.getLong(BalanceManager.KEY_ACTIVITY_START_TIME)))
+          case "%3$s" => summary.append(parseTimeString(obj.getString(BalanceManager.KEY_ACTIVITY_START_TIME).toLong))
         }
         i = rawSummary.indexOf('%', start)
       }

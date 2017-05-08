@@ -32,7 +32,7 @@
                     android:title="@string/settings_status_service_name"/>
         <Preference android:key="status.area_name"
                     android:title="@string/settings_status_area_name"/>
-        <Preference android:key="status.activity"
+        <Preference android:key="status.portal_acctsessionid"
                     android:title="@string/settings_status_acctstarttime"/>
         <Preference android:key="status.balance"
                     android:title="@string/settings_status_balance"/>

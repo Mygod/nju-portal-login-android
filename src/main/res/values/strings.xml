@@ -96,6 +96,7 @@
     <string name="bound_connections_message">Bound connections will enforce the connections to go on a specific
         network so that you can login with cellular data on.</string>
     <string name="coming_soon">Coming soon…</string>
+    <string name="date_format_milliseconds">MMM d, yyyy h:mm:ss.SSS a</string>
 
     <plurals name="bytes">
         <item quantity="one">Byte</item>
