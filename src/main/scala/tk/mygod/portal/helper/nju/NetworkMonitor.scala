@@ -88,7 +88,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
         app.serviceStatus > 0) PortalManager.testConnection(n) match {
         case 0 =>
           app.reportNetworkConnectivity(n, hasConnectivity = true)
-          NoticeManager.pushUnreadNotices // push notices only
+          NoticeManager.pushUnreadNotices() // push notices only
           return false
         case 2 => return true
         case _ => counter.retry()
@@ -114,14 +114,14 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
                 .putExtra(OnlineEntryActivity.EXTRA_NETWORK_ID, id)
                 .putExtra(OnlineEntryActivity.EXTRA_NOTIFICATION_ID, nid))
             })
-            NoticeManager.pushUnreadNotices
+            NoticeManager.pushUnreadNotices()
           }
         case 2 =>
           doLogin(n)
-          NoticeManager.pushUnreadNotices
+          NoticeManager.pushUnreadNotices()
         case 3 => if (doTestConnection(n)) {
           doLogin(n)
-          NoticeManager.pushUnreadNotices
+          NoticeManager.pushUnreadNotices()
         }
         case 4 => if (doTestConnection(n)) {
           PortalManager.queryOnline(n).headOption match {
@@ -135,7 +135,7 @@ final class NetworkMonitor extends ServicePlus with OnSharedPreferenceChangeList
                 .putExtra(OnlineEntryActivity.EXTRA_NETWORK_ID, id)
                 .putExtra(OnlineEntryActivity.EXTRA_NOTIFICATION_ID, nid)))
           }
-          NoticeManager.pushUnreadNotices
+          NoticeManager.pushUnreadNotices()
         }
         case _ =>
       } finally busy.synchronized(busy.remove(n.hashCode))
