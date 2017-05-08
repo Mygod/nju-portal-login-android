@@ -248,7 +248,8 @@ object PortalManager {
     if (network == null) throw new NetworkUnavailableException
     Log.d(TAG, "Logging in...")
     try {
-      var conn = n.openConnection(new URL(HTTP, DOMAIN, "/portal_io/getchallenge")).asInstanceOf[HttpURLConnection]
+      var conn = network.openConnection(new URL(HTTP, DOMAIN, "/portal_io/getchallenge"))
+        .asInstanceOf[HttpURLConnection]
       setup(conn)
       val (code, json) = parseResult(conn)
       if (code != 0) return -1  // TODO: what to do after getchallenge failed?
@@ -262,7 +263,8 @@ object PortalManager {
       val digest = MessageDigest.getInstance("MD5")
       digest.update(passphraseRaw.toArray)
       digest.digest(passphrase, 1, 16)
-      conn = n.openConnection(new URL(HTTP, DOMAIN, "/portal_io/login")).asInstanceOf[HttpURLConnection]
+      conn = network.openConnection(new URL(HTTP, DOMAIN, "/portal_io/login"))
+        .asInstanceOf[HttpURLConnection]
       setup(conn, (AUTH_BASE + "&challenge=%s").format(username, passphrase.map("%02X".format(_)).mkString, challenge))
       val (result, obj) = parseResult(conn, login = true)
       result match {
